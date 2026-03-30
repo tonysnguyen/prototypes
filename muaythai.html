@@ -302,7 +302,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="top-logo">NAK<span>MUAY</span></div>
     <nav class="top-nav-links">
       <button class="tnl" data-page="home" onclick="go('home')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 5v14M18 5v14"/><path d="M3 7h3v10H3zM18 7h3v10h-3z"/><path d="M6 12h12"/></svg>Gains
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M8 17.5c-.8-.3-1.5-.8-2-1.5L4.5 13C4 12 4 10.8 4.5 10L7 6c.5-.8 1.2-1.3 2-1.4L10 4.5C11 4.2 12 4.5 12.7 5.2L13 5.5"/><path d="M8 17.5c.6.2 1.3.3 2 .2l5-.7c1.5-.2 2.7-1.3 3-2.8l.5-2.5c.2-1-.1-2-.8-2.7L15 7c-.7-.7-1.7-1-2.6-.8L13 5.5"/><path d="M13 5.5c.5-.8 1.5-1 2.2-.5l1 .7"/><path d="M5 13.5h6"/><path d="M6.5 17.5v2.5c0 .6.4 1 1 1h4c.6 0 1-.4 1-1V17"/></svg>Gains
       </button>
       <button class="tnl" data-page="calendar" onclick="go('calendar')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendar
@@ -332,13 +332,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div class="stats" id="home-stats"></div>
       <div class="sec-label">Quick Log</div>
       <div class="quick-row">
-        <div class="quick-btn" onclick="openWorkoutModal()"><span class="qb-icon">🏋️</span><div><div class="qb-label">Workout</div><div class="qb-sub">Log a session</div></div></div>
+        <div class="quick-btn" onclick="openWorkoutModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">Workout</div><div class="qb-sub">Log a session</div></div></div>
         <div class="quick-btn" onclick="openSessionModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">MT Session</div><div class="qb-sub">Log training</div></div></div>
       </div>
-      <div class="sec-label" style="margin-top:18px">Recent</div>
-      <div id="home-recent"></div>
-      <div class="sec-label">Favorite Cues</div>
-      <div id="home-cues"></div>
+      <div id="home-chart"></div>
     </div>
 
     <!-- CALENDAR -->
@@ -506,7 +503,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <!-- BOTTOM NAV mobile -->
   <nav id="bottom-nav">
     <button class="nb" data-page="home" onclick="go('home')">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 5v14M18 5v14"/><path d="M3 7h3v10H3zM18 7h3v10h-3z"/><path d="M6 12h12"/></svg>Gains
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M8 17.5c-.8-.3-1.5-.8-2-1.5L4.5 13C4 12 4 10.8 4.5 10L7 6c.5-.8 1.2-1.3 2-1.4L10 4.5C11 4.2 12 4.5 12.7 5.2L13 5.5"/><path d="M8 17.5c.6.2 1.3.3 2 .2l5-.7c1.5-.2 2.7-1.3 3-2.8l.5-2.5c.2-1-.1-2-.8-2.7L15 7c-.7-.7-1.7-1-2.6-.8L13 5.5"/><path d="M13 5.5c.5-.8 1.5-1 2.2-.5l1 .7"/><path d="M5 13.5h6"/><path d="M6.5 17.5v2.5c0 .6.4 1 1 1h4c.6 0 1-.4 1-1V17"/></svg>Gains
     </button>
     <button class="nb" data-page="calendar" onclick="go('calendar')">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Cal
@@ -798,7 +795,7 @@ function renderHome(){
   const h=now.getHours();
   document.getElementById('home-greeting').textContent=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
   document.getElementById('home-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  const W=load(K.wo),S=load(K.se),N=load(K.no);
+  const W=load(K.wo),S=load(K.se);
   const wkS=new Date();wkS.setDate(now.getDate()-now.getDay());wkS.setHours(0,0,0,0);
   const wW=W.filter(w=>new Date(w.date+'T00:00:00')>=wkS).length;
   const wS=S.filter(s=>new Date(s.date+'T00:00:00')>=wkS).length;
@@ -807,22 +804,102 @@ function renderHome(){
     <div class="stat"><div class="stat-n" style="color:var(--gold)">${wS}</div><div class="stat-l">MT Sessions</div></div>
     <div class="stat"><div class="stat-n" style="color:var(--text2)">${W.length+S.length}</div><div class="stat-l">All Time</div></div>
   `;
-  const recent=[
-    ...W.slice(0,2).map(w=>({type:'Workout',title:w.title,meta:w.type+' · '+ago(w.date),cl:'cl-accent',id:w.id,store:'wo'})),
-    ...S.slice(0,2).map(s=>({type:'Session',title:s.type,meta:ago(s.date)+(s.worked?' · '+s.worked.slice(0,36)+'…':''),cl:'cl-gold',id:s.id,store:'se'}))
-  ].slice(0,4);
-  document.getElementById('home-recent').innerHTML=recent.length?recent.map(r=>`
-    <div class="card card-sm ${r.cl}">
-      <div class="card-label">${r.type}</div>
-      <div class="card-title" style="font-size:14px">${esc(r.title)}</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:3px;font-family:var(--font-mono)">${esc(r.meta)}</div>
-    </div>`).join('')
-    :`<div class="empty"><div class="empty-icon">📭</div><p>Nothing logged yet.</p></div>`;
-  const favCues=N.filter(n=>n.fav&&n.cue);
-  document.getElementById('home-cues').innerHTML=favCues.length?favCues.slice(0,3).map(n=>`
-    <div class="cue-card">"${esc(n.cue)}"<div style="font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--font-mono);font-style:normal">${esc(n.title)}</div></div>
-  `).join(''):`<div style="color:var(--text3);font-size:13px;padding:8px 0">Star notes with cues to surface them here.</div>`;
+  renderGainsChart(W, S);
 }
+
+/* ── GAINS CHART ── */
+function renderGainsChart(W, S){
+  const el = document.getElementById('home-chart');
+  if(!el) return;
+
+  const now = new Date();
+
+  // Week start = Monday
+  function weekStart(d){
+    const w = new Date(d);
+    w.setDate(d.getDate() - ((d.getDay()+6)%7));
+    w.setHours(0,0,0,0);
+    return w;
+  }
+
+  // Last 8 weeks of data
+  const thisWkStart = weekStart(now);
+  const weeks = [];
+  for(let i=7; i>=0; i--){
+    const ws = new Date(thisWkStart);
+    ws.setDate(thisWkStart.getDate() - i*7);
+    const we = new Date(ws); we.setDate(ws.getDate()+7);
+    const wo = W.filter(x=>{ const d=new Date(x.date+'T00:00:00'); return d>=ws&&d<we; }).length;
+    const mt = S.filter(x=>{ const d=new Date(x.date+'T00:00:00'); return d>=ws&&d<we; }).length;
+    const label = i===0 ? 'Now' : i===1 ? '-1w' :
+      ws.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    weeks.push({label, wo, mt, total:wo+mt});
+  }
+  const maxWeek = Math.max(...weeks.map(w=>w.total), 1);
+
+  // Last 12 months
+  const months = [];
+  for(let i=11; i>=0; i--){
+    const ms = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const me = new Date(now.getFullYear(), now.getMonth()-i+1, 1);
+    const wo = W.filter(x=>{ const d=new Date(x.date+'T00:00:00'); return d>=ms&&d<me; }).length;
+    const mt = S.filter(x=>{ const d=new Date(x.date+'T00:00:00'); return d>=ms&&d<me; }).length;
+    months.push({label: ms.toLocaleDateString('en-US',{month:'short'}), wo, mt, total:wo+mt});
+  }
+  const maxMonth = Math.max(...months.map(m=>m.total), 1);
+
+  // Day streak
+  const actDates = new Set([...W.map(x=>x.date), ...S.map(x=>x.date)]);
+  let streak = 0;
+  for(let i=0; i<365; i++){
+    const d = new Date(now); d.setDate(now.getDate()-i);
+    const ds = d.toISOString().split('T')[0];
+    if(actDates.has(ds)) streak++;
+    else if(i>0) break;
+  }
+
+  const totalWo = W.length, totalMt = S.length;
+
+  // Build stacked bar columns
+  function barCols(data, maxVal, h){
+    return data.map(function(d){
+      const woH = maxVal>0 ? Math.round((d.wo/maxVal)*h) : 0;
+      const mtH = maxVal>0 ? Math.round((d.mt/maxVal)*h) : 0;
+      const woDiv = d.wo>0 ? '<div style="height:'+woH+'px;background:var(--accent);border-radius:3px 3px 0 0"></div>' : '';
+      const mtDiv = d.mt>0 ? '<div style="height:'+mtH+'px;background:var(--gold);border-radius:'+(d.wo?'0':'3px 3px 0 0')+'"></div>' : '';
+      const emptyDiv = d.total===0 ? '<div style="height:3px;background:var(--border2);border-radius:3px;margin-top:auto"></div>' : '';
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:0">'
+        + '<div style="display:flex;flex-direction:column;justify-content:flex-end;height:'+h+'px;gap:1px;width:100%;max-width:26px">'
+        + woDiv + mtDiv + emptyDiv
+        + '</div>'
+        + '<div style="font-size:9px;font-family:var(--font-mono);color:var(--text3);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;max-width:30px">'+d.label+'</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  const legend = '<div style="display:flex;gap:16px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">'
+    + '<span style="display:flex;align-items:center;gap:5px;font-size:11px;font-family:var(--font-mono);color:var(--text3)"><span style="width:8px;height:8px;border-radius:2px;background:var(--accent);display:inline-block"></span>Workout</span>'
+    + '<span style="display:flex;align-items:center;gap:5px;font-size:11px;font-family:var(--font-mono);color:var(--text3)"><span style="width:8px;height:8px;border-radius:2px;background:var(--gold);display:inline-block"></span>MT Session</span>'
+    + '</div>';
+
+  el.innerHTML =
+    '<div class="sec-label" style="margin-top:4px">All Time</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px">'
+    + '<div class="stat" style="border-color:rgba(232,83,58,.25)"><div class="stat-n" style="color:var(--accent)">'+totalWo+'</div><div class="stat-l">Workouts</div></div>'
+    + '<div class="stat" style="border-color:rgba(201,168,76,.25)"><div class="stat-n" style="color:var(--gold)">'+totalMt+'</div><div class="stat-l">MT Sessions</div></div>'
+    + '<div class="stat" style="border-color:rgba(46,196,182,.25)"><div class="stat-n" style="color:var(--teal)">'+streak+'</div><div class="stat-l">Day Streak</div></div>'
+    + '</div>'
+    + '<div class="sec-label">Weekly Activity</div>'
+    + '<div class="card" style="padding:16px 12px 12px">'
+    + '<div style="display:flex;gap:3px;align-items:flex-end">'+barCols(weeks, maxWeek, 72)+'</div>'
+    + legend
+    + '</div>'
+    + '<div class="sec-label" style="margin-top:22px">Monthly Activity</div>'
+    + '<div class="card" style="padding:16px 12px 12px">'
+    + '<div style="display:flex;gap:3px;align-items:flex-end">'+barCols(months, maxMonth, 80)+'</div>'
+    + '</div>';
+}
+
 
 /* ──────────────────────────────────
    CALENDAR

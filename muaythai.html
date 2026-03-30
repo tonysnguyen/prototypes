@@ -2,645 +2,1115 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Nak Muay — Training Vault</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nak Muay</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Oswald:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0e0f11;
-  --bg2: #141518;
-  --bg3: #1c1d22;
-  --card: #1a1b20;
-  --card2: #22232a;
-  --border: #2a2b33;
-  --border2: #33343e;
-  --accent: #e8533a;
-  --accent2: #ff7055;
-  --gold: #c9a84c;
-  --gold2: #f0c96e;
-  --teal: #3ab8c8;
-  --text: #e8e9ef;
-  --text2: #9a9baa;
-  --text3: #5a5b6a;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --nav-h: 64px;
-  --font-display: 'Syne', sans-serif;
-  --font-mono: 'DM Mono', monospace;
-  --font-body: 'DM Sans', sans-serif;
+:root{
+  --bg:#0c0d10;--bg2:#141519;--bg3:#1b1c22;
+  --card:#181920;--card2:#20212a;
+  --border:#252630;--border2:#30313e;
+  --accent:#e8533a;--accent2:#ff6b50;
+  --teal:#2ec4b6;--teal2:#3dddd0;
+  --gold:#c9a84c;--gold2:#e8c96a;
+  --text:#e6e8ef;--text2:#8a8d9f;--text3:#4a4d5e;
+  --green:#3ab87a;
+  --radius:14px;--radius-sm:9px;--radius-xs:6px;
+  --nav-h:64px;
+  --font:'DM Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --font-disp:'Oswald',sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body)}
-#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;position:relative}
-.page{display:none;flex:1;overflow-y:auto;padding:16px 16px calc(var(--nav-h) + 20px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;overflow:hidden}
+#shell{display:flex;flex-direction:column;height:100%;max-width:520px;margin:0 auto;position:relative}
+#pages{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.page{display:none;padding:24px 18px 32px;min-height:100%;animation:fadeIn .2s ease}
 .page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg2);border-top:1px solid var(--border);display:flex;height:var(--nav-h);z-index:100}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text3);font-size:9px;font-family:var(--font-mono);letter-spacing:.05em;text-transform:uppercase;border:none;background:none;transition:color .2s;padding:8px 4px}
-.nav-btn svg{width:20px;height:20px;transition:transform .2s}
-.nav-btn.active{color:var(--accent)}
-.nav-btn.active svg{transform:scale(1.1)}
-.nav-btn:hover{color:var(--text2)}
+/* ── BOTTOM NAV ── */
+#bottom-nav{height:var(--nav-h);background:rgba(20,21,25,.97);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);backdrop-filter:blur(16px);flex-shrink:0}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text3);border:none;background:none;font-size:9px;font-family:var(--font-mono);letter-spacing:.06em;text-transform:uppercase;transition:color .2s;padding:6px 4px}
+.nb svg{width:22px;height:22px;stroke-width:1.7;transition:all .2s}
+.nb.active{color:var(--accent)}
+.nb.active svg{filter:drop-shadow(0 0 5px rgba(232,83,58,.4))}
 
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-top:8px}
-.page-title{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.02em}
-.page-subtitle{font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-top:2px}
-.header-actions{display:flex;gap:8px}
+/* ── TOP NAV (desktop) ── */
+#top-nav{display:none;background:rgba(20,21,25,.98);border-bottom:1px solid var(--border);padding:0 28px;height:58px;align-items:center;justify-content:space-between;backdrop-filter:blur(16px);flex-shrink:0}
+.top-logo{font-family:var(--font-disp);font-size:17px;letter-spacing:2px;color:var(--text2);font-weight:400}
+.top-logo span{color:var(--accent)}
+.top-nav-links{display:flex;gap:2px}
+.tnl{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-xs);font-size:13px;font-weight:500;cursor:pointer;color:var(--text3);transition:all .2s;border:none;background:none}
+.tnl svg{width:16px;height:16px;stroke-width:1.8}
+.tnl:hover{color:var(--text);background:var(--card2)}
+.tnl.active{color:var(--accent);background:rgba(232,83,58,.1)}
 
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:border-color .2s}
+@media(min-width:700px){
+  #top-nav{display:flex}
+  #bottom-nav{display:none}
+  #shell{max-width:100%;flex-direction:column}
+  #pages{display:flex;flex:1;overflow:hidden}
+  .page{flex:1;overflow-y:auto;min-height:auto;max-width:560px;margin:0 auto}
+  #page-timer{max-width:100%;padding:0}
+  #page-timer.active{display:flex;flex-direction:row}
+}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;padding-top:4px}
+.ph-title{font-family:var(--font-disp);font-size:26px;font-weight:400;letter-spacing:.5px;line-height:1}
+.ph-sub{font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:5px;letter-spacing:.04em}
+.ph-actions{display:flex;gap:8px;align-items:center}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;transition:border-color .2s}
 .card:hover{border-color:var(--border2)}
-.card-accent{border-left:3px solid var(--accent)}
-.card-gold{border-left:3px solid var(--gold)}
-.card-teal{border-left:3px solid var(--teal)}
-.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
-.card-title{font-family:var(--font-display);font-weight:700;font-size:15px;line-height:1.3}
-.card-meta{font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:4px}
-.card-body{font-size:13px;color:var(--text2);line-height:1.6}
-.card-actions{display:flex;gap:8px;margin-top:12px}
+.card-sm{padding:14px 16px}
+.cl-accent{border-left:2px solid var(--accent)}
+.cl-teal{border-left:2px solid var(--teal)}
+.cl-gold{border-left:2px solid var(--gold)}
+.card-label{font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.card-title{font-size:15px;font-weight:600;line-height:1.3;margin-bottom:4px}
+.card-body{font-size:13.5px;color:var(--text2);line-height:1.65}
+.card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.sec-label{font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin:24px 0 10px;display:flex;align-items:center;gap:8px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
 
-.tag{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:10px;font-family:var(--font-mono);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
-.tag-default{background:var(--bg3);color:var(--text3)}
-.tag-accent{background:rgba(232,83,58,.15);color:var(--accent2)}
-.tag-gold{background:rgba(201,168,76,.15);color:var(--gold2)}
-.tag-teal{background:rgba(58,184,200,.15);color:var(--teal)}
-
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;border:1px solid transparent}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent2)}
-.btn-secondary{background:var(--card2);color:var(--text);border-color:var(--border)}
-.btn-secondary:hover{border-color:var(--border2)}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent2);border-color:var(--accent2)}
 .btn-ghost{background:none;color:var(--text2);border-color:var(--border)}
 .btn-ghost:hover{color:var(--text);border-color:var(--border2)}
-.btn-sm{padding:6px 12px;font-size:12px}
-.btn-icon{padding:8px;border-radius:var(--radius-sm);background:var(--card2);border:1px solid var(--border);cursor:pointer;color:var(--text2);transition:all .2s;display:inline-flex;align-items:center}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-icon{padding:8px;border-radius:var(--radius-xs);background:var(--card2);border:1px solid var(--border);cursor:pointer;color:var(--text2);transition:all .15s;display:inline-flex;align-items:center;justify-content:center}
 .btn-icon:hover{color:var(--text);border-color:var(--border2)}
+.btn-icon:active{transform:scale(.95)}
+.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10px;font-family:var(--font-mono);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.tg{background:var(--bg3);color:var(--text3)}
+.ta{background:rgba(232,83,58,.12);color:var(--accent2)}
+.tt{background:rgba(46,196,182,.12);color:var(--teal2)}
+.tgo{background:rgba(201,168,76,.12);color:var(--gold2)}
+.star{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;transition:all .2s;padding:2px}
+.star.on{color:var(--gold)}
+.star:hover{color:var(--gold2);transform:scale(1.2)}
 
-.fav-btn{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);transition:color .2s;padding:2px;line-height:1}
-.fav-btn.active{color:var(--gold)}
-.fav-btn:hover{color:var(--gold2)}
-
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;backdrop-filter:blur(4px);align-items:flex-end}
-.modal-overlay.open{display:flex}
-.modal{background:var(--bg2);border-top:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:480px;margin:0 auto;padding:24px;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease}
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;backdrop-filter:blur(6px);align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border-top:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:520px;padding:28px 22px 40px;max-height:88vh;overflow-y:auto;animation:slideUp .28s cubic-bezier(.4,0,.2,1)}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-title{font-family:var(--font-display);font-weight:800;font-size:20px;margin-bottom:20px}
-.form-group{margin-bottom:14px}
-.form-label{display:block;font-size:11px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.form-input,.form-select,.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px 12px;transition:border-color .2s}
-.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--accent)}
-.form-textarea{resize:vertical;min-height:80px;line-height:1.5}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.form-actions{display:flex;gap:10px;margin-top:20px}
-.form-actions .btn{flex:1;justify-content:center}
+.modal-title{font-family:var(--font-disp);font-size:22px;font-weight:400;margin-bottom:22px;letter-spacing:.3px}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 20px}
+.fg{margin-bottom:14px}
+.fl{font-size:11px;font-family:var(--font-mono);color:var(--text2);display:block;margin-bottom:5px;letter-spacing:.03em}
+.fi,.fs,.ft{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-xs);padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .2s}
+.fi:focus,.fs:focus,.ft:focus{border-color:var(--accent)}
+.ft{min-height:80px;resize:vertical;line-height:1.6}
+.fs option{background:var(--bg3)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.frow{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
 
-.search-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px}
-.search-bar input{flex:1;background:none;border:none;color:var(--text);font-family:var(--font-body);font-size:14px}
-.search-bar input:focus{outline:none}
-.search-bar input::placeholder{color:var(--text3)}
-.search-bar svg{color:var(--text3);width:16px;height:16px;flex-shrink:0}
-
-.filter-pills{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
-.filter-pills::-webkit-scrollbar{display:none}
-.pill{flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:11px;font-family:var(--font-mono);cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text3);transition:all .2s;white-space:nowrap}
-.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.pill:hover:not(.active){color:var(--text2);border-color:var(--border2)}
-
-.dash-greeting{margin-bottom:24px}
-.dash-greeting h1{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
-.dash-greeting p{color:var(--text3);font-size:12px;font-family:var(--font-mono);margin-top:6px}
-.accent-word{color:var(--accent)}
-
-.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
-.qa-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .2s;text-align:left;color:var(--text);font-family:var(--font-body)}
-.qa-btn:hover{border-color:var(--accent);background:var(--card2)}
-.qa-btn .qa-icon{font-size:20px;margin-bottom:6px;display:block}
-.qa-btn .qa-label{font-size:12px;font-weight:500;display:block}
-.qa-btn .qa-sub{font-size:10px;color:var(--text3);font-family:var(--font-mono);display:block;margin-top:2px}
-
-.section-label{font-size:10px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
-
-.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
-.stat-num{font-family:var(--font-display);font-size:24px;font-weight:800}
-.stat-label{font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
-
-.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
-.day-cell{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 2px;text-align:center;min-height:56px;font-size:9px;font-family:var(--font-mono)}
-.day-cell .day-date{color:var(--text2);font-size:12px;font-weight:500;margin-bottom:4px}
-.day-cell .day-dot{width:6px;height:6px;border-radius:50%;margin:2px auto}
-.day-cell.has-workout{border-color:var(--accent)}
-.day-cell.has-mt{border-color:var(--gold)}
-.day-cell.has-both{border-color:var(--teal)}
-.day-cell.today{background:var(--card2)}
-
-.empty-state{text-align:center;padding:40px 20px}
-.empty-state .empty-icon{font-size:36px;margin-bottom:12px}
-.empty-state p{color:var(--text3);font-size:13px}
-
-.detail-grid{display:grid;gap:8px;margin-top:10px}
-.detail-item{display:flex;gap:8px}
-.detail-key{font-size:11px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;min-width:80px;padding-top:1px;flex-shrink:0}
-.detail-val{font-size:13px;color:var(--text2)}
-
-.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;align-items:center;justify-content:center;padding:24px}
-.confirm-overlay.open{display:flex}
-.confirm-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:360px}
-.confirm-box h3{font-family:var(--font-display);font-weight:700;font-size:18px;margin-bottom:8px}
+/* ── CONFIRM / TOAST ── */
+.confirm{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:20px}
+.confirm.open{display:flex}
+.confirm-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:300px;width:100%;text-align:center}
+.confirm-box h3{font-size:16px;margin-bottom:8px}
 .confirm-box p{font-size:13px;color:var(--text2);margin-bottom:20px}
-.confirm-actions{display:flex;gap:10px}
-.btn-danger{background:#6b1414;color:#ff6b6b;border:1px solid #8a1c1c}
-.btn-danger:hover{background:#8a1c1c}
-
-.toast{position:fixed;bottom:calc(var(--nav-h) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);z-index:400;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;bottom:calc(var(--nav-h)+14px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-xs);padding:10px 18px;font-size:13px;font-weight:500;color:var(--text);z-index:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(min-width:700px){.toast{bottom:20px}}
 
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-@media(min-width:480px){#app{border-left:1px solid var(--border);border-right:1px solid var(--border)}}
+/* ── MISC ── */
+.empty{text-align:center;padding:48px 24px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:12px;opacity:.5}
+.empty p{font-size:13.5px;line-height:1.6}
+.search-wrap{position:relative;margin-bottom:16px}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--text3);pointer-events:none}
+.si{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px 10px 34px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .2s}
+.si:focus{border-color:var(--border2)}
+.si::placeholder{color:var(--text3)}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.pill{padding:5px 12px;border-radius:20px;font-size:11px;font-family:var(--font-mono);cursor:pointer;border:1px solid var(--border);color:var(--text3);background:none;transition:all .15s}
+.pill:hover{color:var(--text);border-color:var(--border2)}
+.pill.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.stat-n{font-family:var(--font-disp);font-size:32px;font-weight:400;line-height:1}
+.stat-l{font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+
+/* ── CALENDAR ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-hdr{text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;padding:4px 0}
+.cal-day{aspect-ratio:1;border-radius:8px;background:var(--card);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:border-color .15s}
+.cal-day:hover{border-color:var(--border2)}
+.cal-day.wo{background:rgba(232,83,58,.1);border-color:rgba(232,83,58,.3)}
+.cal-day.mt{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.3)}
+.cal-day.bo{background:rgba(46,196,182,.1);border-color:rgba(46,196,182,.3)}
+.cal-day.today{outline:2px solid var(--accent);outline-offset:1px}
+.cal-day.empty-day{background:transparent;border-color:transparent;pointer-events:none}
+.cal-dn{font-size:12px;font-weight:600;color:var(--text2)}
+.cal-dot{width:4px;height:4px;border-radius:50%}
+
+/* ── QUICK BTNS ── */
+.quick-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.quick-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s;color:var(--text)}
+.quick-btn:hover{border-color:var(--border2);background:var(--card2)}
+.quick-btn:active{transform:scale(.98)}
+.qb-icon{font-size:22px;line-height:1}
+.qb-label{font-size:13px;font-weight:500;line-height:1.2}
+.qb-sub{font-size:11px;color:var(--text3);margin-top:1px}
+
+/* ════════════
+   TIMER
+   ════════════ */
+#page-timer{background:var(--bg);overflow:hidden}
+
+/* Mobile full layout */
+#t-mobile{display:flex;flex-direction:column;align-items:center;padding:28px 20px 32px;height:100%;position:relative}
+
+/* Desktop split */
+#t-desk{display:none}
+@media(min-width:700px){
+  #t-mobile{display:none}
+  #t-desk{display:flex;width:100%;height:100%}
+  #t-desk-settings{width:280px;flex-shrink:0;border-right:1px solid var(--border);padding:32px 24px;overflow-y:auto;background:var(--bg2)}
+  #t-desk-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden}
+}
+
+.t-mode-row{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.tmode{padding:6px 16px;border-radius:20px;font-size:12px;font-family:var(--font-mono);cursor:pointer;border:1px solid var(--border);color:var(--text3);background:none;transition:all .2s;letter-spacing:.04em}
+.tmode.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Flash */
+#t-flash{position:fixed;inset:0;z-index:200;pointer-events:none;opacity:0;transition:opacity .15s}
+.fw{background:rgba(232,83,58,.18)}
+.fr2{background:rgba(46,196,182,.15)}
+.fp{background:rgba(201,168,76,.12)}
+
+/* Big display */
+.t-display{text-align:center;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 0;width:100%}
+.t-state-lbl{font-size:11px;font-family:var(--font-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;height:16px;transition:color .3s}
+.t-clock{font-family:var(--font-disp);font-size:clamp(80px,24vw,140px);font-weight:300;letter-spacing:-2px;line-height:1;color:var(--text);transition:color .4s;animation:t-idle 3s ease-in-out infinite}
+@keyframes t-idle{0%,100%{opacity:1}50%{opacity:.8}}
+.t-clock.running{animation:none}
+.t-clock.work{color:var(--accent);text-shadow:0 0 40px rgba(232,83,58,.3)}
+.t-clock.rest{color:var(--teal);text-shadow:0 0 40px rgba(46,196,182,.25)}
+.t-clock.prep{color:var(--gold);text-shadow:0 0 30px rgba(201,168,76,.25)}
+.t-round-lbl{font-size:14px;font-family:var(--font-mono);color:var(--text2);margin-top:14px;letter-spacing:.06em;min-height:20px}
+
+/* BG glow */
+.t-bg{position:absolute;inset:0;transition:background .5s ease;pointer-events:none;z-index:0;border-radius:inherit}
+
+/* Controls */
+.t-controls{display:flex;align-items:center;gap:16px;justify-content:center;width:100%;margin-bottom:28px;position:relative;z-index:1}
+.tc-start{width:80px;height:80px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:all .2s;box-shadow:0 4px 24px rgba(232,83,58,.35);flex-shrink:0}
+.tc-start:hover{background:var(--accent2);box-shadow:0 6px 32px rgba(232,83,58,.45);transform:scale(1.05)}
+.tc-start:active{transform:scale(.93)}
+.tc-start.go{background:var(--green);box-shadow:0 4px 24px rgba(58,184,122,.35)}
+.tc-start.go:hover{background:#4fd490}
+.tc-side{width:54px;height:54px;border-radius:50%;background:var(--card2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .15s;flex-shrink:0}
+.tc-side:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.tc-side:active{transform:scale(.93)}
+
+/* Settings panel */
+.t-settings{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;position:relative;z-index:1}
+.ts-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.ts-hdr-lbl{font-size:12px;font-family:var(--font-mono);color:var(--text2);letter-spacing:.05em}
+.ts-caret{color:var(--text3);font-size:16px;transition:transform .2s}
+.ts-caret.open{transform:rotate(180deg)}
+.ts-body{display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px}
+.ts-body.open{display:block}
+.ts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.ts-field label{font-size:11px;font-family:var(--font-mono);color:var(--text3);display:block;margin-bottom:4px;letter-spacing:.03em;text-transform:uppercase}
+.ts-field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-xs);padding:9px 10px;color:var(--text);font-family:var(--font-mono);font-size:16px;text-align:center;outline:none;transition:border-color .2s}
+.ts-field input:focus{border-color:var(--accent)}
+.ts-hint{font-size:11px;color:var(--text3);font-family:var(--font-mono);text-align:center;margin-top:10px}
+.snd-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.snd-lbl{font-size:12px;font-family:var(--font-mono);color:var(--text2)}
+.sw{width:40px;height:22px;background:var(--bg3);border:1px solid var(--border);border-radius:11px;cursor:pointer;position:relative;transition:background .2s}
+.sw.on{background:var(--teal)}
+.sw-k{width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s}
+.sw.on .sw-k{left:20px}
+
+/* Desktop settings inline */
+.t-desk-sec-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
+.t-desk-mode-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+
+/* note expand */
+.note-preview{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-full{display:none}
+.note-expanded .note-preview{display:none}
+.note-expanded .note-full{display:block}
+.expand-btn{font-size:12px;color:var(--text3);cursor:pointer;margin-top:6px;font-family:var(--font-mono)}
+.expand-btn:hover{color:var(--text2)}
+
+/* cue card */
+.cue-card{background:rgba(232,83,58,.06);border:1px solid rgba(232,83,58,.18);border-radius:var(--radius-sm);padding:14px 16px;font-style:italic;font-size:14px;color:var(--accent2);line-height:1.6;margin-bottom:8px}
+
+/* tips accordion */
+.tip-group{margin-bottom:10px}
+.tip-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .15s}
+.tip-hdr:hover{border-color:var(--border2)}
+.tip-hdr h3{font-size:14px;font-weight:500}
+.tip-caret{color:var(--text3);font-size:14px;transition:transform .2s;flex-shrink:0}
+.tip-caret.open{transform:rotate(180deg)}
+.tip-body{display:none;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);overflow:hidden}
+.tip-body.open{display:block}
+.tip-item{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.6}
+.tip-item:last-child{border-bottom:none}
+.tip-item strong{color:var(--text);display:block;margin-bottom:3px;font-size:13.5px}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 </style>
 </head>
 <body>
-<div id="app">
-<div class="page active" id="page-dashboard"></div>
-<div class="page" id="page-workouts"></div>
-<div class="page" id="page-muaythai"></div>
-<div class="page" id="page-drills"></div>
-<div class="page" id="page-sessions"></div>
-<div class="page" id="page-calendar"></div>
-<div class="page" id="page-planner"></div>
+<div id="shell">
 
-<nav>
-  <button class="nav-btn active" data-page="dashboard" onclick="navigate('dashboard')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    Dash
-  </button>
-  <button class="nav-btn" data-page="workouts" onclick="navigate('workouts')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="6" y1="9" x2="2" y2="9"/><line x1="22" y1="9" x2="18" y2="9"/></svg>
-    Workout
-  </button>
-  <button class="nav-btn" data-page="muaythai" onclick="navigate('muaythai')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-    MT Notes
-  </button>
-  <button class="nav-btn" data-page="drills" onclick="navigate('drills')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16"/></svg>
-    Drills
-  </button>
-  <button class="nav-btn" data-page="sessions" onclick="navigate('sessions')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    Sessions
-  </button>
-  <button class="nav-btn" data-page="calendar" onclick="navigate('calendar')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    Week
-  </button>
-  <button class="nav-btn" data-page="planner" onclick="navigate('planner')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-    Sunday
-  </button>
-</nav>
+  <!-- TOP NAV desktop -->
+  <header id="top-nav">
+    <div class="top-logo">NAK<span>MUAY</span></div>
+    <nav class="top-nav-links">
+      <button class="tnl" data-page="home" onclick="go('home')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9M5 10v10h5v-6h4v6h5V10"/></svg>Home
+      </button>
+      <button class="tnl" data-page="calendar" onclick="go('calendar')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendar
+      </button>
+      <button class="tnl active" data-page="timer" onclick="go('timer')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 3M12 5V3M10 3h4"/></svg>Timer
+      </button>
+      <button class="tnl" data-page="notes" onclick="go('notes')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5l4 4L7 21l-4 1 1-4L16.5 3.5z"/></svg>Notes
+      </button>
+      <button class="tnl" data-page="tips" onclick="go('tips')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Tips
+      </button>
+    </nav>
+  </header>
+
+  <div id="pages">
+
+    <!-- HOME -->
+    <div id="page-home" class="page">
+      <div class="ph">
+        <div>
+          <div class="ph-title" id="home-greeting">Good morning</div>
+          <div class="ph-sub" id="home-date"></div>
+        </div>
+      </div>
+      <div class="stats" id="home-stats"></div>
+      <div class="sec-label">Quick Log</div>
+      <div class="quick-row">
+        <div class="quick-btn" onclick="openWorkoutModal()"><span class="qb-icon">🏋️</span><div><div class="qb-label">Workout</div><div class="qb-sub">Log a session</div></div></div>
+        <div class="quick-btn" onclick="openSessionModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">MT Session</div><div class="qb-sub">Log training</div></div></div>
+      </div>
+      <div class="sec-label" style="margin-top:18px">Recent</div>
+      <div id="home-recent"></div>
+      <div class="sec-label">Favorite Cues</div>
+      <div id="home-cues"></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="page-calendar" class="page">
+      <div class="ph">
+        <div><div class="ph-title" id="cal-month-label">Calendar</div><div class="ph-sub">Training overview</div></div>
+        <div class="ph-actions">
+          <button class="btn-icon" onclick="calPrev()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <button class="btn-icon" onclick="calNext()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-headers"></div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 24px;font-size:11px;font-family:var(--font-mono);color:var(--text3)">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(232,83,58,.5)"></span>Workout</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(201,168,76,.5)"></span>MT Session</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(46,196,182,.5)"></span>Both</span>
+      </div>
+      <div class="sec-label">This Week</div>
+      <div class="stats" id="cal-stats"></div>
+      <div class="sec-label">Log a Day</div>
+      <div class="quick-row">
+        <div class="quick-btn" onclick="openWorkoutModal()"><span class="qb-icon">🏋️</span><div><div class="qb-label">Workout</div></div></div>
+        <div class="quick-btn" onclick="openSessionModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">MT Session</div></div></div>
+      </div>
+      <div class="sec-label">Recent Activity</div>
+      <div id="cal-activity"></div>
+    </div>
+
+    <!-- TIMER -->
+    <div id="page-timer" class="page">
+
+      <!-- MOBILE -->
+      <div id="t-mobile">
+        <div id="t-flash"></div>
+        <div class="t-bg" id="t-bg-mob"></div>
+
+        <div class="t-mode-row">
+          <button class="tmode on" data-m="tabata" onclick="setMode('tabata')">Tabata</button>
+          <button class="tmode" data-m="fight" onclick="setMode('fight')">Fight</button>
+          <button class="tmode" data-m="custom" onclick="setMode('custom')">Custom</button>
+        </div>
+
+        <div class="t-display" id="t-display-mob">
+          <div class="t-state-lbl" id="t-sl-mob"></div>
+          <div class="t-clock" id="t-clk-mob">0:20</div>
+          <div class="t-round-lbl" id="t-rl-mob"></div>
+        </div>
+
+        <div class="t-controls">
+          <button class="tc-side" onclick="tReset()" title="Reset">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.36 2.64L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <button class="tc-start" id="t-sb-mob" onclick="tToggle()">
+            <svg id="t-play-mob" width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="t-pause-mob" width="28" height="28" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button class="tc-side" onclick="tSkip()" title="Skip">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
+          </button>
+        </div>
+
+        <div class="t-settings">
+          <div class="ts-hdr" onclick="toggleTsettings()">
+            <span class="ts-hdr-lbl" id="ts-lbl">⚙ Settings · Tabata</span>
+            <span class="ts-caret" id="ts-caret">▾</span>
+          </div>
+          <div class="ts-body" id="ts-body">
+            <div id="ts-fields"></div>
+            <div class="snd-row">
+              <span class="snd-lbl">Sound cues</span>
+              <div class="sw on" id="snd-mob" onclick="toggleSound()"><div class="sw-k"></div></div>
+            </div>
+            <div class="ts-hint" id="ts-hint"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESKTOP -->
+      <div id="t-desk">
+        <div id="t-desk-settings">
+          <div class="t-desk-sec-lbl">Mode</div>
+          <div class="t-desk-mode-row">
+            <button class="tmode on" data-m2="tabata" onclick="setMode('tabata')">Tabata</button>
+            <button class="tmode" data-m2="fight" onclick="setMode('fight')">Fight</button>
+            <button class="tmode" data-m2="custom" onclick="setMode('custom')">Custom</button>
+          </div>
+          <div class="t-desk-sec-lbl" id="ts-lbl-desk">Settings · Tabata</div>
+          <div id="ts-fields-desk"></div>
+          <div class="snd-row" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+            <span class="snd-lbl">Sound cues</span>
+            <div class="sw on" id="snd-desk" onclick="toggleSound(true)"><div class="sw-k"></div></div>
+          </div>
+          <div class="ts-hint" id="ts-hint-desk" style="text-align:left;margin-top:14px"></div>
+        </div>
+        <div id="t-desk-main">
+          <div class="t-bg" id="t-bg-desk"></div>
+          <div id="t-flash-desk"></div>
+          <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
+            <div class="t-state-lbl" id="t-sl-desk"></div>
+            <div class="t-clock" id="t-clk-desk">0:20</div>
+            <div class="t-round-lbl" id="t-rl-desk" style="margin-bottom:36px"></div>
+            <div class="t-controls" style="margin-bottom:0">
+              <button class="tc-side" onclick="tReset()" title="Reset">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.36 2.64L3 8"/><path d="M3 3v5h5"/></svg>
+              </button>
+              <button class="tc-start" id="t-sb-desk" onclick="tToggle()">
+                <svg id="t-play-desk" width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="t-pause-desk" width="28" height="28" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <button class="tc-side" onclick="tSkip()" title="Skip">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="page-notes" class="page">
+      <div class="ph">
+        <div><div class="ph-title">Notes</div><div class="ph-sub">Learnings & cues</div></div>
+        <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openNoteModal()">+ Note</button></div>
+      </div>
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="si" id="note-search" placeholder="Search notes…" oninput="renderNotes()">
+      </div>
+      <div class="pills" id="note-pills"></div>
+      <div id="notes-list"></div>
+    </div>
+
+    <!-- TIPS -->
+    <div id="page-tips" class="page">
+      <div class="ph"><div><div class="ph-title">Tips</div><div class="ph-sub">Reference & reminders</div></div></div>
+      <div id="tips-content"></div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- BOTTOM NAV mobile -->
+  <nav id="bottom-nav">
+    <button class="nb" data-page="home" onclick="go('home')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9M5 10v10h5v-6h4v6h5V10"/></svg>Home
+    </button>
+    <button class="nb" data-page="calendar" onclick="go('calendar')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Cal
+    </button>
+    <button class="nb active" data-page="timer" onclick="go('timer')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 3M12 5V3M10 3h4"/></svg>Timer
+    </button>
+    <button class="nb" data-page="notes" onclick="go('notes')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5l4 4L7 21l-4 1 1-4L16.5 3.5z"/></svg>Notes
+    </button>
+    <button class="nb" data-page="tips" onclick="go('tips')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Tips
+    </button>
+  </nav>
 </div>
 
-<!-- WORKOUT MODAL -->
-<div class="modal-overlay" id="modal-workout">
+<!-- MODALS -->
+<div class="overlay" id="m-workout">
   <div class="modal">
-    <div class="modal-title" id="modal-workout-title">Add Workout</div>
-    <input type="hidden" id="workout-edit-id">
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="workout-date"></div>
-      <div class="form-group"><label class="form-label">Duration</label><input type="text" class="form-input" id="workout-duration" placeholder="45 min"></div>
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-wo-title">Log Workout</div>
+    <input type="hidden" id="wo-id">
+    <div class="fr">
+      <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="wo-date"></div>
+      <div class="fg"><label class="fl">Duration</label><input type="text" class="fi" id="wo-dur" placeholder="45 min"></div>
     </div>
-    <div class="form-group"><label class="form-label">Type</label>
-      <select class="form-select" id="workout-type">
-        <option>Strength</option><option>Conditioning</option><option>Assault Bike</option>
-        <option>Mobility</option><option>Recovery</option><option>Run</option>
-        <option>Circuit</option><option>Muay Thai Conditioning</option>
-      </select>
-    </div>
-    <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="workout-title" placeholder="e.g. Upper Pull Session"></div>
-    <div class="form-group"><label class="form-label">Exercises / Content</label><textarea class="form-textarea" id="workout-content" placeholder="List exercises, sets, reps..."></textarea></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Intensity</label>
-        <select class="form-select" id="workout-intensity">
-          <option value="">—</option><option>Easy</option><option>Moderate</option><option>Hard</option><option>Max</option>
-        </select>
+    <div class="fr">
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fs" id="wo-type"><option>Strength</option><option>Conditioning</option><option>Assault Bike</option><option>Mobility</option><option>Recovery</option><option>Run</option><option>Circuit</option><option>Muay Thai Conditioning</option></select>
       </div>
-      <div class="form-group"><label class="form-label">Notes</label><input type="text" class="form-input" id="workout-notes" placeholder="Optional"></div>
+      <div class="fg"><label class="fl">Intensity</label><input type="text" class="fi" id="wo-int" placeholder="8/10"></div>
     </div>
-    <div class="form-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-workout')">Cancel</button>
+    <div class="fg"><label class="fl">Title</label><input type="text" class="fi" id="wo-title" placeholder="Session title"></div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="ft" id="wo-notes" placeholder="What did you do?"></textarea></div>
+    <div class="frow">
       <button class="btn btn-primary" onclick="saveWorkout()">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal('m-workout')">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- MT NOTE MODAL -->
-<div class="modal-overlay" id="modal-mt">
+<div class="overlay" id="m-session">
   <div class="modal">
-    <div class="modal-title" id="modal-mt-title">Add MT Note</div>
-    <input type="hidden" id="mt-edit-id">
-    <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="mt-title" placeholder="e.g. Jab Hip Rotation"></div>
-    <div class="form-group"><label class="form-label">Category</label>
-      <select class="form-select" id="mt-category">
-        <option>Punching</option><option>Kicks</option><option>Defense</option><option>Footwork</option>
-        <option>Clinch</option><option>Timing</option><option>Counters</option><option>Coaching</option>
-        <option>Beginner Class</option><option>Strategy</option>
-      </select>
-    </div>
-    <div class="form-group"><label class="form-label">Note Content</label><textarea class="form-textarea" id="mt-content" placeholder="Write the technique detail, reminder, or insight..."></textarea></div>
-    <div class="form-group"><label class="form-label">Coaching Cue (optional)</label><input type="text" class="form-input" id="mt-cue" placeholder="e.g. 'Snap the hip, not the arm'"></div>
-    <div class="form-group"><label class="form-label">Tags (comma-separated)</label><input type="text" class="form-input" id="mt-tags" placeholder="e.g. jab, beginner, mechanics"></div>
-    <div class="form-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-mt')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveMTNote()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- DRILL MODAL -->
-<div class="modal-overlay" id="modal-drill">
-  <div class="modal">
-    <div class="modal-title" id="modal-drill-title">Add Drill / Combo</div>
-    <input type="hidden" id="drill-edit-id">
-    <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="drill-title" placeholder="e.g. Jab–Cross–Low Kick"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Type</label>
-        <select class="form-select" id="drill-type">
-          <option>Combo</option><option>Drill</option><option>Padwork</option><option>Partner Drill</option><option>Coaching Drill</option>
-        </select>
-      </div>
-      <div class="form-group"><label class="form-label">Difficulty</label>
-        <select class="form-select" id="drill-difficulty">
-          <option value="">—</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option>
-        </select>
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-se-title">Log MT Session</div>
+    <input type="hidden" id="se-id">
+    <div class="fr">
+      <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="se-date"></div>
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fs" id="se-type"><option>Class</option><option>Sparring</option><option>Padwork</option><option>Bagwork</option><option>Coaching</option><option>Private Lesson</option><option>Open Gym</option></select>
       </div>
     </div>
-    <div class="form-group"><label class="form-label">Category</label>
-      <select class="form-select" id="drill-category">
-        <option>Punching</option><option>Kicks</option><option>Defense</option><option>Clinch</option>
-        <option>Counters</option><option>Footwork</option><option>Mixed</option>
-      </select>
+    <div class="fg"><label class="fl">Worked On</label><textarea class="ft" id="se-worked" placeholder="Techniques, drills, rounds…"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Felt Good ✓</label><textarea class="ft" id="se-good" placeholder="Wins" style="min-height:60px"></textarea></div>
+      <div class="fg"><label class="fl">Needs Work ⚠</label><textarea class="ft" id="se-needs" placeholder="To improve" style="min-height:60px"></textarea></div>
     </div>
-    <div class="form-group"><label class="form-label">Steps / Details</label><textarea class="form-textarea" id="drill-steps" placeholder="Step-by-step breakdown..."></textarea></div>
-    <div class="form-group"><label class="form-label">Purpose / What It Develops</label><input type="text" class="form-input" id="drill-purpose" placeholder="e.g. Entry timing, hip engagement"></div>
-    <div class="form-group"><label class="form-label">Tags</label><input type="text" class="form-input" id="drill-tags" placeholder="beginner, power, entry"></div>
-    <div class="form-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-drill')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveDrill()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- SESSION MODAL -->
-<div class="modal-overlay" id="modal-session">
-  <div class="modal">
-    <div class="modal-title" id="modal-session-title">Add Session Log</div>
-    <input type="hidden" id="session-edit-id">
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="session-date"></div>
-      <div class="form-group"><label class="form-label">Type</label>
-        <select class="form-select" id="session-type">
-          <option>Class</option><option>Sparring</option><option>Padwork</option><option>Bagwork</option>
-          <option>Coaching</option><option>Private Lesson</option><option>Open Gym</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group"><label class="form-label">Training Partner (optional)</label><input type="text" class="form-input" id="session-partner" placeholder="e.g. Coach Dan, Solo"></div>
-    <div class="form-group"><label class="form-label">What I Worked On</label><textarea class="form-textarea" id="session-worked" placeholder="Main focus and content..."></textarea></div>
-    <div class="form-group"><label class="form-label">What Felt Good</label><input type="text" class="form-input" id="session-good" placeholder="Wins from this session"></div>
-    <div class="form-group"><label class="form-label">Needs Work</label><input type="text" class="form-input" id="session-work" placeholder="What to improve"></div>
-    <div class="form-group"><label class="form-label">Next Focus</label><input type="text" class="form-input" id="session-next" placeholder="Priority for next session"></div>
-    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="session-notes" placeholder="Anything else..."></textarea></div>
-    <div class="form-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-session')">Cancel</button>
+    <div class="fg"><label class="fl">Next Focus</label><input type="text" class="fi" id="se-next" placeholder="Priority for next session"></div>
+    <div class="frow">
       <button class="btn btn-primary" onclick="saveSession()">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal('m-session')">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- PLAN MODAL -->
-<div class="modal-overlay" id="modal-plan">
+<div class="overlay" id="m-note">
   <div class="modal">
-    <div class="modal-title" id="modal-plan-title">Sunday Class Plan</div>
-    <input type="hidden" id="plan-edit-id">
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="plan-date"></div>
-      <div class="form-group"><label class="form-label">Class Focus</label><input type="text" class="form-input" id="plan-focus" placeholder="e.g. Jab Mechanics"></div>
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-no-title">Add Note</div>
+    <input type="hidden" id="no-id">
+    <div class="fr">
+      <div class="fg"><label class="fl">Category</label>
+        <select class="fs" id="no-cat"><option>Punching</option><option>Kicks</option><option>Defense</option><option>Footwork</option><option>Clinch</option><option>Timing</option><option>Counters</option><option>Coaching</option><option>Strategy</option><option>General</option></select>
+      </div>
+      <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="no-date"></div>
     </div>
-    <div class="form-group"><label class="form-label">Warmup</label><textarea class="form-textarea" id="plan-warmup" placeholder="Warmup routine..."></textarea></div>
-    <div class="form-group"><label class="form-label">Drills / Stations</label><textarea class="form-textarea" id="plan-drills" placeholder="Main drill sequence and stations..."></textarea></div>
-    <div class="form-group"><label class="form-label">Technique Emphasis</label><input type="text" class="form-input" id="plan-technique" placeholder="Key technical points to teach"></div>
-    <div class="form-group"><label class="form-label">Conditioning Finisher</label><input type="text" class="form-input" id="plan-conditioning" placeholder="e.g. 3x2min bag rounds"></div>
-    <div class="form-group"><label class="form-label">Coaching Cues</label><textarea class="form-textarea" id="plan-cues" placeholder="Key phrases and reminders to use..."></textarea></div>
-    <div class="form-group"><label class="form-label">Notes / Reminders</label><textarea class="form-textarea" id="plan-notes" placeholder="Anything to remember..."></textarea></div>
-    <div class="form-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-plan')">Cancel</button>
-      <button class="btn btn-primary" onclick="savePlan()">Save</button>
+    <div class="fg"><label class="fl">Title</label><input type="text" class="fi" id="no-title" placeholder="Note title"></div>
+    <div class="fg"><label class="fl">Content</label><textarea class="ft" id="no-body" placeholder="Technique notes, insights…"></textarea></div>
+    <div class="fg"><label class="fl">Coaching Cue (optional)</label><input type="text" class="fi" id="no-cue" placeholder="Short memorable phrase"></div>
+    <div class="frow">
+      <button class="btn btn-primary" onclick="saveNote()">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal('m-note')">Cancel</button>
     </div>
   </div>
 </div>
 
-<div class="confirm-overlay" id="confirm-overlay">
-  <div class="confirm-box">
-    <h3>Delete this entry?</h3>
-    <p>This cannot be undone.</p>
-    <div class="confirm-actions">
-      <button class="btn btn-secondary" style="flex:1;justify-content:center" onclick="closeConfirm()">Cancel</button>
-      <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="confirmDelete()">Delete</button>
+<div class="overlay" id="m-day">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-day-title">Day</div>
+    <div id="m-day-content"></div>
+    <div class="frow" style="margin-top:16px">
+      <button class="btn btn-primary btn-sm" onclick="closeModal('m-day');openWorkoutModal(_dayDate)">+ Workout</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('m-day');openSessionModal(_dayDate)">+ MT Session</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('m-day')">Close</button>
     </div>
   </div>
 </div>
+
+<div class="confirm" id="confirm">
+  <div class="confirm-box">
+    <h3>Delete?</h3><p>This cannot be undone.</p>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn btn-ghost btn-sm" id="confirm-yes">Delete</button>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('confirm').classList.remove('open')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-const KEYS={workouts:'nm_workouts',mtNotes:'nm_mtnotes',drills:'nm_drills',sessions:'nm_sessions',plans:'nm_plans'};
-function load(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}}
-function save(k,d){localStorage.setItem(k,JSON.stringify(d))}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
-function today(){return new Date().toISOString().split('T')[0]}
-function offsetDate(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
-function fmt(s){if(!s)return'';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
-function ago(s){if(!s)return'';const diff=Math.round((Date.now()-new Date(s+'T00:00:00'))/86400000);if(diff===0)return'Today';if(diff===1)return'Yesterday';if(diff<0)return`in ${Math.abs(diff)}d`;return`${diff}d ago`}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+'use strict';
+/* ──────────────────────────────────
+   STORAGE
+   ────────────────────────────────── */
+const K={wo:'nm_workouts',se:'nm_sessions',no:'nm_notes'};
+const load=k=>{try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}};
+const save=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const todayStr=()=>new Date().toISOString().split('T')[0];
+const fmtDate=s=>s?new Date(s+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const ago=s=>{if(!s)return'';const d=Math.round((Date.now()-new Date(s+'T00:00:00').getTime())/86400000);return d===0?'Today':d===1?'Yesterday':d+'d ago'};
 
-function catTag(c){
-  const m={Punching:'tag-accent',Kicks:'tag-gold',Defense:'tag-teal',Footwork:'tag-teal',Clinch:'tag-accent',Timing:'tag-default',Counters:'tag-gold',Coaching:'tag-default','Beginner Class':'tag-gold',Strategy:'tag-teal',Combo:'tag-accent',Drill:'tag-default',Padwork:'tag-gold','Partner Drill':'tag-teal','Coaching Drill':'tag-teal',Mixed:'tag-default'};
-  return`<span class="tag ${m[c]||'tag-default'}">${esc(c)}</span>`
+/* ──────────────────────────────────
+   SEED
+   ────────────────────────────────── */
+function seed(){
+  if(localStorage.getItem('nm2_seeded'))return;
+  const da=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().split('T')[0]};
+  save(K.wo,[
+    {id:uid(),date:da(1),type:'Assault Bike',title:'Tabata Intervals',notes:'10×20s max / 40s rest. Felt strong through round 7. HR peaked at 182.',duration:'35 min',intensity:'9/10'},
+    {id:uid(),date:da(4),type:'Strength',title:'Upper Body',notes:'Bench 4×5 @ 85kg. Pull-ups 4×6 weighted. First time at 85kg since shoulder issue.',duration:'55 min',intensity:'7/10'},
+    {id:uid(),date:da(7),type:'Muay Thai Conditioning',title:'Bag Rounds + Skip',notes:'8×3 min bag work. Focused on teep distance and cross timing.',duration:'50 min',intensity:'8/10'}
+  ]);
+  save(K.se,[
+    {id:uid(),date:da(2),type:'Padwork',worked:'Jab-cross-body timing. Teep to cross entry. Defensive pull counter.',good:'Cross timing felt natural. Teep entry clicked by end.',needs:'Jab still drops before throw.',next:'Isolate jab shoulder mechanics.'},
+    {id:uid(),date:da(5),type:'Class',worked:'Jab fundamentals to beginners. Jab-cross-low kick for intermediates. Conditioning finisher.',good:'Mirror drill worked well. Great class energy.',needs:'Cleaner padwork transitions for intermediates.',next:'Prep structured Sunday warmup.'},
+    {id:uid(),date:da(9),type:'Sparring',worked:'Light technical sparring. Staying relaxed and timing exits.',good:'Stayed calm. Exit angles improved.',needs:'Jab telegraphed when tired.',next:'Jab off the back foot drill.'}
+  ]);
+  save(K.no,[
+    {id:uid(),date:da(2),cat:'Punching',title:'Jab Mechanics',body:'Keep the rear heel grounded. Shoulder rolls forward — not the whole torso. Return is as fast as the throw. Do not telegraph by dropping the hand first.',cue:'Snap and return — not push and pull',fav:true},
+    {id:uid(),date:da(3),cat:'Punching',title:'Cross Weight Transfer',body:'Power comes from hip rotation, not the shoulder. Pivot the rear foot as the hip drives through. Shoulder and hip land simultaneously.',cue:'Hip drives the shoulder — not the other way',fav:true},
+    {id:uid(),date:da(5),cat:'Kicks',title:'Teep — Distance Control',body:'Use the teep to reset distance after a combination. Drive the knee up first so the push is linear. Stay tall. Target solar plexus or hip.',cue:'Knee up, push through — not a kick, a push',fav:false},
+    {id:uid(),date:da(7),cat:'Clinch',title:'Clinch Exit Principles',body:'Create a frame before breaking. Elbow in, inside position, then exit with a strike. Common exits: elbow-knee-step, push-knee-angle, pull-step-teep.',cue:'Frame first, then go — never just back up',fav:false},
+    {id:uid(),date:da(9),cat:'Defense',title:'Defensive Pull Counter',body:'Pull back off the center line as the opponent commits. Let their strike travel past. Return cross as they recover. Timing is everything.',cue:'Let them fall in, then land',fav:false},
+    {id:uid(),date:da(11),cat:'Footwork',title:'Exit Angle After Combination',body:'Never back straight out after throwing. Step 45° off the center line. Makes counters much harder.',cue:'Exit the angle, not the line',fav:true}
+  ]);
+  localStorage.setItem('nm2_seeded','1');
 }
 
-function seedIfEmpty(){
-  if(!load(KEYS.workouts).length){save(KEYS.workouts,[
-    {id:uid(),date:offsetDate(-3),type:'Assault Bike',title:'Tabata Bike Intervals',content:'10 rounds Tabata: 20s max effort / 10s rest\nFinisher: 3x1min moderate pace\nTotal kcal: ~280',duration:'35 min',intensity:'Hard',notes:'Felt strong on rounds 1-6, faded late.',createdAt:Date.now()-200000},
-    {id:uid(),date:offsetDate(-7),type:'Strength',title:'Lower Body Push',content:'Back Squat: 4x5 @ 85kg\nRomanian Deadlift: 3x8 @ 70kg\nGoblet Squat: 3x12 @ 24kg\nCalf Raise: 3x20\nCore: Dead bugs 3x10',duration:'55 min',intensity:'Moderate',notes:'Hip mobility feeling better.',createdAt:Date.now()-800000}
-  ])}
-  if(!load(KEYS.mtNotes).length){save(KEYS.mtNotes,[
-    {id:uid(),title:'Jab — Hip & Shoulder Sequencing',category:'Punching',content:'The jab generates power from hip rotation, not arm extension. Lead hip pops forward first, which pulls the shoulder and drives the fist. Keep the rear hand glued to the chin. Weight transfers slightly onto the lead foot as the jab extends. Reset by pulling the hip back — this naturally retracts the jab and resets guard.',cue:'"Shoot the hip, the hand follows."',tags:['jab','mechanics','beginners'],favorite:true,date:offsetDate(-10),createdAt:Date.now()-1000000},
-    {id:uid(),title:'Cross Weight Transfer',category:'Punching',content:'The cross is driven by pivoting on the rear foot ball and rotating the rear hip through. Shoulder follows the hip — not the other way. Common error: arm extension without hip involvement. Drive off the back foot, twist the hips, and let the arm be the last link in the chain.',cue:'"Drive through the floor, not out with the arm."',tags:['cross','power','hip'],favorite:false,date:offsetDate(-8),createdAt:Date.now()-700000},
-    {id:uid(),title:'Teep — Push vs Strike',category:'Kicks',content:'Teep is a push kick first, a strike second. The goal is disruption — distance management, reset opponent timing, create space. Drive from the hip flexor, extend through the heel. Keep hands up on the push. Rechamber fast so the leg is not hanging. Can be used as a jab substitute to establish rhythm.',cue:'"Push the wall away from you."',tags:['teep','distance','footwork'],favorite:true,date:offsetDate(-5),createdAt:Date.now()-400000}
-  ])}
-  if(!load(KEYS.drills).length){save(KEYS.drills,[
-    {id:uid(),title:'Jab–Cross–Low Kick',type:'Combo',category:'Mixed',difficulty:'Beginner',steps:'1. Jab — pop the lead hip, extend and retract\n2. Cross — rear hip drives through, shoulder follows\n3. Low kick — step diagonally on the cross, swing the rear leg at 45° to the thigh\n4. Reset to stance',purpose:'Entry rhythm, hip chaining, basic combination flow',tags:['beginner','combo','low kick'],favorite:true,createdAt:Date.now()-900000},
-    {id:uid(),title:'Teep to Cross Entry',type:'Combo',category:'Mixed',difficulty:'Intermediate',steps:'1. Lead teep — push out to create space and check reaction\n2. Step down and immediately pivot to load the cross\n3. Fire cross targeting chin/temple\n4. Follow with jab to reset or hook if they lean in',purpose:'Distance management, creating openings off the teep, timing opponent recovery',tags:['teep','cross','entry'],favorite:true,createdAt:Date.now()-600000},
-    {id:uid(),title:'Beginner Jab Mechanics Drill',type:'Coaching Drill',category:'Punching',difficulty:'Beginner',steps:'1. Start: both hands at chin, relaxed guard\n2. Partner holds pad flat at chin height\n3. Cue hip pop first — "shoot the hip"\n4. Fist follows naturally — no wind-up\n5. Return to guard — retract before guard drops\n6. 10 reps each side, shadow then pad',purpose:'Teaching jab mechanics to beginners — isolates hip-hand connection',tags:['beginner','coaching','jab','mechanics'],favorite:false,createdAt:Date.now()-300000}
-  ])}
-  if(!load(KEYS.sessions).length){save(KEYS.sessions,[
-    {id:uid(),date:offsetDate(-2),type:'Padwork',partner:'Coach Lek',worked:'Jab-cross rhythm drills. Cross-hook-kick sequences. Worked on getting the rear hip through on the cross. Spent last 10 mins on teep timing.',good:'Cross felt more connected than last week. Hip starting to engage naturally.',needsWork:'Teep is still too slow off the back foot. Guard drops after the hook.',next:'Drill cross-hook-kick 100x per session. Isolate teep rechamber speed.',notes:'3 rounds padwork, 2 rounds shadow, 1 round bag',createdAt:Date.now()-150000},
-    {id:uid(),date:offsetDate(-5),type:'Class',partner:'Group class',worked:'Beginner fundamentals: stance, guard, jab mechanics, cross basics. Ran the jab mechanics drill. Finished with 2 rounds partner padwork.',good:'New students picked up the hip cue quickly. Good energy in class.',needsWork:'Need a better warmup drill that covers footwork. Transitions between stations too slow.',next:'Plan better station flow for Sunday. Add movement warmup.',notes:'8 students. Mix of complete beginners and 2 month returners.',createdAt:Date.now()-450000}
-  ])}
-  if(!load(KEYS.plans).length){save(KEYS.plans,[
-    {id:uid(),date:offsetDate(7),focus:'Jab Mechanics & Distance Control',warmup:'5 min light skip rope or shadow\nArm circles, hip openers, light squat\nSlip rope (duck under a string 10x each direction)\nJab in place x20 — eyes closed to feel the motion',drills:'1. Jab mechanics drill — hip-hand isolation (paired)\n2. Shadow footwork — jab and move off line\n3. Jab-cross on pads — coach calls L or R\n4. Teep drill — push the pad away (paired)\n5. Free round on bags — apply everything',technique:'Hip drives the hand. Retract before guarding. Eyes up. Shoulder cover on the cross.',conditioning:'3x2min bag rounds (1 min rest). Call technique in the last 30s of each round.',cues:'"Shoot the hip, not the arm."\n"Snap it back."\n"Eyes stay up."\n"Step and breathe — relax the shoulders."',notes:'Bring extra pads. Arrive 15 mins early to set up stations.',favorite:true,createdAt:Date.now()-100000}
-  ])}
-}
-
-// NAV
-let currentPage='dashboard';
-function navigate(page){
+/* ──────────────────────────────────
+   NAVIGATION
+   ────────────────────────────────── */
+let curPage='timer';
+function go(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nb,.tnl').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   document.getElementById('page-'+page).classList.add('active');
-  document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
-  currentPage=page;
-  ({dashboard:renderDashboard,workouts:renderWorkouts,muaythai:renderMTNotes,drills:renderDrills,sessions:renderSessions,calendar:renderCalendar,planner:renderPlanner})[page]?.();
-  window.scrollTo(0,0);
+  curPage=page;
+  document.getElementById('pages').scrollTop=0;
+  ({home:renderHome,calendar:renderCalendar,notes:renderNotes,tips:renderTips})[page]?.();
 }
 
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+/* ──────────────────────────────────
+   TOAST
+   ────────────────────────────────── */
+let _tt;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),2200)}
 
-let pendingDelete=null;
-function askDelete(fn){pendingDelete=fn;document.getElementById('confirm-overlay').classList.add('open')}
-function closeConfirm(){document.getElementById('confirm-overlay').classList.remove('open');pendingDelete=null}
-function confirmDelete(){if(pendingDelete){pendingDelete();closeConfirm()}}
+/* ──────────────────────────────────
+   MODALS
+   ────────────────────────────────── */
+const openModal=id=>document.getElementById(id).classList.add('open');
+const closeModal=id=>document.getElementById(id).classList.remove('open');
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+function askDelete(fn){const d=document.getElementById('confirm');d.classList.add('open');document.getElementById('confirm-yes').onclick=()=>{fn();d.classList.remove('open')}}
 
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-
-// ── DASHBOARD ──
-function renderDashboard(){
-  const W=load(KEYS.workouts).sort((a,b)=>b.date.localeCompare(a.date));
-  const N=load(KEYS.mtNotes).sort((a,b)=>b.createdAt-a.createdAt);
-  const S=load(KEYS.sessions).sort((a,b)=>b.date.localeCompare(a.date));
-  const D=load(KEYS.drills);
-  const P=load(KEYS.plans).sort((a,b)=>b.date.localeCompare(a.date));
-  const favD=D.filter(d=>d.favorite);
-  const favN=N.filter(n=>n.favorite);
-  const nextPlan=P.find(p=>p.date>=today())||P[0];
-  const now=new Date();const wkStart=new Date(now);wkStart.setDate(now.getDate()-now.getDay());
-  const thisWW=W.filter(w=>new Date(w.date+'T00:00:00')>=wkStart).length;
-  const thisWS=S.filter(s=>new Date(s.date+'T00:00:00')>=wkStart).length;
-
-  let h=`<div class="dash-greeting"><h1>Training<br><span class="accent-word">Vault</span></h1><p>NAK MUAY — PERSONAL DASHBOARD</p></div>
-  <div class="stat-row">
-    <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${W.length}</div><div class="stat-label">Workouts</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--gold)">${N.length}</div><div class="stat-label">MT Notes</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--teal)">${S.length}</div><div class="stat-label">Sessions</div></div>
-  </div>
-  <div class="section-label">Quick Add</div>
-  <div class="quick-actions">
-    <button class="qa-btn" onclick="openAddWorkout()"><span class="qa-icon">🏋️</span><span class="qa-label">Add Workout</span><span class="qa-sub">Log a training session</span></button>
-    <button class="qa-btn" onclick="openAddMT()"><span class="qa-icon">🥊</span><span class="qa-label">MT Note</span><span class="qa-sub">Save a technique</span></button>
-    <button class="qa-btn" onclick="openAddDrill()"><span class="qa-icon">🎯</span><span class="qa-label">Drill / Combo</span><span class="qa-sub">Add to library</span></button>
-    <button class="qa-btn" onclick="openAddSession()"><span class="qa-icon">📋</span><span class="qa-label">Session Log</span><span class="qa-sub">Record what happened</span></button>
-    <button class="qa-btn" onclick="openAddPlan()"><span class="qa-icon">📅</span><span class="qa-label">Sunday Class</span><span class="qa-sub">Plan a class</span></button>
-  </div>
-  <div class="section-label">This Week</div>
-  <div class="stat-row">
-    <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${thisWW}</div><div class="stat-label">Workouts</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--gold)">${thisWS}</div><div class="stat-label">MT Sess.</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--teal)">${favD.length}</div><div class="stat-label">Fav Drills</div></div>
-  </div>`;
-
-  if(W[0])h+=`<div class="section-label">Last Workout</div><div class="card card-accent"><div class="card-header"><div><div class="card-title">${esc(W[0].title)}</div><div class="card-meta">${ago(W[0].date)} · ${esc(W[0].type)} · ${esc(W[0].duration||'')}</div></div></div><div class="card-body">${esc((W[0].content||'').split('\n')[0])}</div></div>`;
-  if(S[0])h+=`<div class="section-label">Last Session</div><div class="card card-teal"><div class="card-header"><div><div class="card-title">${esc(S[0].type)} — ${ago(S[0].date)}</div><div class="card-meta">${esc(S[0].partner||'Solo')}</div></div></div><div class="card-body">${esc((S[0].worked||'').substring(0,120))}…</div></div>`;
-  if(nextPlan)h+=`<div class="section-label">Next Sunday Class</div><div class="card card-gold"><div class="card-header"><div><div class="card-title">${esc(nextPlan.focus)}</div><div class="card-meta">${fmt(nextPlan.date)}</div></div></div><div class="card-body">${esc((nextPlan.technique||'').substring(0,100))}</div></div>`;
-  if(favD.length){h+=`<div class="section-label">Favourite Drills</div>`;favD.slice(0,3).forEach(d=>{h+=`<div class="card"><div class="card-header"><div><div class="card-title">${esc(d.title)}</div><div class="card-meta">${esc(d.type)}</div></div>${catTag(d.category)}</div><div class="card-body">${esc(d.purpose||'')}</div></div>`})}
-  if(favN.length){h+=`<div class="section-label">Favourite Cues</div>`;favN.slice(0,3).forEach(n=>{h+=`<div class="card"><div class="card-header"><div><div class="card-title">${esc(n.title)}</div></div>${catTag(n.category)}</div>${n.cue?`<div class="card-body" style="color:var(--gold2);font-style:italic">${esc(n.cue)}</div>`:''}</div>`})}
-  document.getElementById('page-dashboard').innerHTML=h;
+/* Workout */
+function openWorkoutModal(ds){
+  document.getElementById('wo-id').value='';
+  document.getElementById('m-wo-title').textContent='Log Workout';
+  document.getElementById('wo-date').value=ds||todayStr();
+  ['wo-dur','wo-int','wo-title','wo-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('wo-type').value='Strength';
+  openModal('m-workout');
 }
-
-// ── WORKOUTS ──
-let wF='All',wS='';
-function renderWorkouts(){
-  let D=load(KEYS.workouts).sort((a,b)=>b.date.localeCompare(a.date));
-  const types=['All',...new Set(D.map(w=>w.type))];
-  if(wF!=='All')D=D.filter(w=>w.type===wF);
-  if(wS)D=D.filter(w=>(w.title+w.content+w.type+w.notes).toLowerCase().includes(wS.toLowerCase()));
-  let h=`<div class="page-header"><div><div class="page-title">Workouts</div><div class="page-subtitle">${load(KEYS.workouts).length} LOGGED</div></div><button class="btn btn-primary btn-sm" onclick="openAddWorkout()">+ Add</button></div>
-  <div class="search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search workouts..." oninput="wS=this.value;renderWorkouts()" value="${esc(wS)}"></div>
-  <div class="filter-pills">${types.map(t=>`<div class="pill${wF===t?' active':''}" onclick="wF='${esc(t)}';renderWorkouts()">${esc(t)}</div>`).join('')}</div>`;
-  if(!D.length)h+=`<div class="empty-state"><div class="empty-icon">🏋️</div><p>No workouts yet. Add your first one.</p></div>`;
-  else D.forEach(w=>{h+=`<div class="card card-accent"><div class="card-header"><div><div class="card-title">${esc(w.title)}</div><div class="card-meta">${fmt(w.date)} · ${esc(w.duration||'')} ${w.intensity?'· '+esc(w.intensity):''}</div></div><span class="tag tag-accent">${esc(w.type)}</span></div><div class="card-body" style="white-space:pre-line">${esc(w.content||'')}</div>${w.notes?`<div style="margin-top:8px;font-size:12px;color:var(--text3)">📝 ${esc(w.notes)}</div>`:''}<div class="card-actions"><button class="btn btn-ghost btn-sm" onclick="editWorkout('${w.id}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>deleteEntry(KEYS.workouts,'${w.id}',renderWorkouts))">Delete</button></div></div>`});
-  document.getElementById('page-workouts').innerHTML=h;
+function editWorkout(id){
+  const w=load(K.wo).find(x=>x.id===id);if(!w)return;
+  document.getElementById('wo-id').value=id;
+  document.getElementById('m-wo-title').textContent='Edit Workout';
+  document.getElementById('wo-date').value=w.date||'';
+  document.getElementById('wo-dur').value=w.duration||'';
+  document.getElementById('wo-type').value=w.type||'Strength';
+  document.getElementById('wo-int').value=w.intensity||'';
+  document.getElementById('wo-title').value=w.title||'';
+  document.getElementById('wo-notes').value=w.notes||'';
+  openModal('m-workout');
 }
-function openAddWorkout(){document.getElementById('modal-workout-title').textContent='Add Workout';document.getElementById('workout-edit-id').value='';document.getElementById('workout-date').value=today();document.getElementById('workout-type').value='Strength';['workout-title','workout-content','workout-duration','workout-notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('workout-intensity').value='';openModal('modal-workout')}
-function editWorkout(id){const w=load(KEYS.workouts).find(x=>x.id===id);if(!w)return;document.getElementById('modal-workout-title').textContent='Edit Workout';document.getElementById('workout-edit-id').value=id;document.getElementById('workout-date').value=w.date;document.getElementById('workout-type').value=w.type;document.getElementById('workout-title').value=w.title;document.getElementById('workout-content').value=w.content||'';document.getElementById('workout-duration').value=w.duration||'';document.getElementById('workout-intensity').value=w.intensity||'';document.getElementById('workout-notes').value=w.notes||'';openModal('modal-workout')}
 function saveWorkout(){
-  const id=document.getElementById('workout-edit-id').value;
-  const e={id:id||uid(),date:document.getElementById('workout-date').value,type:document.getElementById('workout-type').value,title:document.getElementById('workout-title').value,content:document.getElementById('workout-content').value,duration:document.getElementById('workout-duration').value,intensity:document.getElementById('workout-intensity').value,notes:document.getElementById('workout-notes').value,createdAt:Date.now()};
-  if(!e.title){toast('Please add a title');return}
-  const D=load(KEYS.workouts);if(id){const i=D.findIndex(x=>x.id===id);if(i>=0){e.createdAt=D[i].createdAt;D[i]=e}}else D.push(e);
-  save(KEYS.workouts,D);closeModal('modal-workout');toast(id?'Workout updated ✓':'Workout saved ✓');
-  if(currentPage==='workouts')renderWorkouts();if(currentPage==='dashboard')renderDashboard();
+  const id=document.getElementById('wo-id').value;
+  const e={id:id||uid(),date:document.getElementById('wo-date').value,type:document.getElementById('wo-type').value,
+    title:document.getElementById('wo-title').value||document.getElementById('wo-type').value,
+    notes:document.getElementById('wo-notes').value,duration:document.getElementById('wo-dur').value,
+    intensity:document.getElementById('wo-int').value};
+  const D=load(K.wo);
+  if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e;else D.unshift(e)}else D.unshift(e);
+  save(K.wo,D);closeModal('m-workout');toast(id?'Updated ✓':'Workout logged ✓');
+  if(curPage==='home')renderHome();if(curPage==='calendar')renderCalendar();
 }
 
-// ── MT NOTES ──
-let mF='All',mS='',mFav=false;
-function renderMTNotes(){
-  let D=load(KEYS.mtNotes).sort((a,b)=>b.createdAt-a.createdAt);
-  const cats=['All','Punching','Kicks','Defense','Footwork','Clinch','Timing','Counters','Coaching','Beginner Class','Strategy'];
-  if(mFav)D=D.filter(n=>n.favorite);if(mF!=='All')D=D.filter(n=>n.category===mF);
-  if(mS)D=D.filter(n=>(n.title+n.content+n.cue+(n.tags||[]).join(' ')).toLowerCase().includes(mS.toLowerCase()));
-  let h=`<div class="page-header"><div><div class="page-title">MT Notes</div><div class="page-subtitle">${load(KEYS.mtNotes).length} NOTES</div></div><div class="header-actions"><button class="btn-icon" onclick="mFav=!mFav;renderMTNotes()" style="${mFav?'color:var(--gold);border-color:var(--gold)':''}">⭐</button><button class="btn btn-primary btn-sm" onclick="openAddMT()">+ Add</button></div></div>
-  <div class="search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search notes, cues, tags..." oninput="mS=this.value;renderMTNotes()" value="${esc(mS)}"></div>
-  <div class="filter-pills">${cats.map(c=>`<div class="pill${mF===c?' active':''}" onclick="mF='${c}';renderMTNotes()">${c}</div>`).join('')}</div>`;
-  if(!D.length)h+=`<div class="empty-state"><div class="empty-icon">🥊</div><p>No notes found.</p></div>`;
-  else D.forEach(n=>{h+=`<div class="card"><div class="card-header"><div style="flex:1"><div class="card-title">${esc(n.title)}</div><div class="card-meta">${esc(n.category)}</div></div><button class="fav-btn${n.favorite?' active':''}" onclick="toggleFav(KEYS.mtNotes,'${n.id}',renderMTNotes)">★</button></div><div class="card-body" style="margin-bottom:8px">${esc((n.content||'').substring(0,200))}${(n.content||'').length>200?'…':''}</div>${n.cue?`<div style="font-size:13px;color:var(--gold2);font-style:italic;margin-bottom:8px">${esc(n.cue)}</div>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">${catTag(n.category)}${(n.tags||[]).map(t=>`<span class="tag tag-default">${esc(t)}</span>`).join('')}</div><div class="card-actions"><button class="btn btn-ghost btn-sm" onclick="editMTNote('${n.id}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>deleteEntry(KEYS.mtNotes,'${n.id}',renderMTNotes))">Delete</button></div></div>`});
-  document.getElementById('page-muaythai').innerHTML=h;
+/* Session */
+function openSessionModal(ds){
+  document.getElementById('se-id').value='';
+  document.getElementById('m-se-title').textContent='Log MT Session';
+  document.getElementById('se-date').value=ds||todayStr();
+  document.getElementById('se-type').value='Class';
+  ['se-worked','se-good','se-needs','se-next'].forEach(id=>document.getElementById(id).value='');
+  openModal('m-session');
 }
-function openAddMT(){document.getElementById('modal-mt-title').textContent='Add MT Note';document.getElementById('mt-edit-id').value='';['mt-title','mt-content','mt-cue','mt-tags'].forEach(id=>document.getElementById(id).value='');document.getElementById('mt-category').value='Punching';openModal('modal-mt')}
-function editMTNote(id){const n=load(KEYS.mtNotes).find(x=>x.id===id);if(!n)return;document.getElementById('modal-mt-title').textContent='Edit MT Note';document.getElementById('mt-edit-id').value=id;document.getElementById('mt-title').value=n.title;document.getElementById('mt-category').value=n.category;document.getElementById('mt-content').value=n.content||'';document.getElementById('mt-cue').value=n.cue||'';document.getElementById('mt-tags').value=(n.tags||[]).join(', ');openModal('modal-mt')}
-function saveMTNote(){
-  const id=document.getElementById('mt-edit-id').value;
-  const existing=id?load(KEYS.mtNotes).find(x=>x.id===id):null;
-  const e={id:id||uid(),title:document.getElementById('mt-title').value,category:document.getElementById('mt-category').value,content:document.getElementById('mt-content').value,cue:document.getElementById('mt-cue').value,tags:document.getElementById('mt-tags').value.split(',').map(t=>t.trim()).filter(Boolean),date:today(),favorite:existing?existing.favorite:false,createdAt:existing?existing.createdAt:Date.now()};
-  if(!e.title){toast('Please add a title');return}
-  const D=load(KEYS.mtNotes);if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e}else D.push(e);
-  save(KEYS.mtNotes,D);closeModal('modal-mt');toast(id?'Note updated ✓':'Note saved ✓');
-  if(currentPage==='muaythai')renderMTNotes();if(currentPage==='dashboard')renderDashboard();
+function editSession(id){
+  const s=load(K.se).find(x=>x.id===id);if(!s)return;
+  document.getElementById('se-id').value=id;
+  document.getElementById('m-se-title').textContent='Edit Session';
+  document.getElementById('se-date').value=s.date||'';
+  document.getElementById('se-type').value=s.type||'Class';
+  document.getElementById('se-worked').value=s.worked||'';
+  document.getElementById('se-good').value=s.good||'';
+  document.getElementById('se-needs').value=s.needs||'';
+  document.getElementById('se-next').value=s.next||'';
+  openModal('m-session');
 }
-
-// ── DRILLS ──
-let dF='All',dS='',dFav=false;
-function renderDrills(){
-  let D=load(KEYS.drills).sort((a,b)=>b.createdAt-a.createdAt);
-  const types=['All','Combo','Drill','Padwork','Partner Drill','Coaching Drill'];
-  if(dFav)D=D.filter(d=>d.favorite);if(dF!=='All')D=D.filter(d=>d.type===dF);
-  if(dS)D=D.filter(d=>(d.title+d.steps+d.purpose+(d.tags||[]).join(' ')).toLowerCase().includes(dS.toLowerCase()));
-  let h=`<div class="page-header"><div><div class="page-title">Library</div><div class="page-subtitle">${load(KEYS.drills).length} ENTRIES</div></div><div class="header-actions"><button class="btn-icon" onclick="dFav=!dFav;renderDrills()" style="${dFav?'color:var(--gold);border-color:var(--gold)':''}">⭐</button><button class="btn btn-primary btn-sm" onclick="openAddDrill()">+ Add</button></div></div>
-  <div class="search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search drills, combos..." oninput="dS=this.value;renderDrills()" value="${esc(dS)}"></div>
-  <div class="filter-pills">${types.map(t=>`<div class="pill${dF===t?' active':''}" onclick="dF='${esc(t)}';renderDrills()">${esc(t)}</div>`).join('')}</div>`;
-  if(!D.length)h+=`<div class="empty-state"><div class="empty-icon">🎯</div><p>No drills found. Add your first one.</p></div>`;
-  else D.forEach(d=>{h+=`<div class="card"><div class="card-header"><div style="flex:1"><div class="card-title">${esc(d.title)}</div><div class="card-meta">${esc(d.type)}${d.difficulty?' · '+esc(d.difficulty):''}</div></div><button class="fav-btn${d.favorite?' active':''}" onclick="toggleFav(KEYS.drills,'${d.id}',renderDrills)">★</button></div>${d.purpose?`<div style="font-size:12px;color:var(--teal);margin-bottom:8px">↳ ${esc(d.purpose)}</div>`:''}<div class="card-body" style="white-space:pre-line">${esc(d.steps||'')}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${catTag(d.category)}${(d.tags||[]).map(t=>`<span class="tag tag-default">${esc(t)}</span>`).join('')}</div><div class="card-actions"><button class="btn btn-ghost btn-sm" onclick="editDrill('${d.id}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>deleteEntry(KEYS.drills,'${d.id}',renderDrills))">Delete</button></div></div>`});
-  document.getElementById('page-drills').innerHTML=h;
-}
-function openAddDrill(){document.getElementById('modal-drill-title').textContent='Add Drill / Combo';document.getElementById('drill-edit-id').value='';['drill-title','drill-steps','drill-purpose','drill-tags'].forEach(id=>document.getElementById(id).value='');document.getElementById('drill-type').value='Combo';document.getElementById('drill-difficulty').value='';document.getElementById('drill-category').value='Mixed';openModal('modal-drill')}
-function editDrill(id){const d=load(KEYS.drills).find(x=>x.id===id);if(!d)return;document.getElementById('modal-drill-title').textContent='Edit Drill / Combo';document.getElementById('drill-edit-id').value=id;document.getElementById('drill-title').value=d.title;document.getElementById('drill-type').value=d.type;document.getElementById('drill-difficulty').value=d.difficulty||'';document.getElementById('drill-category').value=d.category;document.getElementById('drill-steps').value=d.steps||'';document.getElementById('drill-purpose').value=d.purpose||'';document.getElementById('drill-tags').value=(d.tags||[]).join(', ');openModal('modal-drill')}
-function saveDrill(){
-  const id=document.getElementById('drill-edit-id').value;
-  const existing=id?load(KEYS.drills).find(x=>x.id===id):null;
-  const e={id:id||uid(),title:document.getElementById('drill-title').value,type:document.getElementById('drill-type').value,difficulty:document.getElementById('drill-difficulty').value,category:document.getElementById('drill-category').value,steps:document.getElementById('drill-steps').value,purpose:document.getElementById('drill-purpose').value,tags:document.getElementById('drill-tags').value.split(',').map(t=>t.trim()).filter(Boolean),favorite:existing?existing.favorite:false,createdAt:existing?existing.createdAt:Date.now()};
-  if(!e.title){toast('Please add a title');return}
-  const D=load(KEYS.drills);if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e}else D.push(e);
-  save(KEYS.drills,D);closeModal('modal-drill');toast(id?'Entry updated ✓':'Entry saved ✓');
-  if(currentPage==='drills')renderDrills();if(currentPage==='dashboard')renderDashboard();
-}
-
-// ── SESSIONS ──
-let sF='All',sS='';
-function renderSessions(){
-  let D=load(KEYS.sessions).sort((a,b)=>b.date.localeCompare(a.date));
-  const types=['All','Class','Sparring','Padwork','Bagwork','Coaching','Private Lesson','Open Gym'];
-  if(sF!=='All')D=D.filter(s=>s.type===sF);
-  if(sS)D=D.filter(s=>(s.worked+s.good+s.needsWork+s.next+s.notes+s.partner+s.type).toLowerCase().includes(sS.toLowerCase()));
-  let h=`<div class="page-header"><div><div class="page-title">Sessions</div><div class="page-subtitle">${load(KEYS.sessions).length} LOGGED</div></div><button class="btn btn-primary btn-sm" onclick="openAddSession()">+ Add</button></div>
-  <div class="search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search sessions..." oninput="sS=this.value;renderSessions()" value="${esc(sS)}"></div>
-  <div class="filter-pills">${types.map(t=>`<div class="pill${sF===t?' active':''}" onclick="sF='${esc(t)}';renderSessions()">${esc(t)}</div>`).join('')}</div>`;
-  if(!D.length)h+=`<div class="empty-state"><div class="empty-icon">📋</div><p>No sessions yet. Log your first training session.</p></div>`;
-  else D.forEach(s=>{h+=`<div class="card card-teal"><div class="card-header"><div><div class="card-title">${esc(s.type)}</div><div class="card-meta">${fmt(s.date)}${s.partner?' · '+esc(s.partner):''}</div></div><span class="tag tag-teal">${esc(s.type)}</span></div><div class="detail-grid">${s.worked?`<div class="detail-item"><div class="detail-key">Worked</div><div class="detail-val">${esc(s.worked)}</div></div>`:''} ${s.good?`<div class="detail-item"><div class="detail-key">✓ Good</div><div class="detail-val" style="color:var(--teal)">${esc(s.good)}</div></div>`:''} ${s.needsWork?`<div class="detail-item"><div class="detail-key">↑ Work</div><div class="detail-val" style="color:var(--accent2)">${esc(s.needsWork)}</div></div>`:''} ${s.next?`<div class="detail-item"><div class="detail-key">→ Next</div><div class="detail-val" style="color:var(--gold2)">${esc(s.next)}</div></div>`:''} ${s.notes?`<div class="detail-item"><div class="detail-key">Notes</div><div class="detail-val">${esc(s.notes)}</div></div>`:''}</div><div class="card-actions"><button class="btn btn-ghost btn-sm" onclick="editSession('${s.id}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>deleteEntry(KEYS.sessions,'${s.id}',renderSessions))">Delete</button></div></div>`});
-  document.getElementById('page-sessions').innerHTML=h;
-}
-function openAddSession(){document.getElementById('modal-session-title').textContent='Add Session Log';document.getElementById('session-edit-id').value='';document.getElementById('session-date').value=today();document.getElementById('session-type').value='Class';['session-partner','session-worked','session-good','session-work','session-next','session-notes'].forEach(id=>document.getElementById(id).value='');openModal('modal-session')}
-function editSession(id){const s=load(KEYS.sessions).find(x=>x.id===id);if(!s)return;document.getElementById('modal-session-title').textContent='Edit Session';document.getElementById('session-edit-id').value=id;document.getElementById('session-date').value=s.date;document.getElementById('session-type').value=s.type;document.getElementById('session-partner').value=s.partner||'';document.getElementById('session-worked').value=s.worked||'';document.getElementById('session-good').value=s.good||'';document.getElementById('session-work').value=s.needsWork||'';document.getElementById('session-next').value=s.next||'';document.getElementById('session-notes').value=s.notes||'';openModal('modal-session')}
 function saveSession(){
-  const id=document.getElementById('session-edit-id').value;
-  const existing=id?load(KEYS.sessions).find(x=>x.id===id):null;
-  const e={id:id||uid(),date:document.getElementById('session-date').value,type:document.getElementById('session-type').value,partner:document.getElementById('session-partner').value,worked:document.getElementById('session-worked').value,good:document.getElementById('session-good').value,needsWork:document.getElementById('session-work').value,next:document.getElementById('session-next').value,notes:document.getElementById('session-notes').value,createdAt:existing?existing.createdAt:Date.now()};
-  if(!e.worked){toast('Please add what you worked on');return}
-  const D=load(KEYS.sessions);if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e}else D.push(e);
-  save(KEYS.sessions,D);closeModal('modal-session');toast(id?'Session updated ✓':'Session logged ✓');
-  if(currentPage==='sessions')renderSessions();if(currentPage==='dashboard')renderDashboard();
+  const id=document.getElementById('se-id').value;
+  const e={id:id||uid(),date:document.getElementById('se-date').value,type:document.getElementById('se-type').value,
+    worked:document.getElementById('se-worked').value,good:document.getElementById('se-good').value,
+    needs:document.getElementById('se-needs').value,next:document.getElementById('se-next').value};
+  if(!e.worked){toast('Add what you worked on');return}
+  const D=load(K.se);
+  if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e;else D.unshift(e)}else D.unshift(e);
+  save(K.se,D);closeModal('m-session');toast(id?'Updated ✓':'Session logged ✓');
+  if(curPage==='home')renderHome();if(curPage==='calendar')renderCalendar();
 }
 
-// ── CALENDAR ──
-function renderCalendar(){
-  const W=load(KEYS.workouts),S=load(KEYS.sessions);
+/* Note */
+function openNoteModal(){
+  document.getElementById('no-id').value='';
+  document.getElementById('m-no-title').textContent='Add Note';
+  document.getElementById('no-date').value=todayStr();
+  document.getElementById('no-cat').value='Punching';
+  ['no-title','no-body','no-cue'].forEach(id=>document.getElementById(id).value='');
+  openModal('m-note');
+}
+function editNote(id){
+  const n=load(K.no).find(x=>x.id===id);if(!n)return;
+  document.getElementById('no-id').value=id;
+  document.getElementById('m-no-title').textContent='Edit Note';
+  document.getElementById('no-date').value=n.date||'';
+  document.getElementById('no-cat').value=n.cat||'General';
+  document.getElementById('no-title').value=n.title||'';
+  document.getElementById('no-body').value=n.body||'';
+  document.getElementById('no-cue').value=n.cue||'';
+  openModal('m-note');
+}
+function saveNote(){
+  const id=document.getElementById('no-id').value;
+  const existing=id?load(K.no).find(x=>x.id===id):null;
+  const e={id:id||uid(),date:document.getElementById('no-date').value,cat:document.getElementById('no-cat').value,
+    title:document.getElementById('no-title').value,body:document.getElementById('no-body').value,
+    cue:document.getElementById('no-cue').value,fav:existing?existing.fav:false};
+  if(!e.title){toast('Add a title');return}
+  const D=load(K.no);
+  if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e;else D.unshift(e)}else D.unshift(e);
+  save(K.no,D);closeModal('m-note');toast(id?'Updated ✓':'Note saved ✓');
+  if(curPage==='notes')renderNotes();if(curPage==='home')renderHome();
+}
+function toggleNoteFav(id){
+  const D=load(K.no);const i=D.findIndex(x=>x.id===id);
+  if(i>=0){D[i].fav=!D[i].fav;save(K.no,D)}
+  renderNotes();if(curPage==='home')renderHome();
+}
+
+/* ──────────────────────────────────
+   HOME
+   ────────────────────────────────── */
+function renderHome(){
   const now=new Date();
-  const weeks=[];
-  for(let w=3;w>=0;w--){
-    const ws=new Date(now);ws.setDate(now.getDate()-now.getDay()-w*7);
-    const days=[];
-    for(let d=0;d<7;d++){const day=new Date(ws);day.setDate(ws.getDate()+d);const ds=day.toISOString().split('T')[0];days.push({date:day,ds,hasW:W.some(x=>x.date===ds),hasS:S.some(x=>x.date===ds)})}
-    weeks.push(days);
+  const h=now.getHours();
+  document.getElementById('home-greeting').textContent=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('home-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const W=load(K.wo),S=load(K.se),N=load(K.no);
+  const wkS=new Date();wkS.setDate(now.getDate()-now.getDay());wkS.setHours(0,0,0,0);
+  const wW=W.filter(w=>new Date(w.date+'T00:00:00')>=wkS).length;
+  const wS=S.filter(s=>new Date(s.date+'T00:00:00')>=wkS).length;
+  document.getElementById('home-stats').innerHTML=`
+    <div class="stat"><div class="stat-n" style="color:var(--accent)">${wW}</div><div class="stat-l">Workouts</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--gold)">${wS}</div><div class="stat-l">MT Sessions</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--text2)">${W.length+S.length}</div><div class="stat-l">All Time</div></div>
+  `;
+  const recent=[
+    ...W.slice(0,2).map(w=>({type:'Workout',title:w.title,meta:w.type+' · '+ago(w.date),cl:'cl-accent',id:w.id,store:'wo'})),
+    ...S.slice(0,2).map(s=>({type:'Session',title:s.type,meta:ago(s.date)+(s.worked?' · '+s.worked.slice(0,36)+'…':''),cl:'cl-gold',id:s.id,store:'se'}))
+  ].slice(0,4);
+  document.getElementById('home-recent').innerHTML=recent.length?recent.map(r=>`
+    <div class="card card-sm ${r.cl}">
+      <div class="card-label">${r.type}</div>
+      <div class="card-title" style="font-size:14px">${esc(r.title)}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:3px;font-family:var(--font-mono)">${esc(r.meta)}</div>
+    </div>`).join('')
+    :`<div class="empty"><div class="empty-icon">📭</div><p>Nothing logged yet.</p></div>`;
+  const favCues=N.filter(n=>n.fav&&n.cue);
+  document.getElementById('home-cues').innerHTML=favCues.length?favCues.slice(0,3).map(n=>`
+    <div class="cue-card">"${esc(n.cue)}"<div style="font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--font-mono);font-style:normal">${esc(n.title)}</div></div>
+  `).join(''):`<div style="color:var(--text3);font-size:13px;padding:8px 0">Star notes with cues to surface them here.</div>`;
+}
+
+/* ──────────────────────────────────
+   CALENDAR
+   ────────────────────────────────── */
+let calY=new Date().getFullYear(), calM=new Date().getMonth();
+let _dayDate='';
+function calPrev(){calM--;if(calM<0){calM=11;calY--}renderCalendar()}
+function calNext(){calM++;if(calM>11){calM=0;calY++}renderCalendar()}
+
+function renderCalendar(){
+  const W=load(K.wo),S=load(K.se);
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent=months[calM]+' '+calY;
+  const firstDay=new Date(calY,calM,1).getDay();
+  const dim=new Date(calY,calM+1,0).getDate();
+  const td=todayStr();
+  document.getElementById('cal-headers').innerHTML=['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<div class="cal-hdr">${d}</div>`).join('');
+  let cells='';
+  for(let i=0;i<firstDay;i++)cells+=`<div class="cal-day empty-day"></div>`;
+  for(let d=1;d<=dim;d++){
+    const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasW=W.some(x=>x.date===ds),hasS=S.some(x=>x.date===ds);
+    const cls=hasW&&hasS?'bo':hasW?'wo':hasS?'mt':'';
+    cells+=`<div class="cal-day ${cls}${ds===td?' today':''}" onclick="showDay('${ds}')">
+      <span class="cal-dn" style="color:${ds===td?'var(--accent)':'var(--text2)'}">${d}</span>
+      ${hasW&&hasS?`<span class="cal-dot" style="background:var(--teal)"></span>`:hasW?`<span class="cal-dot" style="background:var(--accent)"></span>`:hasS?`<span class="cal-dot" style="background:var(--gold)"></span>`:''}
+    </div>`;
   }
-  const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
-  const wkStart=new Date(now);wkStart.setDate(now.getDate()-now.getDay());
-  const thisWW=W.filter(w=>new Date(w.date+'T00:00:00')>=wkStart).length;
-  const thisWS=S.filter(s=>new Date(s.date+'T00:00:00')>=wkStart).length;
-  let h=`<div class="page-header"><div><div class="page-title">Training</div><div class="page-subtitle">WEEKLY OVERVIEW</div></div></div>
-  <div class="stat-row">
-    <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${thisWW}</div><div class="stat-label">This Wk Workouts</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--gold)">${thisWS}</div><div class="stat-label">This Wk MT</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--teal)">${W.length+S.length}</div><div class="stat-label">All Time</div></div>
-  </div>
-  <div style="display:flex;gap:12px;margin-bottom:16px;font-size:11px;font-family:var(--font-mono);color:var(--text3)">
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block"></span>Workout</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block"></span>MT Session</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block"></span>Both</span>
-  </div>
-  <div class="week-grid">${DAYS.map(d=>`<div style="text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;padding:4px 0">${d}</div>`).join('')}</div>`;
-  weeks.forEach(week=>{
-    const label=week[0].date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    h+=`<div class="section-label" style="margin-top:12px">Week of ${label}</div><div class="week-grid">`;
-    week.forEach(({date,ds,hasW,hasS})=>{
-      const isToday=ds===today();
-      const cls=hasW&&hasS?'has-both':hasW?'has-workout':hasS?'has-mt':'';
-      h+=`<div class="day-cell ${cls}${isToday?' today':''}"><div class="day-date" style="color:${isToday?'var(--accent)':'var(--text2)'}">${date.getDate()}</div>${hasW&&hasS?'<div class="day-dot" style="background:var(--teal)"></div>':hasW?'<div class="day-dot" style="background:var(--accent)"></div>':hasS?'<div class="day-dot" style="background:var(--gold)"></div>':''}</div>`
-    });
-    const wc=week.filter(d=>d.hasW).length,sc=week.filter(d=>d.hasS).length;
-    h+=`</div>`;
-    if(wc||sc)h+=`<div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px">${wc?`<span style="color:var(--accent)">${wc} workout${wc>1?'s':''}</span> `:''}${sc?`<span style="color:var(--gold)">${sc} session${sc>1?'s':''}</span>`:''}</div>`;
+  document.getElementById('cal-grid').innerHTML=cells;
+  const now=new Date();const wkS=new Date();wkS.setDate(now.getDate()-now.getDay());wkS.setHours(0,0,0,0);
+  const wW=W.filter(w=>new Date(w.date+'T00:00:00')>=wkS).length;
+  const wS=S.filter(s=>new Date(s.date+'T00:00:00')>=wkS).length;
+  document.getElementById('cal-stats').innerHTML=`
+    <div class="stat"><div class="stat-n" style="color:var(--accent)">${wW}</div><div class="stat-l">Workouts</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--gold)">${wS}</div><div class="stat-l">MT Sessions</div></div>
+    <div class="stat"><div class="stat-n" style="color:var(--teal)">${Math.max(0,7-wW-wS)}</div><div class="stat-l">Rest Days</div></div>
+  `;
+  const all=[...W.map(w=>({date:w.date,label:w.title,type:'Workout',tc:'var(--accent)'})),
+             ...S.map(s=>({date:s.date,label:s.type,type:'Session',tc:'var(--gold)'}))].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  document.getElementById('cal-activity').innerHTML=all.length?all.map(a=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="width:7px;height:7px;border-radius:50%;background:${a.tc};flex-shrink:0"></span>
+      <span style="font-size:12px;color:var(--text3);font-family:var(--font-mono);min-width:72px">${ago(a.date)}</span>
+      <span style="font-size:13.5px;color:var(--text);flex:1">${esc(a.label)}</span>
+      <span class="tag tg">${a.type}</span>
+    </div>`).join(''):`<div class="empty"><div class="empty-icon">📅</div><p>No activity logged yet.</p></div>`;
+}
+
+function showDay(ds){
+  _dayDate=ds;
+  const W=load(K.wo).filter(x=>x.date===ds);
+  const S=load(K.se).filter(x=>x.date===ds);
+  document.getElementById('m-day-title').textContent=fmtDate(ds);
+  let h='';
+  if(!W.length&&!S.length)h=`<div style="color:var(--text3);font-size:14px;padding:12px 0">Nothing logged for this day.</div>`;
+  W.forEach(w=>{h+=`<div class="card card-sm cl-accent" style="margin-bottom:8px"><div class="card-label">Workout · ${esc(w.type)}</div><div class="card-title">${esc(w.title)}</div>${w.notes?`<div class="card-body" style="margin-top:6px">${esc(w.notes)}</div>`:''}<div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="closeModal('m-day');editWorkout('${w.id}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>{save(K.wo,load(K.wo).filter(x=>x.id!=='${w.id}'));closeModal('m-day');renderCalendar();toast('Deleted')})">Del</button></div></div>`});
+  S.forEach(s=>{h+=`<div class="card card-sm cl-gold" style="margin-bottom:8px"><div class="card-label">MT Session · ${esc(s.type)}</div><div class="card-body">${esc(s.worked)}</div>${s.next?`<div style="font-size:12px;color:var(--teal);margin-top:8px;font-family:var(--font-mono)">→ ${esc(s.next)}</div>`:''}<div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="closeModal('m-day');editSession('${s.id}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>{save(K.se,load(K.se).filter(x=>x.id!=='${s.id}'));closeModal('m-day');renderCalendar();toast('Deleted')})">Del</button></div></div>`});
+  document.getElementById('m-day-content').innerHTML=h;
+  openModal('m-day');
+}
+
+/* ──────────────────────────────────
+   NOTES
+   ────────────────────────────────── */
+const NOTE_CATS=['All','Punching','Kicks','Defense','Footwork','Clinch','Timing','Counters','Coaching','Strategy','General','Favorites'];
+let noteCat='All';
+function renderNotes(){
+  document.getElementById('note-pills').innerHTML=NOTE_CATS.map(c=>`<button class="pill${c===noteCat?' on':''}" onclick="noteCat='${c}';renderNotes()">${c}</button>`).join('');
+  const q=(document.getElementById('note-search')?.value||'').toLowerCase().trim();
+  let notes=load(K.no).sort((a,b)=>b.date.localeCompare(a.date));
+  if(noteCat==='Favorites')notes=notes.filter(n=>n.fav);
+  else if(noteCat!=='All')notes=notes.filter(n=>n.cat===noteCat);
+  if(q)notes=notes.filter(n=>(n.title+n.body+n.cue+n.cat).toLowerCase().includes(q));
+  document.getElementById('notes-list').innerHTML=notes.length?notes.map(n=>`
+    <div class="card${n.fav?' cl-accent':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
+        <div><div class="card-label">${esc(n.cat)}</div><div class="card-title">${esc(n.title)}</div></div>
+        <button class="star${n.fav?' on':''}" onclick="toggleNoteFav('${n.id}')">★</button>
+      </div>
+      ${n.cue?`<div class="cue-card" style="margin-bottom:10px">"${esc(n.cue)}"</div>`:''}
+      <div id="ne-${n.id}">
+        <div class="note-preview card-body">${esc(n.body)}</div>
+        <div class="note-full card-body" style="white-space:pre-line">${esc(n.body)}</div>
+        <div class="expand-btn" onclick="xpand('ne-${n.id}',this)">Show more</div>
+      </div>
+      <div class="card-foot">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">${fmtDate(n.date)}</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="editNote('${n.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>{save(K.no,load(K.no).filter(x=>x.id!=='${n.id}'));renderNotes();if(curPage==='home')renderHome();toast('Deleted')})">Del</button>
+        </div>
+      </div>
+    </div>`).join(''):`<div class="empty"><div class="empty-icon">📝</div><p>No notes found.<br>Tap + Note to capture a learning.</p></div>`;
+}
+function xpand(containerId,btn){const el=document.getElementById(containerId);el.classList.toggle('note-expanded');btn.textContent=el.classList.contains('note-expanded')?'Show less':'Show more'}
+
+/* ──────────────────────────────────
+   TIPS
+   ────────────────────────────────── */
+const TIPS=[
+  {title:'Jab Fundamentals',items:[
+    {h:'Return first',b:'The jab is defined by its snap. The hand must return faster than it leaves. A slow return is a slow jab.'},
+    {h:'No telegraphing',b:'Common mistakes: dropping the hand before throwing, raising the shoulder, or rocking back first. Stay neutral, throw neutral.'},
+    {h:'Chin stays down',b:'As the jab extends, the chin dips slightly behind the shoulder. Protect the jaw — always.'},
+    {h:'It is not a commitment',b:'The jab is a probe, a setup, a distraction. Keep it light and fast.'},
+  ]},
+  {title:'Power & Weight Transfer',items:[
+    {h:'Hip drives the shoulder',b:'For the cross, power comes from hip rotation. The rear hip fires forward and the shoulder follows.'},
+    {h:'Pivot the rear foot',b:'Without the heel pivot, the hip cannot rotate. This is the foundation of cross power.'},
+    {h:'Don\'t lean — rotate',b:'Leaning forward shifts your base. Rotating keeps balance. Power with control.'},
+    {h:'Cross timing',b:'The cross lands just as the jab returns — not after. Continuous chain of movement.'},
+  ]},
+  {title:'Teep & Distance',items:[
+    {h:'Knee first',b:'Chamber the knee before extending. This makes the teep a true push — not a slow swing.'},
+    {h:'Stay tall',b:'Leaning back when throwing the teep is a common mistake. Stay upright, guard stays up.'},
+    {h:'It\'s not a kick',b:'The teep is a linear push. Think: pushing a door, not swinging a bat.'},
+    {h:'Use it to reset',b:'After a combination, a teep re-establishes distance before they can counter.'},
+  ]},
+  {title:'Defense Principles',items:[
+    {h:'Movement is defense',b:'Footwork and angle changes are your first layer of defense. Staying in the pocket is optional.'},
+    {h:'Don\'t just block — answer',b:'A block with no counter is a free attack. Every defensive action should have an exit.'},
+    {h:'Pull counter timing',b:'Pull straight back as the punch is committed. As they overextend, return cross.'},
+    {h:'Keep your guard honest',b:'Steady guard is harder to time and easier to return to. Don\'t wave it around.'},
+  ]},
+  {title:'Clinch',items:[
+    {h:'Inside position wins',b:'The fighter who controls inside position has more options. Elbow in, wrist control, frame.'},
+    {h:'Exit with a strike',b:'Never just disengage — gives free space. Frame, then elbow, then step.'},
+    {h:'Stay heavy',b:'In the clinch, use your weight. Don\'t just hang — make them carry you.'},
+  ]},
+  {title:'Training Reminders',items:[
+    {h:'Quality over quantity',b:'Fewer sharp rounds beat many sloppy ones. Deliberate practice beats volume every time.'},
+    {h:'Log what needs work',b:'After every session, write one thing to improve. Over time this compounds.'},
+    {h:'Condition the mind',b:'The goal during hard rounds is to maintain form when exhausted — not just survive.'},
+    {h:'Recovery is training',b:'Foam rolling, sleep, and low-intensity work are part of the program.'},
+  ]},
+  {title:'Gear Reminders',items:[
+    {h:'Hand wraps first',b:'Always wrap before gloves. Even for bagwork. One injury sets back weeks.'},
+    {h:'Mouthguard',b:'Non-negotiable for sparring. Always.'},
+    {h:'Shin guards',b:'Wear them for partner drills and light sparring.'},
+  ]},
+];
+function renderTips(){
+  document.getElementById('tips-content').innerHTML=TIPS.map((g,i)=>`
+    <div class="tip-group">
+      <div class="tip-hdr" onclick="toggleTip(${i})"><h3>${g.title}</h3><span class="tip-caret" id="tc-${i}">▾</span></div>
+      <div class="tip-body" id="tb-${i}">${g.items.map(it=>`<div class="tip-item"><strong>${esc(it.h)}</strong>${esc(it.b)}</div>`).join('')}</div>
+    </div>`).join('');
+}
+function toggleTip(i){document.getElementById('tb-'+i).classList.toggle('open');document.getElementById('tc-'+i).classList.toggle('open')}
+
+/* ══════════════════════════════════
+   TIMER ENGINE
+   ══════════════════════════════════ */
+const MODES={
+  tabata:{label:'Tabata',fields:[
+    {id:'tw-rounds',label:'Rounds',v:8,min:1,max:99},
+    {id:'tw-work',label:'Work (sec)',v:20,min:5,max:300},
+    {id:'tw-rest',label:'Rest (sec)',v:10,min:1,max:300},
+    {id:'tw-prep',label:'Prep (sec)',v:3,min:0,max:10},
+  ]},
+  fight:{label:'Fight Clock',fields:[
+    {id:'tf-rounds',label:'Rounds',v:5,min:1,max:20},
+    {id:'tf-rdlen',label:'Round (min)',v:3,min:1,max:10},
+    {id:'tf-break',label:'Break (sec)',v:60,min:1,max:300},
+    {id:'tf-prep',label:'Prep (sec)',v:5,min:0,max:10},
+  ]},
+  custom:{label:'Custom',fields:[
+    {id:'tc-rounds',label:'Rounds',v:6,min:1,max:99},
+    {id:'tc-work',label:'Work (sec)',v:30,min:5,max:600},
+    {id:'tc-rest',label:'Rest (sec)',v:15,min:1,max:300},
+    {id:'tc-prep',label:'Prep (sec)',v:3,min:0,max:10},
+  ]}
+};
+
+let tMode='tabata',tState='idle',tRunning=false,tInterval=null;
+let tSecs=20,tRound=1,tTotal=8,soundOn=true;
+
+/* Audio */
+let _actx=null;
+const actx=()=>{if(!_actx)_actx=new(window.AudioContext||window.webkitAudioContext)();return _actx};
+function beep(freq,dur,vol=0.3){
+  if(!soundOn)return;
+  try{const c=actx();const o=c.createOscillator();const g=c.createGain();
+    o.connect(g);g.connect(c.destination);o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);
+    o.start(c.currentTime);o.stop(c.currentTime+dur);}catch(e){}
+}
+const bWork=()=>{beep(880,.12);setTimeout(()=>beep(880,.12),160)};
+const bRest=()=>{beep(440,.2);setTimeout(()=>beep(330,.3),210)};
+const bCD=()=>beep(660,.09);
+const bDone=()=>{beep(880,.1);setTimeout(()=>beep(1100,.1),130);setTimeout(()=>beep(1320,.35),260)};
+
+function setMode(m){
+  tMode=m;tReset();
+  document.querySelectorAll('.tmode').forEach(b=>{
+    const match=b.dataset.m===m||b.dataset.m2===m;
+    b.classList.toggle('on',match);
   });
-  h+=`<div class="section-label" style="margin-top:20px">Recent Activity</div>`;
-  const recent=[...W.map(w=>({...w,_t:'Workout',_l:w.title})),...S.map(s=>({...s,_t:'Session',_l:s.type}))].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
-  if(!recent.length)h+=`<div class="empty-state"><div class="empty-icon">📅</div><p>No activity yet.</p></div>`;
-  else recent.forEach(r=>{const col=r._t==='Workout'?'var(--accent)':'var(--gold)';h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></span><span style="font-size:12px;color:var(--text3);font-family:var(--font-mono);min-width:70px">${ago(r.date)}</span><span style="font-size:13px;color:var(--text);flex:1">${esc(r._l)}</span><span class="tag tag-default">${r._t}</span></div>`});
-  document.getElementById('page-calendar').innerHTML=h;
+  const lbl=MODES[m].label;
+  document.getElementById('ts-lbl').textContent=`⚙ Settings · ${lbl}`;
+  const ld=document.getElementById('ts-lbl-desk');if(ld)ld.textContent=`Settings · ${lbl}`;
+  buildFields();tUpdateDisplay();
 }
 
-// ── PLANNER ──
-let pFav=false;
-function nextSunday(){const d=new Date();const day=d.getDay();d.setDate(d.getDate()+(day===0?7:7-day));return d.toISOString().split('T')[0]}
-function renderPlanner(){
-  let D=load(KEYS.plans).sort((a,b)=>b.date.localeCompare(a.date));
-  if(pFav)D=D.filter(p=>p.favorite);
-  let h=`<div class="page-header"><div><div class="page-title">Sunday</div><div class="page-subtitle">CLASS PLANNER</div></div><div class="header-actions"><button class="btn-icon" onclick="pFav=!pFav;renderPlanner()" style="${pFav?'color:var(--gold);border-color:var(--gold)':''}">⭐</button><button class="btn btn-primary btn-sm" onclick="openAddPlan()">+ Plan</button></div></div>`;
-  if(!D.length)h+=`<div class="empty-state"><div class="empty-icon">📅</div><p>No class plans yet. Create your first Sunday plan.</p></div>`;
-  else D.forEach(p=>{h+=`<div class="card card-gold"><div class="card-header"><div style="flex:1"><div class="card-title">${esc(p.focus)}</div><div class="card-meta">${fmt(p.date)} ${p.date>=today()?'<span class="tag tag-gold" style="margin-left:6px">Upcoming</span>':''}</div></div><button class="fav-btn${p.favorite?' active':''}" onclick="toggleFav(KEYS.plans,'${p.id}',renderPlanner)">★</button></div>${p.technique?`<div style="font-size:12px;color:var(--gold2);margin-bottom:10px">🎯 ${esc(p.technique)}</div>`:''} ${p.warmup?`<div class="section-label">Warmup</div><div class="card-body" style="margin-bottom:12px;white-space:pre-line">${esc(p.warmup)}</div>`:''} ${p.drills?`<div class="section-label">Drills / Stations</div><div class="card-body" style="margin-bottom:12px;white-space:pre-line">${esc(p.drills)}</div>`:''} ${p.conditioning?`<div style="font-size:12px;color:var(--accent2);margin-bottom:8px">⚡ ${esc(p.conditioning)}</div>`:''} ${p.cues?`<div class="section-label">Coaching Cues</div><div style="font-style:italic;font-size:13px;color:var(--gold2);white-space:pre-line;margin-bottom:10px">${esc(p.cues)}</div>`:''} ${p.notes?`<div style="font-size:12px;color:var(--text3)">📝 ${esc(p.notes)}</div>`:''}<div class="card-actions"><button class="btn btn-ghost btn-sm" onclick="editPlan('${p.id}')">Edit</button><button class="btn btn-ghost btn-sm" onclick="reusePlan('${p.id}')">Reuse</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>deleteEntry(KEYS.plans,'${p.id}',renderPlanner))">Delete</button></div></div>`});
-  document.getElementById('page-planner').innerHTML=h;
-}
-function openAddPlan(){document.getElementById('modal-plan-title').textContent='New Sunday Class Plan';document.getElementById('plan-edit-id').value='';document.getElementById('plan-date').value=nextSunday();['plan-focus','plan-warmup','plan-drills','plan-technique','plan-conditioning','plan-cues','plan-notes'].forEach(id=>document.getElementById(id).value='');openModal('modal-plan')}
-function editPlan(id){const p=load(KEYS.plans).find(x=>x.id===id);if(!p)return;document.getElementById('modal-plan-title').textContent='Edit Class Plan';document.getElementById('plan-edit-id').value=id;document.getElementById('plan-date').value=p.date;document.getElementById('plan-focus').value=p.focus||'';document.getElementById('plan-warmup').value=p.warmup||'';document.getElementById('plan-drills').value=p.drills||'';document.getElementById('plan-technique').value=p.technique||'';document.getElementById('plan-conditioning').value=p.conditioning||'';document.getElementById('plan-cues').value=p.cues||'';document.getElementById('plan-notes').value=p.notes||'';openModal('modal-plan')}
-function reusePlan(id){const p=load(KEYS.plans).find(x=>x.id===id);if(!p)return;document.getElementById('modal-plan-title').textContent='New Plan (from template)';document.getElementById('plan-edit-id').value='';document.getElementById('plan-date').value=nextSunday();document.getElementById('plan-focus').value=p.focus||'';document.getElementById('plan-warmup').value=p.warmup||'';document.getElementById('plan-drills').value=p.drills||'';document.getElementById('plan-technique').value=p.technique||'';document.getElementById('plan-conditioning').value=p.conditioning||'';document.getElementById('plan-cues').value=p.cues||'';document.getElementById('plan-notes').value=p.notes||'';openModal('modal-plan')}
-function savePlan(){
-  const id=document.getElementById('plan-edit-id').value;
-  const existing=id?load(KEYS.plans).find(x=>x.id===id):null;
-  const e={id:id||uid(),date:document.getElementById('plan-date').value,focus:document.getElementById('plan-focus').value,warmup:document.getElementById('plan-warmup').value,drills:document.getElementById('plan-drills').value,technique:document.getElementById('plan-technique').value,conditioning:document.getElementById('plan-conditioning').value,cues:document.getElementById('plan-cues').value,notes:document.getElementById('plan-notes').value,favorite:existing?existing.favorite:false,createdAt:existing?existing.createdAt:Date.now()};
-  if(!e.focus){toast('Please add a class focus');return}
-  const D=load(KEYS.plans);if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e}else D.push(e);
-  save(KEYS.plans,D);closeModal('modal-plan');toast(id?'Plan updated ✓':'Plan saved ✓');
-  if(currentPage==='planner')renderPlanner();if(currentPage==='dashboard')renderDashboard();
+function buildFields(){
+  const fs=MODES[tMode].fields;
+  function makeRows(pfx){
+    let h='';
+    for(let i=0;i<fs.length;i+=2){
+      const pair=fs.slice(i,i+2);
+      h+=`<div class="ts-row">${pair.map(f=>`<div class="ts-field"><label>${f.label}</label><input type="number" id="${pfx}${f.id}" value="${f.v}" min="${f.min}" max="${f.max}" oninput="syncField('${f.id}','${pfx}')"></div>`).join('')}</div>`;
+    }
+    return h;
+  }
+  document.getElementById('ts-fields').innerHTML=makeRows('');
+  const dd=document.getElementById('ts-fields-desk');if(dd)dd.innerHTML=makeRows('d-');
+  updateHint();
 }
 
-// ── SHARED ──
-function toggleFav(key,id,redraw){const D=load(key);const i=D.findIndex(x=>x.id===id);if(i>=0){D[i].favorite=!D[i].favorite;save(key,D)}redraw();if(currentPage==='dashboard')renderDashboard()}
-function deleteEntry(key,id,redraw){save(key,load(key).filter(x=>x.id!==id));toast('Deleted');redraw();if(currentPage==='dashboard')renderDashboard()}
+function syncField(baseId,fromPfx){
+  const fromEl=document.getElementById(fromPfx+baseId);
+  if(!fromEl)return;
+  const val=fromEl.value;
+  const otherPfx=fromPfx===''?'d-':'';
+  const otherEl=document.getElementById(otherPfx+baseId);
+  if(otherEl)otherEl.value=val;
+  if(tState==='idle')tUpdateDisplay();
+  updateHint();
+}
 
-// ── INIT ──
-seedIfEmpty();
-renderDashboard();
+function gv(id){
+  const isDesk=window.innerWidth>=700;
+  const pfx=isDesk?'d-':'';
+  const el=document.getElementById(pfx+id)||document.getElementById(id);
+  return el?parseInt(el.value)||0:0;
+}
+
+function updateHint(){
+  let hint='';
+  if(tMode==='tabata'){const work=gv('tw-work'),rest=gv('tw-rest'),r=gv('tw-rounds');const t=r*(work+rest);hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`}
+  else if(tMode==='fight'){const r=gv('tf-rounds'),rl=gv('tf-rdlen')*60,b=gv('tf-break');const t=r*rl+(r-1)*b;hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')} · ${r} rounds`}
+  else{const work=gv('tc-work'),rest=gv('tc-rest'),r=gv('tc-rounds');const t=r*(work+rest);hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`}
+  ['ts-hint','ts-hint-desk'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=hint});
+}
+
+function toggleTsettings(){const b=document.getElementById('ts-body');const c=document.getElementById('ts-caret');b.classList.toggle('open');c.classList.toggle('open')}
+function toggleSound(isDesk){
+  soundOn=!soundOn;
+  ['snd-mob','snd-desk'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',soundOn)});
+}
+
+const fmtT=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+const getWork=()=>tMode==='tabata'?gv('tw-work'):tMode==='fight'?gv('tf-rdlen')*60:gv('tc-work');
+const getRest=()=>tMode==='tabata'?gv('tw-rest'):tMode==='fight'?gv('tf-break'):gv('tc-rest');
+const getPrep=()=>tMode==='tabata'?gv('tw-prep'):tMode==='fight'?gv('tf-prep'):gv('tc-prep');
+const getRounds=()=>tMode==='tabata'?gv('tw-rounds'):tMode==='fight'?gv('tf-rounds'):gv('tc-rounds');
+
+function tToggle(){
+  if(tState==='done'){tReset();return}
+  if(!tRunning)tStart();else tPause();
+}
+function tStart(){
+  if(tState==='idle'){
+    tTotal=getRounds();tRound=1;
+    const prep=getPrep();
+    if(prep>0){tState='prep';tSecs=prep}else{tState='work';tSecs=getWork();bWork()}
+  }
+  tRunning=true;tUpdateDisplay();tInterval=setInterval(tTick,1000);
+}
+function tPause(){tRunning=false;clearInterval(tInterval);tUpdateDisplay()}
+function tReset(){tRunning=false;clearInterval(tInterval);tState='idle';tRound=1;const prep=getPrep();tSecs=prep||getWork();setBg('idle');tUpdateDisplay()}
+function tSkip(){
+  if(tState==='idle')return;
+  if(tState==='prep'){tState='work';tSecs=getWork();bWork();setBg('work');flash('fw')}
+  else if(tState==='work'){if(tRound>=tTotal){tDone();return}tState='rest';tSecs=getRest();bRest();setBg('rest');flash('fr2')}
+  else if(tState==='rest'){tRound++;tState='work';tSecs=getWork();bWork();setBg('work');flash('fw')}
+  tUpdateDisplay();
+}
+function tTick(){
+  tSecs--;
+  if(tSecs<=3&&tSecs>0&&tState!=='idle')bCD();
+  if(tSecs<=0){
+    if(tState==='prep'){tState='work';tSecs=getWork();bWork();setBg('work');flash('fw')}
+    else if(tState==='work'){if(tRound>=tTotal){tDone();return}tState='rest';tSecs=getRest();bRest();setBg('rest');flash('fr2')}
+    else if(tState==='rest'){tRound++;tState='work';tSecs=getWork();bWork();setBg('work');flash('fw')}
+  }
+  tUpdateDisplay();
+}
+function tDone(){clearInterval(tInterval);tRunning=false;tState='done';tSecs=0;bDone();setBg('idle');tUpdateDisplay();toast('Session complete 🏆')}
+
+function setBg(state){
+  const map={work:'radial-gradient(ellipse at center,rgba(232,83,58,.14) 0%,transparent 70%)',rest:'radial-gradient(ellipse at center,rgba(46,196,182,.1) 0%,transparent 70%)',prep:'radial-gradient(ellipse at center,rgba(201,168,76,.1) 0%,transparent 70%)',idle:'none'};
+  const v=map[state]||'none';
+  ['t-bg-mob','t-bg-desk'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.background=v});
+}
+
+function flash(cls){
+  ['t-flash','t-flash-desk'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.className=cls;el.style.opacity='1';setTimeout(()=>{el.style.opacity='0'},200);
+  });
+}
+
+function tUpdateDisplay(){
+  const labels={idle:'',prep:'GET READY',work:'WORK',rest:'REST',done:'DONE'};
+  const lbl=labels[tState]||'';
+  const time=tState==='done'?'Done!':fmtT(tSecs);
+  const round=tState==='idle'||tState==='done'?'':
+    tState==='prep'?`Round ${tRound} of ${tTotal}`:`Round ${tRound} of ${tTotal}`;
+  const clockClass='t-clock'+(tRunning?' running':'')+(tState==='work'?' work':tState==='rest'?' rest':tState==='prep'?' prep':'');
+  const stateColor=tState==='work'?'var(--accent)':tState==='rest'?'var(--teal)':tState==='prep'?'var(--gold)':'var(--text3)';
+
+  [['t-clk-mob','t-sl-mob','t-rl-mob','t-sb-mob','t-play-mob','t-pause-mob'],
+   ['t-clk-desk','t-sl-desk','t-rl-desk','t-sb-desk','t-play-desk','t-pause-desk']].forEach(([ck,sl,rl,sb,pi,pau])=>{
+    const clkEl=document.getElementById(ck);
+    const slEl=document.getElementById(sl);
+    const rlEl=document.getElementById(rl);
+    const sbEl=document.getElementById(sb);
+    const piEl=document.getElementById(pi);
+    const pauEl=document.getElementById(pau);
+    if(clkEl){clkEl.textContent=time;clkEl.className=clockClass}
+    if(slEl){slEl.textContent=lbl;slEl.style.color=stateColor}
+    if(rlEl)rlEl.textContent=round;
+    if(sbEl)sbEl.classList.toggle('go',tRunning);
+    if(piEl)piEl.style.display=tRunning?'none':'block';
+    if(pauEl)pauEl.style.display=tRunning?'block':'none';
+  });
+}
+
+/* ──────────────────────────────────
+   INIT
+   ────────────────────────────────── */
+seed();
+buildFields();
+tUpdateDisplay();
+go('timer');
+renderTips();
 </script>
 </body>
 </html>

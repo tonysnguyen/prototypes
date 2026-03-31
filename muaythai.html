@@ -1131,16 +1131,37 @@ let _sbIdx=0, _ebIdx=0;
 _sbPool.forEach(a=>{ a.preload='auto'; a.load(); a.volume=1.0; });
 _ebPool.forEach(a=>{ a.preload='auto'; a.load(); a.volume=1.0; a.playbackRate=1.15; });
 
-// iOS/Safari unlock: first user interaction fires a silent play on both pools
+// ── iOS background-audio coexistence ──────────────────────────────────────
+// Set the audio session to 'ambient' BEFORE creating any AudioContext.
+// This tells iOS to mix with background audio (Spotify, Podcasts, etc.)
+// rather than interrupting it. Must be called synchronously before first use.
+if(typeof window.AudioContext !== 'undefined' || typeof window.webkitAudioContext !== 'undefined'){
+  try{
+    // The AudioSession API (Safari 16.4+) — opt into ambient mixing
+    if(navigator.audioSession) navigator.audioSession.type = 'ambient';
+  }catch(e){}
+}
+
+// HTMLAudio elements: mark as ambient so iOS won't duck/stop other apps
+_sbPool.concat(_ebPool).forEach(a=>{
+  // playsinline prevents fullscreen takeover on iOS
+  a.setAttribute('playsinline','');
+  // x-webkit-airplay ambient hint (older Safari)
+  a.setAttribute('x-webkit-airplay','allow');
+});
+
 let _audioUnlocked = false;
 function _unlockAudio(){
   if(_audioUnlocked) return;
   _audioUnlocked = true;
+  // Unlock HTMLAudio pool with zero-volume tap — uses ambient session
   [..._sbPool, ..._ebPool].forEach(a=>{
     a.volume=0;
     const p=a.play();
-    if(p) p.then(()=>{ a.pause(); a.currentTime=0; a.volume=a===_sbPool[0]||a===_sbPool[1]?1.0:1.0; }).catch(()=>{});
+    if(p) p.then(()=>{ a.pause(); a.currentTime=0; a.volume=1.0; }).catch(()=>{});
   });
+  // Unlock WebAudio context in ambient mode
+  if(_actx && _actx.state==='suspended') _actx.resume().catch(()=>{});
 }
 document.addEventListener('click',  _unlockAudio, {once:false});
 document.addEventListener('touchend',_unlockAudio, {once:false});
@@ -1151,20 +1172,26 @@ function _playPool(pool, idxRef, rate=1.0){
   a.playbackRate = rate;
   a.currentTime = 0;
   const p = a.play();
-  if(p) p.catch(()=>{});   // suppress AbortError on fast interactions
+  if(p) p.catch(()=>{});   // suppress AbortError on rapid replays
 }
 
-/* Public API ── these replace the old synthesised sounds */
-function bellSound(){   _playPool(_ebPool, _ebIdx++, 1.15); }   // end of round — sharp ding
-function startBell(){  _playPool(_sbPool, _sbIdx++, 1.0);  }   // start of round — full bell
-function doneSound(){  _playPool(_ebPool, _ebIdx++, 1.0);  }   // session done — normal tempo
-function buzzerSound(){ startBell(); }  // round start uses the real start bell
+/* Public API */
+function bellSound(){   _playPool(_ebPool, _ebIdx++, 1.15); }   // end-of-round ding
+function startBell(){  _playPool(_sbPool, _sbIdx++, 1.0);  }   // round start bell
+function doneSound(){  _playPool(_ebPool, _ebIdx++, 1.0);  }   // session complete
+function buzzerSound(){ startBell(); }
 
-/* Countdown tick — WebAudio synthetic click (no file needed, always instant) */
+/* Countdown tick — WebAudio synthetic (ambient session, won't interrupt music) */
 let _actx=null;
 const actx=()=>{
-  if(!_actx) _actx=new(window.AudioContext||window.webkitAudioContext)();
-  if(_actx.state==='suspended') _actx.resume();
+  if(!_actx){
+    const Ctx = window.AudioContext||window.webkitAudioContext;
+    // 'interactive' latency; ambient session set above keeps music playing
+    _actx = new Ctx({latencyHint:'interactive'});
+    // Re-apply ambient session hint after context creation (belt-and-suspenders)
+    try{ if(navigator.audioSession) navigator.audioSession.type='ambient'; }catch(e){}
+  }
+  if(_actx.state==='suspended') _actx.resume().catch(()=>{});
   return _actx;
 };
 function tickSound(){

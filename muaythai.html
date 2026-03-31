@@ -22,6 +22,37 @@
   --font-mono:'DM Mono',monospace;
   --font-disp:'Oswald',sans-serif;
 }
+/* ── LIGHT MODE ── */
+body.light{
+  --bg:#f5f4f0;--bg2:#eeede9;--bg3:#e6e4df;
+  --card:#ffffff;--card2:#f0efe9;
+  --border:#dddbd4;--border2:#c8c6be;
+  --text:#1a1a18;--text2:#5a5a52;--text3:#999890;
+  --accent:#d94528;--accent2:#e85840;
+  --teal:#1fa89c;--teal2:#24c4b7;
+  --gold:#b8922a;--gold2:#d4a83a;
+  --green:#2ea066;
+}
+body.light #top-nav{background:rgba(238,237,233,.97)}
+body.light #bottom-nav{background:rgba(238,237,233,.97)}
+body.light #page-timer{background:var(--bg)}
+body.light #t-mobile,body.light #t-desk-main{background:var(--bg)}
+body.light .modal{background:var(--bg2)}
+body.light .fi,body.light .fs,body.light .ft{background:var(--card);color:var(--text)}
+body.light .overlay{background:rgba(0,0,0,.45)}
+body.light .confirm-box{background:var(--bg2)}
+body.light .si{background:var(--card)}
+body.light .search-wrap svg{stroke:var(--text3)}
+body.light .tip-hdr{background:var(--bg3)}
+body.light .tip-body{background:var(--card)}
+body.light .t-settings{background:var(--card)}
+body.light .ts-field input{background:var(--bg3);color:var(--text)}
+body.light .cue-card{background:rgba(217,69,40,.06);border-color:rgba(217,69,40,.2)}
+body.light .t-clock{color:var(--text)}
+body.light .t-clock.work{color:var(--accent)}
+body.light .t-clock.rest{color:var(--teal)}
+body.light .t-clock.prep{color:var(--gold)}
+body.light #timer-bg-desktop{opacity:.6}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;overflow:hidden}
 #shell{display:flex;flex-direction:column;height:100%;max-width:520px;margin:0 auto;position:relative}
@@ -314,7 +345,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5l4 4L7 21l-4 1 1-4L16.5 3.5z"/></svg>Notes
       </button>
       <button class="tnl" data-page="tips" onclick="go('tips')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor" stroke="none"/></svg>Tips
+        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Tips
       </button>
     </nav>
   </header>
@@ -494,7 +525,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
     <!-- TIPS -->
     <div id="page-tips" class="page">
-      <div class="ph"><div><div class="ph-title">Tips</div><div class="ph-sub">Reference & reminders</div></div></div>
+      <div class="ph">
+        <div><div class="ph-title">Tips</div><div class="ph-sub">Reference &amp; reminders</div></div>
+        <button onclick="toggleTheme()" id="theme-btn" style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 14px;cursor:pointer;transition:all .2s;flex-shrink:0">
+          <span id="theme-icon" style="font-size:16px;line-height:1">☀️</span>
+          <span id="theme-label" style="font-size:11px;font-family:var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text2)">Light</span>
+        </button>
+      </div>
       <div id="tips-content"></div>
     </div>
 
@@ -515,7 +552,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5l4 4L7 21l-4 1 1-4L16.5 3.5z"/></svg>Notes
     </button>
     <button class="nb" data-page="tips" onclick="go('tips')">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor" stroke="none"/></svg>Tips
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Tips
     </button>
   </nav>
 </div>
@@ -1419,6 +1456,22 @@ function tUpdateDisplay(){
 /* ──────────────────────────────────
    INIT
    ────────────────────────────────── */
+/* ── THEME TOGGLE ── */
+let _lightMode = localStorage.getItem('nm_theme') === 'light';
+function applyTheme(){
+  document.body.classList.toggle('light', _lightMode);
+  const icon = _lightMode ? '🌙' : '☀️';
+  const label = _lightMode ? 'Dark' : 'Light';
+  const ti=document.getElementById('theme-icon');if(ti)ti.textContent=icon;
+  const tl=document.getElementById('theme-label');if(tl)tl.textContent=label;
+}
+function toggleTheme(){
+  _lightMode=!_lightMode;
+  localStorage.setItem('nm_theme',_lightMode?'light':'dark');
+  applyTheme();
+}
+applyTheme();
+
 seed();
 buildFields();
 tUpdateDisplay();

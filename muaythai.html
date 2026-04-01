@@ -24,17 +24,17 @@
 }
 /* ── LIGHT MODE ── */
 body.light{
-  --bg:#f5f4f0;--bg2:#eeede9;--bg3:#e6e4df;
-  --card:#ffffff;--card2:#f0efe9;
-  --border:#dddbd4;--border2:#c8c6be;
-  --text:#1a1a18;--text2:#5a5a52;--text3:#999890;
+  --bg:#f2f1ec;--bg2:#e9e7e1;--bg3:#e2dfd8;
+  --card:#fdfcf9;--card2:#f3f1eb;
+  --border:#d6d3cc;--border2:#c2beb6;
+  --text:#1c1c1a;--text2:#5e5c55;--text3:#9a978f;
   --accent:#d94528;--accent2:#e85840;
   --teal:#1fa89c;--teal2:#24c4b7;
   --gold:#b8922a;--gold2:#d4a83a;
   --green:#2ea066;
 }
-body.light #top-nav{background:rgba(238,237,233,.97)}
-body.light #bottom-nav{background:rgba(238,237,233,.97)}
+body.light #top-nav{background:rgba(233,231,225,.97)}
+body.light #bottom-nav{background:rgba(233,231,225,.97)}
 body.light #page-timer{background:var(--bg)}
 body.light #t-mobile,body.light #t-desk-main{background:var(--bg)}
 body.light .modal{background:var(--bg2)}
@@ -43,6 +43,10 @@ body.light .overlay{background:rgba(0,0,0,.45)}
 body.light .confirm-box{background:var(--bg2)}
 body.light .si{background:var(--card)}
 body.light .search-wrap svg{stroke:var(--text3)}
+body.light .card{box-shadow:0 1px 4px rgba(0,0,0,.06)}
+body.light .stat{box-shadow:0 1px 3px rgba(0,0,0,.05)}
+body.light .modal{background:var(--bg);box-shadow:0 -4px 32px rgba(0,0,0,.1)}
+body.light .t-settings{box-shadow:0 1px 4px rgba(0,0,0,.06)}
 body.light .tip-hdr{background:var(--bg3)}
 body.light .tip-body{background:var(--card)}
 body.light .t-settings{background:var(--card)}
@@ -56,9 +60,33 @@ body.light #timer-bg-desktop{opacity:.6}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;overflow:hidden}
 #shell{display:flex;flex-direction:column;height:100%;max-width:520px;margin:0 auto;position:relative}
-#pages{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-.page{display:none;padding:24px 18px 32px;min-height:100%;animation:fadeIn .2s ease}
-.page.active{display:block}
+#pages{flex:1;overflow:hidden;display:flex}
+.page{display:none;animation:fadeIn .2s ease}
+.page.active{display:flex;flex-direction:column;height:100%;overflow:hidden}
+
+/* ── STICKY-PAGE PATTERN ──────────────────────────────────────────────────────
+   Each content page is split into two regions:
+   .pg-pin  — locked top zone (never scrolls)
+   .pg-body — inner scroll zone (only this scrolls)
+   The timer page keeps its own layout and is excluded.
+   ────────────────────────────────────────────────────────────────────────── */
+.pg-pin{
+  flex-shrink:0;
+  padding:20px 18px 14px;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+  position:relative;
+  z-index:20;
+}
+body.light .pg-pin{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.pg-body{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding:18px 18px 32px;
+}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── BOTTOM NAV ── */
@@ -83,8 +111,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   #bottom-nav{display:none}
   #shell{max-width:100%;flex-direction:column}
   #pages{display:flex;flex:1;overflow:hidden}
-  .page{flex:1;overflow-y:auto;min-height:auto;max-width:560px;margin:0 auto}
-  #page-timer{max-width:100%;padding:0}
+  .page{flex:1;min-height:auto;max-width:560px;margin:0 auto;overflow:hidden}
+  #page-timer{max-width:100%;padding:0;overflow:hidden}
   #page-timer.active{display:flex;flex-direction:row}
 }
 
@@ -310,7 +338,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 /* tips accordion */
 .tip-group{margin-bottom:10px}
-.tip-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s}
+.tip-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;position:sticky;top:0;z-index:10;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .tip-hdr:hover{border-color:var(--accent);background:rgba(232,83,58,.06)}
 .tip-hdr h3{font-size:13.5px;font-weight:400;color:var(--text2);letter-spacing:.01em}
 .tip-caret{color:var(--text3);font-size:14px;transition:transform .2s;flex-shrink:0}
@@ -320,9 +348,35 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .tip-item{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.6}
 .tip-item:last-child{border-bottom:none}
 .tip-item strong{color:var(--text);display:block;margin-bottom:3px;font-size:13.5px}
+body.light .tip-hdr{background:rgba(226,223,216,.92)}
+body.light .pg-pin{background:var(--bg)}
 
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── BADGES ── */
+.badges-intro{font-size:12px;color:var(--text3);font-family:var(--font-mono);line-height:1.6;margin-bottom:18px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.badge-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.badge{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;display:flex;align-items:flex-start;gap:10px;transition:all .2s;position:relative;overflow:hidden}
+.badge.unlocked{background:#2a6b4a;border-color:#2a6b4a}
+.badge.unlocked::after{content:'✓';position:absolute;top:8px;right:10px;font-size:11px;font-weight:600;color:rgba(255,255,255,.45);font-family:var(--font-mono)}
+.badge.locked{opacity:.42;filter:saturate(.6)}
+.badge-icon{font-size:22px;line-height:1;flex-shrink:0;width:28px;text-align:center}
+.badge.unlocked .badge-icon{filter:none}
+.badge.locked .badge-icon{filter:grayscale(1)}
+.badge-info{flex:1;min-width:0}
+.badge-name{font-size:12.5px;font-weight:500;color:var(--text);line-height:1.2;margin-bottom:2px}
+.badge.unlocked .badge-name{color:#fff;font-weight:600}
+.badge.locked .badge-name{color:var(--text3)}
+.badge-desc{font-size:10.5px;color:var(--text3);font-family:var(--font-mono);line-height:1.4}
+.badge.unlocked .badge-desc{color:rgba(255,255,255,.65)}
+.badge-progress{margin-top:6px;height:2px;background:var(--border2);border-radius:1px;overflow:hidden}
+.badge-progress-fill{height:100%;background:var(--green);border-radius:1px;transition:width .4s ease}
+.badge-progress-fill.accent{background:var(--accent)}
+.badge-progress-fill.teal{background:var(--teal)}
+body.light .badge.unlocked{background:#2a7a52;border-color:#2a7a52}
+body.light .badge.unlocked .badge-name{color:#fff}
+body.light .badge.unlocked .badge-desc{color:rgba(255,255,255,.7)}
 </style>
 </head>
 <body>
@@ -352,48 +406,57 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
   <div id="pages">
 
-    <!-- HOME -->
+    <!-- HOME — pg-pin: greeting + stats | pg-body: quick log, charts, badges -->
     <div id="page-home" class="page">
-      <div class="ph">
-        <div>
-          <div class="ph-title" id="home-greeting">Good morning</div>
-          <div class="ph-sub" id="home-date"></div>
+      <div class="pg-pin">
+        <div class="ph" style="margin-bottom:16px">
+          <div>
+            <div class="ph-title" id="home-greeting">Good morning</div>
+            <div class="ph-sub" id="home-date"></div>
+          </div>
         </div>
+        <div class="stats" id="home-stats"></div>
       </div>
-      <div class="stats" id="home-stats"></div>
-      <div class="sec-label">Quick Log</div>
-      <div class="quick-row">
-        <div class="quick-btn" onclick="openWorkoutModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">Workout</div><div class="qb-sub">Log a session</div></div></div>
-        <div class="quick-btn" onclick="openSessionModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">MT Session</div><div class="qb-sub">Log training</div></div></div>
+      <div class="pg-body">
+        <div class="sec-label" style="margin-top:0">Quick Log</div>
+        <div class="quick-row">
+          <div class="quick-btn" onclick="openWorkoutModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">Workout</div><div class="qb-sub">Log a session</div></div></div>
+          <div class="quick-btn" onclick="openSessionModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">MT Session</div><div class="qb-sub">Log training</div></div></div>
+        </div>
+        <div id="home-chart"></div>
+        <div id="home-badges"></div>
       </div>
-      <div id="home-chart"></div>
     </div>
 
-    <!-- CALENDAR -->
+    <!-- CALENDAR — pg-pin: header + full grid + legend | pg-body: stats, log, activity -->
     <div id="page-calendar" class="page">
-      <div class="ph">
-        <div><div class="ph-title" id="cal-month-label">Calendar</div><div class="ph-sub">Training overview</div></div>
-        <div class="ph-actions">
-          <button class="btn-icon" onclick="calPrev()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-          <button class="btn-icon" onclick="calNext()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+      <div class="pg-pin">
+        <div class="ph" style="margin-bottom:12px">
+          <div><div class="ph-title" id="cal-month-label">Calendar</div><div class="ph-sub">Training overview</div></div>
+          <div class="ph-actions">
+            <button class="btn-icon" onclick="calPrev()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button class="btn-icon" onclick="calNext()"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+          </div>
+        </div>
+        <div class="cal-grid" id="cal-headers"></div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 0;font-size:11px;font-family:var(--font-mono);color:var(--text3)">
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(232,83,58,.5)"></span>Workout</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(201,168,76,.5)"></span>MT Session</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(46,196,182,.5)"></span>Both</span>
         </div>
       </div>
-      <div class="cal-grid" id="cal-headers"></div>
-      <div class="cal-grid" id="cal-grid"></div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 24px;font-size:11px;font-family:var(--font-mono);color:var(--text3)">
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(232,83,58,.5)"></span>Workout</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(201,168,76,.5)"></span>MT Session</span>
-        <span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(46,196,182,.5)"></span>Both</span>
+      <div class="pg-body">
+        <div class="sec-label" style="margin-top:0">This Week</div>
+        <div class="stats" id="cal-stats"></div>
+        <div class="sec-label">Log a Day</div>
+        <div class="quick-row">
+          <div class="quick-btn" onclick="openWorkoutModal()"><span class="qb-icon">🏋️</span><div><div class="qb-label">Workout</div></div></div>
+          <div class="quick-btn" onclick="openSessionModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">MT Session</div></div></div>
+        </div>
+        <div class="sec-label">Recent Activity</div>
+        <div id="cal-activity"></div>
       </div>
-      <div class="sec-label">This Week</div>
-      <div class="stats" id="cal-stats"></div>
-      <div class="sec-label">Log a Day</div>
-      <div class="quick-row">
-        <div class="quick-btn" onclick="openWorkoutModal()"><span class="qb-icon">🏋️</span><div><div class="qb-label">Workout</div></div></div>
-        <div class="quick-btn" onclick="openSessionModal()"><span class="qb-icon">🥊</span><div><div class="qb-label">MT Session</div></div></div>
-      </div>
-      <div class="sec-label">Recent Activity</div>
-      <div id="cal-activity"></div>
     </div>
 
     <!-- TIMER -->
@@ -509,30 +572,39 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       </div>
     </div>
 
-    <!-- NOTES -->
+    <!-- NOTES — pg-pin: header + search + filter pills | pg-body: notes list -->
     <div id="page-notes" class="page">
-      <div class="ph">
-        <div><div class="ph-title">Notes</div><div class="ph-sub">Learnings & cues</div></div>
-        <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openNoteModal()">+ Note</button></div>
+      <div class="pg-pin">
+        <div class="ph" style="margin-bottom:14px">
+          <div><div class="ph-title">Notes</div><div class="ph-sub">Learnings &amp; cues</div></div>
+          <div class="ph-actions"><button class="btn btn-primary btn-sm" onclick="openNoteModal()">+ Note</button></div>
+        </div>
+        <div class="search-wrap" style="margin-bottom:12px">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input class="si" id="note-search" placeholder="Search notes…" oninput="renderNotes()">
+        </div>
+        <div class="pills" id="note-pills" style="margin-bottom:0"></div>
       </div>
-      <div class="search-wrap">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input class="si" id="note-search" placeholder="Search notes…" oninput="renderNotes()">
+      <div class="pg-body">
+        <div id="notes-list"></div>
       </div>
-      <div class="pills" id="note-pills"></div>
-      <div id="notes-list"></div>
     </div>
 
-    <!-- TIPS -->
+    <!-- TIPS — pg-pin: header + theme toggle + profile card | pg-body: accordion -->
     <div id="page-tips" class="page">
-      <div class="ph">
-        <div><div class="ph-title">Tips</div><div class="ph-sub">Reference &amp; reminders</div></div>
-        <button onclick="toggleTheme()" id="theme-btn" style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 14px;cursor:pointer;transition:all .2s;flex-shrink:0">
-          <span id="theme-icon" style="font-size:16px;line-height:1">☀️</span>
-          <span id="theme-label" style="font-size:11px;font-family:var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text2)">Light</span>
-        </button>
+      <div class="pg-pin">
+        <div class="ph" style="margin-bottom:14px">
+          <div><div class="ph-title">Tips</div><div class="ph-sub">Reference &amp; reminders</div></div>
+          <button onclick="toggleTheme()" id="theme-btn" style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 14px;cursor:pointer;transition:all .2s;flex-shrink:0">
+            <span id="theme-icon" style="font-size:16px;line-height:1">☀️</span>
+            <span id="theme-label" style="font-size:11px;font-family:var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--text2)">Light</span>
+          </button>
+        </div>
+        <div id="tips-profile" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px"></div>
       </div>
-      <div id="tips-content"></div>
+      <div class="pg-body">
+        <div id="tips-content"></div>
+      </div>
     </div>
 
   </div><!-- /pages -->
@@ -575,6 +647,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="fg"><label class="fl">Title</label><input type="text" class="fi" id="wo-title" placeholder="Session title"></div>
     <div class="fg"><label class="fl">Notes</label><textarea class="ft" id="wo-notes" placeholder="What did you do?"></textarea></div>
+    <div class="fg"><label class="fl">Focus Tag <span style="font-weight:400;opacity:.6">(optional)</span></label>
+      <select class="fs" id="wo-focus"><option value="">— none —</option><option>Jab</option><option>Cross</option><option>Defense</option><option>Footwork</option><option>Teep</option><option>Clinch</option><option>Conditioning</option><option>Sparring</option><option>Coaching</option><option>Recovery</option></select>
+    </div>
     <div class="frow">
       <button class="btn btn-primary" onclick="saveWorkout()">Save</button>
       <button class="btn btn-ghost" onclick="closeModal('m-workout')">Cancel</button>
@@ -599,6 +674,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div class="fg"><label class="fl">Needs Work ⚠</label><textarea class="ft" id="se-needs" placeholder="To improve" style="min-height:60px"></textarea></div>
     </div>
     <div class="fg"><label class="fl">Next Focus</label><input type="text" class="fi" id="se-next" placeholder="Priority for next session"></div>
+    <div class="fg"><label class="fl">Focus Tag <span style="font-weight:400;opacity:.6">(optional)</span></label>
+      <select class="fs" id="se-focus"><option value="">— none —</option><option>Jab</option><option>Cross</option><option>Defense</option><option>Footwork</option><option>Teep</option><option>Clinch</option><option>Conditioning</option><option>Sparring</option><option>Coaching</option><option>Recovery</option></select>
+    </div>
     <div class="frow">
       <button class="btn btn-primary" onclick="saveSession()">Save</button>
       <button class="btn btn-ghost" onclick="closeModal('m-session')">Cancel</button>
@@ -614,6 +692,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="fr">
       <div class="fg"><label class="fl">Category</label>
         <select class="fs" id="no-cat"><option>Punching</option><option>Kicks</option><option>Defense</option><option>Footwork</option><option>Clinch</option><option>Timing</option><option>Counters</option><option>Coaching</option><option>Strategy</option><option>General</option></select>
+      </div>
+      <div class="fg"><label class="fl">Focus Tag <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <select class="fs" id="no-focus"><option value="">— none —</option><option>Jab</option><option>Cross</option><option>Defense</option><option>Footwork</option><option>Teep</option><option>Clinch</option><option>Conditioning</option><option>Sparring</option><option>Coaching</option><option>Recovery</option></select>
       </div>
       <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="no-date"></div>
     </div>
@@ -670,27 +751,27 @@ const ago=s=>{if(!s)return'';const d=Math.round((Date.now()-new Date(s+'T00:00:0
    SEED
    ────────────────────────────────── */
 function seed(){
-  if(localStorage.getItem('nm2_seeded'))return;
+  if(localStorage.getItem('nm3_seeded'))return;
   const da=n=>{const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().split('T')[0]};
   save(K.wo,[
-    {id:uid(),date:da(1),type:'Assault Bike',title:'Tabata Intervals',notes:'10×20s max / 40s rest. Felt strong through round 7. HR peaked at 182.',duration:'35 min',intensity:'9/10'},
-    {id:uid(),date:da(4),type:'Strength',title:'Upper Body',notes:'Bench 4×5 @ 85kg. Pull-ups 4×6 weighted. First time at 85kg since shoulder issue.',duration:'55 min',intensity:'7/10'},
-    {id:uid(),date:da(7),type:'Muay Thai Conditioning',title:'Bag Rounds + Skip',notes:'8×3 min bag work. Focused on teep distance and cross timing.',duration:'50 min',intensity:'8/10'}
+    {id:uid(),date:da(1),type:'Assault Bike',title:'Tabata Intervals',notes:'10×20s max / 40s rest. Felt strong through round 7. HR peaked at 182.',duration:'35 min',intensity:'9/10',focus:'Conditioning'},
+    {id:uid(),date:da(4),type:'Strength',title:'Upper Body',notes:'Bench 4×5 @ 85kg. Pull-ups 4×6 weighted. First time at 85kg since shoulder issue.',duration:'55 min',intensity:'7/10',focus:''},
+    {id:uid(),date:da(7),type:'Muay Thai Conditioning',title:'Bag Rounds + Skip',notes:'8×3 min bag work. Focused on teep distance and cross timing.',duration:'50 min',intensity:'8/10',focus:'Teep'}
   ]);
   save(K.se,[
-    {id:uid(),date:da(2),type:'Padwork',worked:'Jab-cross-body timing. Teep to cross entry. Defensive pull counter.',good:'Cross timing felt natural. Teep entry clicked by end.',needs:'Jab still drops before throw.',next:'Isolate jab shoulder mechanics.'},
-    {id:uid(),date:da(5),type:'Class',worked:'Jab fundamentals to beginners. Jab-cross-low kick for intermediates. Conditioning finisher.',good:'Mirror drill worked well. Great class energy.',needs:'Cleaner padwork transitions for intermediates.',next:'Prep structured Sunday warmup.'},
-    {id:uid(),date:da(9),type:'Sparring',worked:'Light technical sparring. Staying relaxed and timing exits.',good:'Stayed calm. Exit angles improved.',needs:'Jab telegraphed when tired.',next:'Jab off the back foot drill.'}
+    {id:uid(),date:da(2),type:'Padwork',worked:'Jab-cross-body timing. Teep to cross entry. Defensive pull counter.',good:'Cross timing felt natural. Teep entry clicked by end.',needs:'Jab still drops before throw.',next:'Isolate jab shoulder mechanics.',focus:'Jab'},
+    {id:uid(),date:da(5),type:'Class',worked:'Jab fundamentals to beginners. Jab-cross-low kick for intermediates. Conditioning finisher.',good:'Mirror drill worked well. Great class energy.',needs:'Cleaner padwork transitions for intermediates.',next:'Prep structured Sunday warmup.',focus:'Jab'},
+    {id:uid(),date:da(9),type:'Sparring',worked:'Light technical sparring. Staying relaxed and timing exits.',good:'Stayed calm. Exit angles improved.',needs:'Jab telegraphed when tired.',next:'Jab off the back foot drill.',focus:'Defense'}
   ]);
   save(K.no,[
-    {id:uid(),date:da(2),cat:'Punching',title:'Jab Mechanics',body:'Keep the rear heel grounded. Shoulder rolls forward — not the whole torso. Return is as fast as the throw. Do not telegraph by dropping the hand first.',cue:'Snap and return — not push and pull',fav:true},
-    {id:uid(),date:da(3),cat:'Punching',title:'Cross Weight Transfer',body:'Power comes from hip rotation, not the shoulder. Pivot the rear foot as the hip drives through. Shoulder and hip land simultaneously.',cue:'Hip drives the shoulder — not the other way',fav:true},
-    {id:uid(),date:da(5),cat:'Kicks',title:'Teep — Distance Control',body:'Use the teep to reset distance after a combination. Drive the knee up first so the push is linear. Stay tall. Target solar plexus or hip.',cue:'Knee up, push through — not a kick, a push',fav:false},
-    {id:uid(),date:da(7),cat:'Clinch',title:'Clinch Exit Principles',body:'Create a frame before breaking. Elbow in, inside position, then exit with a strike. Common exits: elbow-knee-step, push-knee-angle, pull-step-teep.',cue:'Frame first, then go — never just back up',fav:false},
-    {id:uid(),date:da(9),cat:'Defense',title:'Defensive Pull Counter',body:'Pull back off the center line as the opponent commits. Let their strike travel past. Return cross as they recover. Timing is everything.',cue:'Let them fall in, then land',fav:false},
-    {id:uid(),date:da(11),cat:'Footwork',title:'Exit Angle After Combination',body:'Never back straight out after throwing. Step 45° off the center line. Makes counters much harder.',cue:'Exit the angle, not the line',fav:true}
+    {id:uid(),date:da(2),cat:'Punching',title:'Jab Mechanics',body:'Keep the rear heel grounded. Shoulder rolls forward — not the whole torso. Return is as fast as the throw. Do not telegraph by dropping the hand first.',cue:'Snap and return — not push and pull',fav:true,focus:'Jab'},
+    {id:uid(),date:da(3),cat:'Punching',title:'Cross Weight Transfer',body:'Power comes from hip rotation, not the shoulder. Pivot the rear foot as the hip drives through. Shoulder and hip land simultaneously.',cue:'Hip drives the shoulder — not the other way',fav:true,focus:'Cross'},
+    {id:uid(),date:da(5),cat:'Kicks',title:'Teep — Distance Control',body:'Use the teep to reset distance after a combination. Drive the knee up first so the push is linear. Stay tall. Target solar plexus or hip.',cue:'Knee up, push through — not a kick, a push',fav:false,focus:'Teep'},
+    {id:uid(),date:da(7),cat:'Clinch',title:'Clinch Exit Principles',body:'Create a frame before breaking. Elbow in, inside position, then exit with a strike. Common exits: elbow-knee-step, push-knee-angle, pull-step-teep.',cue:'Frame first, then go — never just back up',fav:false,focus:'Clinch'},
+    {id:uid(),date:da(9),cat:'Defense',title:'Defensive Pull Counter',body:'Pull back off the center line as the opponent commits. Let their strike travel past. Return cross as they recover. Timing is everything.',cue:'Let them fall in, then land',fav:false,focus:'Defense'},
+    {id:uid(),date:da(11),cat:'Footwork',title:'Exit Angle After Combination',body:'Never back straight out after throwing. Step 45° off the center line. Makes counters much harder.',cue:'Exit the angle, not the line',fav:true,focus:'Footwork'}
   ]);
-  localStorage.setItem('nm2_seeded','1');
+  localStorage.setItem('nm3_seeded','1');
 }
 
 /* ──────────────────────────────────
@@ -702,7 +783,7 @@ function go(page){
   document.querySelectorAll('.nb,.tnl').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   document.getElementById('page-'+page).classList.add('active');
   curPage=page;
-  document.getElementById('pages').scrollTop=0;
+  const pb=document.querySelector('#page-'+page+' .pg-body');if(pb)pb.scrollTop=0;
   ({home:renderHome,calendar:renderCalendar,notes:renderNotes,tips:renderTips})[page]?.();
 }
 
@@ -727,6 +808,7 @@ function openWorkoutModal(ds){
   document.getElementById('wo-date').value=ds||todayStr();
   ['wo-dur','wo-int','wo-title','wo-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('wo-type').value='Strength';
+  document.getElementById('wo-focus').value='';
   openModal('m-workout');
 }
 function editWorkout(id){
@@ -739,6 +821,7 @@ function editWorkout(id){
   document.getElementById('wo-int').value=w.intensity||'';
   document.getElementById('wo-title').value=w.title||'';
   document.getElementById('wo-notes').value=w.notes||'';
+  document.getElementById('wo-focus').value=w.focus||'';
   openModal('m-workout');
 }
 function saveWorkout(){
@@ -746,7 +829,8 @@ function saveWorkout(){
   const e={id:id||uid(),date:document.getElementById('wo-date').value,type:document.getElementById('wo-type').value,
     title:document.getElementById('wo-title').value||document.getElementById('wo-type').value,
     notes:document.getElementById('wo-notes').value,duration:document.getElementById('wo-dur').value,
-    intensity:document.getElementById('wo-int').value};
+    intensity:document.getElementById('wo-int').value,
+    focus:document.getElementById('wo-focus').value||''};
   const D=load(K.wo);
   if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e;else D.unshift(e)}else D.unshift(e);
   save(K.wo,D);closeModal('m-workout');toast(id?'Updated ✓':'Workout logged ✓');
@@ -760,6 +844,7 @@ function openSessionModal(ds){
   document.getElementById('se-date').value=ds||todayStr();
   document.getElementById('se-type').value='Class';
   ['se-worked','se-good','se-needs','se-next'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('se-focus').value='';
   openModal('m-session');
 }
 function editSession(id){
@@ -772,13 +857,15 @@ function editSession(id){
   document.getElementById('se-good').value=s.good||'';
   document.getElementById('se-needs').value=s.needs||'';
   document.getElementById('se-next').value=s.next||'';
+  document.getElementById('se-focus').value=s.focus||'';
   openModal('m-session');
 }
 function saveSession(){
   const id=document.getElementById('se-id').value;
   const e={id:id||uid(),date:document.getElementById('se-date').value,type:document.getElementById('se-type').value,
     worked:document.getElementById('se-worked').value,good:document.getElementById('se-good').value,
-    needs:document.getElementById('se-needs').value,next:document.getElementById('se-next').value};
+    needs:document.getElementById('se-needs').value,next:document.getElementById('se-next').value,
+    focus:document.getElementById('se-focus').value||''};
   if(!e.worked){toast('Add what you worked on');return}
   const D=load(K.se);
   if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e;else D.unshift(e)}else D.unshift(e);
@@ -793,6 +880,7 @@ function openNoteModal(){
   document.getElementById('no-date').value=todayStr();
   document.getElementById('no-cat').value='Punching';
   ['no-title','no-body','no-cue'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('no-focus').value='';
   openModal('m-note');
 }
 function editNote(id){
@@ -804,6 +892,7 @@ function editNote(id){
   document.getElementById('no-title').value=n.title||'';
   document.getElementById('no-body').value=n.body||'';
   document.getElementById('no-cue').value=n.cue||'';
+  document.getElementById('no-focus').value=n.focus||'';
   openModal('m-note');
 }
 function saveNote(){
@@ -811,7 +900,8 @@ function saveNote(){
   const existing=id?load(K.no).find(x=>x.id===id):null;
   const e={id:id||uid(),date:document.getElementById('no-date').value,cat:document.getElementById('no-cat').value,
     title:document.getElementById('no-title').value,body:document.getElementById('no-body').value,
-    cue:document.getElementById('no-cue').value,fav:existing?existing.fav:false};
+    cue:document.getElementById('no-cue').value,fav:existing?existing.fav:false,
+    focus:document.getElementById('no-focus').value||''};
   if(!e.title){toast('Add a title');return}
   const D=load(K.no);
   if(id){const i=D.findIndex(x=>x.id===id);if(i>=0)D[i]=e;else D.unshift(e)}else D.unshift(e);
@@ -842,6 +932,101 @@ function renderHome(){
     <div class="stat"><div class="stat-n" style="color:var(--text2)">${W.length+S.length}</div><div class="stat-l">All Time</div></div>
   `;
   renderGainsChart(W, S);
+  renderBadges(W, S, load(K.no));
+}
+
+/* ── BADGES / ACHIEVEMENTS ──────────────────────────────────────────────────
+   Badges are calculated from local data at render time.
+   Each badge has: icon, name, desc, category, and an unlock check function.
+   Progress (0-1) is shown for locked badges near the threshold.
+   ────────────────────────────────────────────────────────────────────────── */
+function renderBadges(W, S, N){
+  const badgeEl = document.getElementById('home-badges');
+  if(!badgeEl) return;
+
+  const now = new Date();
+
+  // Day streak helper
+  const actDates = new Set([...W.map(x=>x.date), ...S.map(x=>x.date)]);
+  function getStreak(){
+    let streak=0;
+    for(let i=0;i<365;i++){
+      const d=new Date(now);d.setDate(now.getDate()-i);
+      const ds=d.toISOString().split('T')[0];
+      if(actDates.has(ds))streak++;
+      else if(i>0)break;
+    }
+    return streak;
+  }
+  const streak=getStreak();
+  const total=W.length+S.length;
+
+  // Focus tag counts across all entries
+  const focusCounts={};
+  [...W,...S,...N].forEach(x=>{if(x.focus)focusCounts[x.focus]=(focusCounts[x.focus]||0)+1});
+
+  // Badge definitions
+  const BADGES=[
+    // Consistency
+    {icon:'🔥',name:'3-Day Streak',desc:'3 consecutive days active',cat:'Consistency',
+     unlocked:streak>=3,progress:Math.min(streak/3,1),color:'accent'},
+    {icon:'⚡',name:'Weekly Warrior',desc:'7-day training streak',cat:'Consistency',
+     unlocked:streak>=7,progress:Math.min(streak/7,1),color:'accent'},
+    {icon:'🏅',name:'Two Week Block',desc:'14 days without a break',cat:'Consistency',
+     unlocked:streak>=14,progress:Math.min(streak/14,1),color:'accent'},
+    {icon:'💎',name:'30-Day Grind',desc:'Full month of consistency',cat:'Consistency',
+     unlocked:streak>=30,progress:Math.min(streak/30,1),color:'accent'},
+    // Volume
+    {icon:'🥊',name:'10 Workouts',desc:'Log 10 training sessions',cat:'Volume',
+     unlocked:W.length>=10,progress:Math.min(W.length/10,1),color:'teal'},
+    {icon:'🥋',name:'10 MT Sessions',desc:'Log 10 Muay Thai sessions',cat:'Volume',
+     unlocked:S.length>=10,progress:Math.min(S.length/10,1),color:'teal'},
+    {icon:'📊',name:'25 Total',desc:'25 sessions logged',cat:'Volume',
+     unlocked:total>=25,progress:Math.min(total/25,1),color:'teal'},
+    {icon:'🏆',name:'50 Sessions',desc:'Half a century logged',cat:'Volume',
+     unlocked:total>=50,progress:Math.min(total/50,1),color:'teal'},
+    // Knowledge
+    {icon:'📝',name:'5 Notes',desc:'Create 5 technique notes',cat:'Knowledge',
+     unlocked:N.length>=5,progress:Math.min(N.length/5,1),color:''},
+    {icon:'📚',name:'10 Notes',desc:'Build a knowledge base of 10',cat:'Knowledge',
+     unlocked:N.length>=10,progress:Math.min(N.length/10,1),color:''},
+    {icon:'⭐',name:'5 Favorites',desc:'Star 5 important notes',cat:'Knowledge',
+     unlocked:N.filter(n=>n.fav).length>=5,progress:Math.min(N.filter(n=>n.fav).length/5,1),color:''},
+    // Focus
+    {icon:'🎯',name:'Jab Study',desc:'3+ Jab-focused entries',cat:'Focus',
+     unlocked:(focusCounts['Jab']||0)>=3,progress:Math.min((focusCounts['Jab']||0)/3,1),color:'accent'},
+    {icon:'🛡️',name:'Defense Builder',desc:'3+ Defense-focused entries',cat:'Focus',
+     unlocked:(focusCounts['Defense']||0)>=3,progress:Math.min((focusCounts['Defense']||0)/3,1),color:'accent'},
+    {icon:'🤼',name:'Clinch Student',desc:'3+ Clinch-focused entries',cat:'Focus',
+     unlocked:(focusCounts['Clinch']||0)>=3,progress:Math.min((focusCounts['Clinch']||0)/3,1),color:'accent'},
+    {icon:'💪',name:'Conditioning Block',desc:'3+ Conditioning entries',cat:'Focus',
+     unlocked:(focusCounts['Conditioning']||0)>=3,progress:Math.min((focusCounts['Conditioning']||0)/3,1),color:'accent'},
+  ];
+
+  const unlockedCount = BADGES.filter(b=>b.unlocked).length;
+  const cats = ['Consistency','Volume','Knowledge','Focus'];
+
+  let h = '<div class="badges-intro">Earn badges by staying consistent and logging your growth. '
+    + '<strong style="color:var(--text)">' + unlockedCount + ' of ' + BADGES.length + ' earned.</strong></div>';
+
+  cats.forEach(cat=>{
+    h += '<div class="sec-label">' + cat + '</div>';
+    h += '<div class="badge-grid">';
+    BADGES.filter(b=>b.cat===cat).forEach(b=>{
+      const progressPct = Math.round(b.progress*100);
+      h += '<div class="badge ' + (b.unlocked?'unlocked':'locked') + '">'
+        + '<div class="badge-icon">' + b.icon + '</div>'
+        + '<div class="badge-info">'
+        + '<div class="badge-name">' + b.name + '</div>'
+        + '<div class="badge-desc">' + b.desc + '</div>'
+        + (!b.unlocked ? '<div class="badge-progress"><div class="badge-progress-fill ' + b.color + '" style="width:' + progressPct + '%"></div></div>' : '')
+        + '</div>'
+        + '</div>';
+    });
+    h += '</div>';
+  });
+
+  badgeEl.innerHTML = h;
 }
 
 /* ── GAINS CHART ── */
@@ -934,7 +1119,8 @@ function renderGainsChart(W, S){
     + '<div class="sec-label" style="margin-top:22px">Monthly Activity</div>'
     + '<div class="card" style="padding:16px 12px 12px">'
     + '<div style="display:flex;gap:3px;align-items:flex-end">'+barCols(months, maxMonth, 80)+'</div>'
-    + '</div>';
+    + '</div>'
+    + '<div class="sec-label" style="margin-top:22px">Achievements</div>';
 }
 
 
@@ -994,6 +1180,27 @@ function showDay(ds){
   if(!W.length&&!S.length)h=`<div style="color:var(--text3);font-size:14px;padding:12px 0">Nothing logged for this day.</div>`;
   W.forEach(w=>{h+=`<div class="card card-sm cl-accent" style="margin-bottom:8px"><div class="card-label">Workout · ${esc(w.type)}</div><div class="card-title">${esc(w.title)}</div>${w.notes?`<div class="card-body" style="margin-top:6px">${esc(w.notes)}</div>`:''}<div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="closeModal('m-day');editWorkout('${w.id}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>{save(K.wo,load(K.wo).filter(x=>x.id!=='${w.id}'));closeModal('m-day');renderCalendar();toast('Deleted')})">Del</button></div></div>`});
   S.forEach(s=>{h+=`<div class="card card-sm cl-gold" style="margin-bottom:8px"><div class="card-label">MT Session · ${esc(s.type)}</div><div class="card-body">${esc(s.worked)}</div>${s.next?`<div style="font-size:12px;color:var(--teal);margin-top:8px;font-family:var(--font-mono)">→ ${esc(s.next)}</div>`:''}<div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="closeModal('m-day');editSession('${s.id}')">Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="askDelete(()=>{save(K.se,load(K.se).filter(x=>x.id!=='${s.id}'));closeModal('m-day');renderCalendar();toast('Deleted')})">Del</button></div></div>`});
+  // Related notes: find notes sharing a focus tag with sessions/workouts on this day
+  const allFocusTags = new Set([
+    ...W.map(x=>x.focus).filter(Boolean),
+    ...S.map(x=>x.focus).filter(Boolean)
+  ]);
+  const relatedNotes = allFocusTags.size > 0
+    ? load(K.no).filter(n => n.focus && allFocusTags.has(n.focus) && n.date !== ds)
+    : [];
+  if(relatedNotes.length){
+    h += '<div class="sec-label" style="margin-top:16px">Related Notes</div>';
+    relatedNotes.slice(0,3).forEach(n=>{
+      h += '<div class="card card-sm" style="margin-bottom:8px;border-left:2px solid var(--teal)">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+        + '<div class="card-label">'+esc(n.cat)+'</div>'
+        + '<span class="tag tt">'+esc(n.focus)+'</span>'
+        + '</div>'
+        + '<div class="card-title" style="font-size:13.5px">'+esc(n.title)+'</div>'
+        + (n.cue ? '<div style="font-size:12px;color:var(--accent2);font-style:italic;margin-top:5px">"'+esc(n.cue)+'"</div>' : '')
+        + '</div>';
+    });
+  }
   document.getElementById('m-day-content').innerHTML=h;
   openModal('m-day');
 }
@@ -1014,7 +1221,10 @@ function renderNotes(){
     <div class="card${n.fav?' cl-accent':''}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
         <div><div class="card-label">${esc(n.cat)}</div><div class="card-title">${esc(n.title)}</div></div>
-        <button class="star${n.fav?' on':''}" onclick="toggleNoteFav('${n.id}')">★</button>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          ${n.focus?`<span class="tag tt">${esc(n.focus)}</span>`:''}
+          <button class="star${n.fav?' on':''}" onclick="toggleNoteFav('${n.id}')">★</button>
+        </div>
       </div>
       ${n.cue?`<div class="cue-card" style="margin-bottom:10px">"${esc(n.cue)}"</div>`:''}
       <div id="ne-${n.id}">
@@ -1036,6 +1246,75 @@ function xpand(containerId,btn){const el=document.getElementById(containerId);el
 /* ──────────────────────────────────
    TIPS
    ────────────────────────────────── */
+/* ──────────────────────────────────
+   USER PROFILE (local placeholder)
+   future: replace with Firebase Auth user + Firestore profile
+   ────────────────────────────────── */
+// placeholder user profile — swap these values with Firebase Auth data later
+const userProfile = {
+  displayName: 'Nak Muay',
+  handle: '@nakmuay',
+  email: 'demo@example.com',
+  status: 'Guest',          // future: 'Signed In' when Firebase Auth active
+  storage: 'Local only',    // future: 'Cloud sync active'
+  // future Firebase fields:
+  // uid: null,             // firebase.auth().currentUser.uid
+  // photoURL: null,        // firebase.auth().currentUser.photoURL
+  // lastSync: null,        // last Firestore write timestamp
+};
+
+function renderUserProfile(){
+  const el = document.getElementById('tips-profile');
+  if(!el) return;
+  const isGuest = userProfile.status === 'Guest';
+  // future: check firebase.auth().currentUser here and update userProfile accordingly
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
+      + '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--gold));display:flex;align-items:center;justify-content:center;font-family:var(--font-disp);font-size:18px;font-weight:500;color:#fff;flex-shrink:0;letter-spacing:.5px">'
+      + (userProfile.displayName.charAt(0).toUpperCase())
+      + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:15px;font-weight:600;color:var(--text);line-height:1.2">' + esc(userProfile.displayName) + '</div>'
+      + '<div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:2px">' + esc(userProfile.handle) + '</div>'
+      + '</div>'
+      + '<span style="padding:3px 9px;border-radius:20px;font-size:10px;font-family:var(--font-mono);letter-spacing:.04em;font-weight:500;'
+      + (isGuest
+          ? 'background:var(--bg3);color:var(--text3);border:1px solid var(--border)'
+          : 'background:rgba(58,184,122,.15);color:var(--green);border:1px solid rgba(58,184,122,.25)')
+      + '">' + esc(userProfile.status) + '</span>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--bg3);border-radius:var(--radius-xs);margin-bottom:14px">'
+      + '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;color:var(--text3)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
+      + '<span style="font-size:11px;font-family:var(--font-mono);color:var(--text3)">' + esc(userProfile.storage) + '</span>'
+      // future: show last sync time here — e.g. "Synced 2 min ago"
+      + (isGuest
+          ? '<span style="margin-left:auto;font-size:10px;font-family:var(--font-mono);color:var(--text3)">Not signed in</span>'
+          : '<span style="margin-left:auto;font-size:10px;font-family:var(--font-mono);color:var(--green)">✓ Synced</span>')
+      + '</div>'
+      + '<div style="display:flex;gap:8px">'
+      // future: wire "Sign In" to firebase.auth().signInWithPopup()
+      + (isGuest
+          ? '<button onclick="tipSignIn()" class="btn btn-primary btn-sm" style="flex:1">Sign In</button>'
+          : '<button onclick="tipSignOut()" class="btn btn-ghost btn-sm" style="flex:1">Sign Out</button>')
+      // future: wire "Sync" to push local data to Firestore
+      + '<button onclick="tipSync()" class="btn btn-ghost btn-sm" style="flex:1">Sync</button>'
+      + '</div>';
+}
+
+// future Firebase Auth hooks — replace these stubs with real Firebase calls
+function tipSignIn(){
+  toast('Sign In — coming soon');
+  // future: firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())
+}
+function tipSignOut(){
+  toast('Signed out');
+  // future: firebase.auth().signOut()
+}
+function tipSync(){
+  toast('Sync — coming soon');
+  // future: push localStorage data to Firestore under userProfile.uid
+}
+
 const TIPS=[
   {title:'Jab Fundamentals',items:[
     {h:'Return first',b:'The jab is defined by its snap. The hand must return faster than it leaves. A slow return is a slow jab.'},
@@ -1079,6 +1358,7 @@ const TIPS=[
   ]},
 ];
 function renderTips(){
+  renderUserProfile();
   document.getElementById('tips-content').innerHTML=TIPS.map((g,i)=>`
     <div class="tip-group">
       <div class="tip-hdr" onclick="toggleTip(${i})"><h3>${g.title}</h3><span class="tip-caret" id="tc-${i}">▾</span></div>

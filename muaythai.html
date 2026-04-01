@@ -47,6 +47,8 @@ body.light .card{box-shadow:0 1px 4px rgba(0,0,0,.06)}
 body.light .stat{box-shadow:0 1px 3px rgba(0,0,0,.05)}
 body.light .modal{background:var(--bg);box-shadow:0 -4px 32px rgba(0,0,0,.1)}
 body.light .t-settings{box-shadow:0 1px 4px rgba(0,0,0,.06)}
+body.light #t-mobile-settings{box-shadow:0 -4px 24px rgba(0,0,0,.08)}
+#t-mobile-settings{box-shadow:0 -4px 24px rgba(0,0,0,.18)}
 body.light .tip-hdr{background:var(--bg3)}
 body.light .tip-body{background:var(--card)}
 body.light .t-settings{background:var(--card)}
@@ -236,8 +238,20 @@ body.light .pg-pin{box-shadow:0 2px 8px rgba(0,0,0,.06)}
    ════════════ */
 #page-timer{background:var(--bg);overflow:hidden}
 
-/* Mobile full layout */
-#t-mobile{display:flex;flex-direction:column;align-items:center;padding:20px 20px 24px;height:100%;position:relative}
+/* Mobile full layout — three-zone flex column */
+#t-mobile{display:flex;flex-direction:column;height:100%;position:relative;overflow:hidden}
+
+/* Zone 1: mode tabs — fixed, never shrinks */
+#t-mobile .t-mode-row{flex-shrink:0;padding:16px 20px 0;margin-bottom:0}
+
+/* Zone 2: clock + controls — takes all remaining space, never scrolls */
+#t-mobile-clock{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;position:relative;z-index:1;min-height:0;padding:12px 0}
+
+/* Zone 3: settings panel — fixed height header, scrollable body, never grows taller than 60% */
+#t-mobile-settings{flex-shrink:0;width:100%;background:var(--card);border-top:1px solid var(--border);border-radius:16px 16px 0 0;position:relative;z-index:10;max-height:60%;display:flex;flex-direction:column}
+#t-mobile-settings .ts-hdr{flex-shrink:0;padding:14px 20px;cursor:pointer;user-select:none;border-radius:16px 16px 0 0}
+#t-mobile-settings .ts-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px 24px;flex:1}
+#t-mobile-settings .ts-body.open{display:flex;flex-direction:column;gap:0}
 
 /* Desktop split */
 #t-desk{display:none}
@@ -248,9 +262,17 @@ body.light .pg-pin{box-shadow:0 2px 8px rgba(0,0,0,.06)}
   #t-desk-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden}
 }
 
-.t-mode-row{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
+.t-mode-row{display:flex;gap:6px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
 .tmode{padding:6px 16px;border-radius:20px;font-size:12px;font-family:var(--font-mono);cursor:pointer;border:1px solid var(--border);color:var(--text3);background:none;transition:all .2s;letter-spacing:.04em}
 .tmode.on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* saved timer tab: pill + × button side by side */
+.tmode-saved{display:inline-flex;align-items:center;gap:0;border-radius:20px;border:1px solid var(--border);overflow:hidden;transition:border-color .2s}
+.tmode-saved.on{border-color:var(--teal)}
+.tmode-saved .tmode-saved-lbl{padding:6px 12px 6px 14px;font-size:12px;font-family:var(--font-mono);cursor:pointer;color:var(--text3);background:none;border:none;letter-spacing:.04em;transition:all .2s;white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis}
+.tmode-saved.on .tmode-saved-lbl{background:var(--teal);color:#fff}
+.tmode-saved .tmode-saved-del{padding:6px 8px 6px 4px;font-size:14px;line-height:1;cursor:pointer;color:var(--text3);background:none;border:none;border-left:1px solid var(--border);transition:all .2s}
+.tmode-saved.on .tmode-saved-del{background:var(--teal);color:rgba(255,255,255,.7);border-left-color:rgba(255,255,255,.25)}
+.tmode-saved .tmode-saved-del:hover{color:var(--accent2)!important;background:rgba(232,83,58,.1)!important}
 
 /* Full-screen flash overlay */
 #t-flash{position:fixed;inset:0;z-index:200;pointer-events:none;opacity:0;transition:opacity .08s}
@@ -309,7 +331,7 @@ body.light .pg-pin{box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .tc-side:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
 .tc-side:active{transform:scale(.93)}
 
-/* Settings panel */
+/* Settings panel — base (used by desktop too) */
 .t-settings{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;position:relative;z-index:1}
 .ts-hdr{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
 .ts-hdr-lbl{font-size:12px;font-family:var(--font-mono);color:var(--text2);letter-spacing:.05em}
@@ -317,6 +339,12 @@ body.light .pg-pin{box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .ts-caret.open{transform:rotate(180deg)}
 .ts-body{display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px}
 .ts-body.open{display:block}
+/* Mobile settings panel override — scrollable drawer */
+#t-mobile-settings .ts-hdr{margin:0;border-radius:16px 16px 0 0}
+#t-mobile-settings .ts-body{margin-top:0;border-top:1px solid var(--border);padding-top:14px}
+#t-mobile-settings .ts-body.open{display:block}
+/* drag handle visual */
+#t-mobile-settings::before{content:'';display:block;width:36px;height:4px;border-radius:2px;background:var(--border2);margin:10px auto 0;flex-shrink:0}
 .ts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .ts-field label{font-size:11px;font-family:var(--font-mono);color:var(--text3);display:block;margin-bottom:4px;letter-spacing:.03em;text-transform:uppercase}
 .ts-field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-xs);padding:9px 10px;color:var(--text);font-family:var(--font-mono);font-size:16px;text-align:center;outline:none;transition:border-color .2s}
@@ -346,7 +374,7 @@ body.light .pg-pin{box-shadow:0 2px 8px rgba(0,0,0,.06)}
 
 /* tips accordion */
 .tip-group{margin-bottom:10px}
-.tip-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;position:sticky;top:0;z-index:5}
+.tip-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s}
 .tip-hdr:hover{border-color:var(--accent);background:rgba(232,83,58,.06)}
 .tip-hdr h3{font-size:13.5px;font-weight:400;color:var(--text2);letter-spacing:.01em}
 .tip-caret{color:var(--text3);font-size:14px;transition:transform .2s;flex-shrink:0}
@@ -475,49 +503,57 @@ body.light .badge.unlocked .badge-desc{color:rgba(255,255,255,.7)}
         <div id="t-flash"></div>
         <div class="t-bg" id="t-bg-mob"></div>
 
-        <div class="t-mode-row">
-          <button class="tmode on" data-m="tabata" onclick="setMode('tabata')">Tabata</button>
-          <button class="tmode" data-m="fight" onclick="setMode('fight')">Fight</button>
-          <button class="tmode" data-m="custom" onclick="setMode('custom')">Custom</button>
-        </div>
+        <!-- Zone 1: Mode tabs -->
+        <div class="t-mode-row" id="t-mode-row-mob"></div>
 
-        <!-- Ring + clock -->
-        <div class="t-ring-wrap" id="t-ring-mob" style="width:min(72vw,300px);height:min(72vw,300px);margin-bottom:20px">
-          <svg class="t-ring-svg" viewBox="0 0 300 300" id="t-ring-svg-mob">
-            <circle class="t-ring-track" cx="150" cy="150" r="132" stroke-width="10"/>
-            <circle class="t-ring-prog" id="t-ring-circle-mob" cx="150" cy="150" r="132"
-              stroke-width="10" stroke="var(--accent)"
-              stroke-dasharray="829.38" stroke-dashoffset="0"/>
-          </svg>
-          <div class="t-display">
-            <div class="t-state-lbl" id="t-sl-mob" style="font-size:clamp(22px,6vw,38px);margin-bottom:6px;letter-spacing:.14em"></div>
-            <div class="t-clock" id="t-clk-mob" style="font-size:clamp(52px,15vw,88px)">0:20</div>
-            <div class="t-round-lbl" id="t-rl-mob"></div>
+        <!-- Zone 2: Clock + controls (vertically centered, never scrolls) -->
+        <div id="t-mobile-clock">
+          <!-- Ring + clock -->
+          <div class="t-ring-wrap" id="t-ring-mob" style="width:min(62vw,280px);height:min(62vw,280px);margin-bottom:20px">
+            <svg class="t-ring-svg" viewBox="0 0 300 300" id="t-ring-svg-mob">
+              <circle class="t-ring-track" cx="150" cy="150" r="132" stroke-width="10"/>
+              <circle class="t-ring-prog" id="t-ring-circle-mob" cx="150" cy="150" r="132"
+                stroke-width="10" stroke="var(--accent)"
+                stroke-dasharray="829.38" stroke-dashoffset="0"/>
+            </svg>
+            <div class="t-display">
+              <div class="t-state-lbl" id="t-sl-mob" style="font-size:clamp(18px,5vw,32px);margin-bottom:6px;letter-spacing:.14em"></div>
+              <div class="t-clock" id="t-clk-mob" style="font-size:clamp(46px,13vw,80px)">0:20</div>
+              <div class="t-round-lbl" id="t-rl-mob"></div>
+            </div>
+            <!-- 3-2-1 countdown overlay -->
+            <div class="t-cd-overlay" id="t-cd-mob"><span class="t-cd-num"></span></div>
           </div>
-          <!-- 3-2-1 countdown overlay (absolute, inside ring) -->
-          <div class="t-cd-overlay" id="t-cd-mob"><span class="t-cd-num"></span></div>
+
+          <div class="t-controls">
+            <button class="tc-side" onclick="tReset()" title="Reset">
+              <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.36 2.64L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+            <button class="tc-start" id="t-sb-mob" onclick="tToggle()">
+              <svg id="t-play-mob" width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="t-pause-mob" width="28" height="28" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="tc-side" onclick="tSkip()" title="Skip">
+              <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
+            </button>
+          </div>
         </div>
 
-        <div class="t-controls" style="margin-bottom:20px">
-          <button class="tc-side" onclick="tReset()" title="Reset">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.36 2.64L3 8"/><path d="M3 3v5h5"/></svg>
-          </button>
-          <button class="tc-start" id="t-sb-mob" onclick="tToggle()">
-            <svg id="t-play-mob" width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <svg id="t-pause-mob" width="28" height="28" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-          </button>
-          <button class="tc-side" onclick="tSkip()" title="Skip">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
-          </button>
-        </div>
-
-        <div class="t-settings">
+        <!-- Zone 3: Settings panel (scrollable body, never overlaps clock) -->
+        <div id="t-mobile-settings">
           <div class="ts-hdr" onclick="toggleTsettings()">
             <span class="ts-hdr-lbl" id="ts-lbl">⚙ Settings · Tabata</span>
             <span class="ts-caret" id="ts-caret">▾</span>
           </div>
           <div class="ts-body" id="ts-body">
             <div id="ts-fields"></div>
+            <div id="custom-timer-create" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+              <div style="font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Save as Named Timer</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="text" id="custom-timer-name" placeholder="e.g. Bag Work, Clinch Drill…" class="fi" style="flex:1;font-size:13px;padding:8px 10px">
+                <button class="btn btn-primary btn-sm" onclick="saveCustomTimer()">Save</button>
+              </div>
+            </div>
             <div class="snd-row">
               <span class="snd-lbl">Sound cues</span>
               <div class="sw on" id="snd-mob" onclick="toggleSound()"><div class="sw-k"></div></div>
@@ -531,13 +567,14 @@ body.light .badge.unlocked .badge-desc{color:rgba(255,255,255,.7)}
       <div id="t-desk">
         <div id="t-desk-settings">
           <div class="t-desk-sec-lbl">Mode</div>
-          <div class="t-desk-mode-row">
-            <button class="tmode on" data-m2="tabata" onclick="setMode('tabata')">Tabata</button>
-            <button class="tmode" data-m2="fight" onclick="setMode('fight')">Fight</button>
-            <button class="tmode" data-m2="custom" onclick="setMode('custom')">Custom</button>
-          </div>
+          <div class="t-desk-mode-row" id="t-mode-row-desk"></div>
           <div class="t-desk-sec-lbl" id="ts-lbl-desk">Settings · Tabata</div>
           <div id="ts-fields-desk"></div>
+          <div id="custom-timer-create-desk" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Save as Named Timer</div>
+            <input type="text" id="custom-timer-name-desk" placeholder="e.g. Bag Work, Clinch Drill…" class="fi" style="font-size:13px;padding:8px 10px;margin-bottom:8px">
+            <button class="btn btn-primary btn-sm" onclick="saveCustomTimer()" style="width:100%">Save Timer</button>
+          </div>
           <div class="snd-row" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
             <span class="snd-lbl">Sound cues</span>
             <div class="sw on" id="snd-desk" onclick="toggleSound(true)"><div class="sw-k"></div></div>
@@ -1399,6 +1436,95 @@ const MODES={
   ]}
 };
 
+/* ── CUSTOM TIMER STORAGE ── */
+const K_CT='nm_custom_timers';
+function loadCustomTimers(){try{return JSON.parse(localStorage.getItem(K_CT))||[]}catch{return[]}}
+
+/* Render mode-row tabs (base 3 + saved timers) into both mobile and desktop rows */
+function renderModeRows(){
+  const timers=loadCustomTimers();
+  const baseTabs=[
+    {m:'tabata',label:'Tabata'},
+    {m:'fight',label:'Fight'},
+    {m:'custom',label:'Custom'},
+  ];
+  function buildHTML(attr){
+    let h=baseTabs.map(t=>`<button class="tmode${tMode===t.m?' on':''}" ${attr}="${t.m}" onclick="setMode('${t.m}')">${t.label}</button>`).join('');
+    h+=timers.map(t=>`
+      <span class="tmode-saved${tMode===t.id?' on':''}">
+        <button class="tmode-saved-lbl" onclick="setModeSaved('${t.id}')" title="${esc(t.name)}">${esc(t.name)}</button>
+        <button class="tmode-saved-del" onclick="deleteCustomTimer('${t.id}')" title="Delete timer">✕</button>
+      </span>`).join('');
+    return h;
+  }
+  const mob=document.getElementById('t-mode-row-mob');
+  const desk=document.getElementById('t-mode-row-desk');
+  if(mob)mob.innerHTML=buildHTML('data-m');
+  if(desk)desk.innerHTML=buildHTML('data-m2');
+}
+
+/* Switch to a saved custom timer by ID */
+function setModeSaved(id){
+  const t=loadCustomTimers().find(x=>x.id===id);
+  if(!t)return;
+  tMode=id;  // use the timer's id as the tMode key
+  tReset();
+  renderModeRows();
+  // Apply saved field values into the custom fields
+  MODES.custom.fields.forEach(f=>{
+    const v=t.cfg[f.id];
+    if(v===undefined)return;
+    const mob=document.getElementById(f.id);   const desk=document.getElementById('d-'+f.id);
+    if(mob)mob.value=v; if(desk)desk.value=v;
+  });
+  const lbl=t.name;
+  const tsLbl=document.getElementById('ts-lbl');if(tsLbl)tsLbl.textContent=`⚙ ${lbl}`;
+  const tsLD=document.getElementById('ts-lbl-desk');if(tsLD)tsLD.textContent=lbl;
+  // Show custom fields + hide save section (already saved)
+  buildFieldsForMode('custom');
+  // Populate fields again after buildFields resets them
+  MODES.custom.fields.forEach(f=>{
+    const v=t.cfg[f.id];if(v===undefined)return;
+    const mob=document.getElementById(f.id);const desk=document.getElementById('d-'+f.id);
+    if(mob)mob.value=v;if(desk)desk.value=v;
+  });
+  ['custom-timer-create','custom-timer-create-desk'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  updateHint();
+  tUpdateDisplay();
+}
+
+function saveCustomTimer(){
+  const mob=document.getElementById('custom-timer-name');
+  const desk=document.getElementById('custom-timer-name-desk');
+  const name=(mob?.value||desk?.value||'').trim();
+  if(!name){toast('Enter a timer name first');return;}
+  // Read current custom field values
+  const cfg={};
+  MODES.custom.fields.forEach(f=>{
+    const el=document.getElementById(f.id)||document.getElementById('d-'+f.id);
+    if(el)cfg[f.id]=parseInt(el.value)||f.v;
+  });
+  const timers=loadCustomTimers();
+  const newTimer={id:'ct_'+uid(),name,cfg,created:todayStr()};
+  timers.unshift(newTimer); // add to front so it appears first
+  localStorage.setItem(K_CT,JSON.stringify(timers));
+  if(mob)mob.value='';
+  if(desk)desk.value='';
+  renderModeRows();
+  toast('Timer saved: '+name);
+}
+
+function deleteCustomTimer(id){
+  // If currently on this timer, fall back to custom mode
+  if(tMode===id)setMode('custom');
+  const timers=loadCustomTimers().filter(t=>t.id!==id);
+  localStorage.setItem(K_CT,JSON.stringify(timers));
+  renderModeRows();
+  toast('Timer deleted');
+}
+
 let tMode='tabata',tState='idle',tRunning=false,tInterval=null;
 let tSecs=20,tRound=1,tTotal=8,soundOn=true;
 let tStateDuration=20; // total secs for current state (for ring calc)
@@ -1527,18 +1653,18 @@ function updateRing(snapToFull){
 
 function setMode(m){
   tMode=m;tReset();
-  document.querySelectorAll('.tmode').forEach(b=>{
-    const match=b.dataset.m===m||b.dataset.m2===m;
-    b.classList.toggle('on',match);
-  });
+  renderModeRows();
   const lbl=MODES[m].label;
-  document.getElementById('ts-lbl').textContent=`⚙ Settings · ${lbl}`;
+  const tsLbl=document.getElementById('ts-lbl');if(tsLbl)tsLbl.textContent=`⚙ Settings · ${lbl}`;
   const ld=document.getElementById('ts-lbl-desk');if(ld)ld.textContent=`Settings · ${lbl}`;
   buildFields();tUpdateDisplay();
 }
 
-function buildFields(){
-  const fs=MODES[tMode].fields;
+function buildFieldsForMode(forceMode){
+  const m=forceMode||tMode;
+  // For saved timers, use custom fields
+  const modeKey=MODES[m]?m:'custom';
+  const fs=MODES[modeKey].fields;
   function makeRows(pfx){
     let h='';
     for(let i=0;i<fs.length;i+=2){
@@ -1549,6 +1675,15 @@ function buildFields(){
   }
   document.getElementById('ts-fields').innerHTML=makeRows('');
   const dd=document.getElementById('ts-fields-desk');if(dd)dd.innerHTML=makeRows('d-');
+  // Show/hide custom timer create section only when in 'custom' base mode
+  const showSave=m==='custom';
+  ['custom-timer-create','custom-timer-create-desk'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display=showSave?'block':'none';
+  });
+}
+
+function buildFields(){
+  buildFieldsForMode();
   updateHint();
 }
 
@@ -1572,8 +1707,9 @@ function gv(id){
 
 function updateHint(){
   let hint='';
-  if(tMode==='tabata'){const work=gv('tw-work'),rest=gv('tw-rest'),r=gv('tw-rounds');const t=r*(work+rest);hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`}
-  else if(tMode==='fight'){const r=gv('tf-rounds'),rl=gv('tf-rdlen')*60,b=gv('tf-break');const t=r*rl+(r-1)*b;hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')} · ${r} rounds`}
+  const m=MODES[tMode]?tMode:'custom'; // saved timers → treat as custom
+  if(m==='tabata'){const work=gv('tw-work'),rest=gv('tw-rest'),r=gv('tw-rounds');const t=r*(work+rest);hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`}
+  else if(m==='fight'){const r=gv('tf-rounds'),rl=gv('tf-rdlen')*60,b=gv('tf-break');const t=r*rl+(r-1)*b;hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')} · ${r} rounds`}
   else{const work=gv('tc-work'),rest=gv('tc-rest'),r=gv('tc-rounds');const t=r*(work+rest);hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`}
   ['ts-hint','ts-hint-desk'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=hint});
 }
@@ -1585,10 +1721,11 @@ function toggleSound(isDesk){
 }
 
 const fmtT=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
-const getWork=()=>tMode==='tabata'?gv('tw-work'):tMode==='fight'?gv('tf-rdlen')*60:gv('tc-work');
-const getRest=()=>tMode==='tabata'?gv('tw-rest'):tMode==='fight'?gv('tf-break'):gv('tc-rest');
-const getPrep=()=>tMode==='tabata'?gv('tw-prep'):tMode==='fight'?gv('tf-prep'):gv('tc-prep');
-const getRounds=()=>tMode==='tabata'?gv('tw-rounds'):tMode==='fight'?gv('tf-rounds'):gv('tc-rounds');
+const _baseMode=()=>MODES[tMode]?tMode:'custom';
+const getWork=()=>_baseMode()==='tabata'?gv('tw-work'):_baseMode()==='fight'?gv('tf-rdlen')*60:gv('tc-work');
+const getRest=()=>_baseMode()==='tabata'?gv('tw-rest'):_baseMode()==='fight'?gv('tf-break'):gv('tc-rest');
+const getPrep=()=>_baseMode()==='tabata'?gv('tw-prep'):_baseMode()==='fight'?gv('tf-prep'):gv('tc-prep');
+const getRounds=()=>_baseMode()==='tabata'?gv('tw-rounds'):_baseMode()==='fight'?gv('tf-rounds'):gv('tc-rounds');
 
 // ── 3-2-1 countdown state ──
 let _cdTimeout=null;   // holds the setTimeout during countdown
@@ -1789,6 +1926,7 @@ applyTheme();
 
 seed();
 buildFields();
+renderModeRows();
 tUpdateDisplay();
 updateRing();
 go('timer');

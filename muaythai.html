@@ -1737,14 +1737,49 @@ function tToggle(){
   if(!tRunning)tStart();else tPause();
 }
 
+/* ── SCREEN WAKE LOCK ──────────────────────────────────────────────────────
+   Uses the Screen Wake Lock API (Chrome/Edge/Safari 16.4+).
+   Falls back gracefully — if unsupported the timer still works fine.
+   Lock is acquired when the timer starts, released on pause/reset/done.
+   Re-acquired automatically if the page regains visibility mid-session.
+   ────────────────────────────────────────────────────────────────────── */
+let _wakeLock = null;
+
+async function _acquireWakeLock() {
+  if (!('wakeLock' in navigator)) return;          // not supported — no-op
+  if (_wakeLock && !_wakeLock.released) return;    // already held
+  try {
+    _wakeLock = await navigator.wakeLock.request('screen');
+    _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+  } catch (e) {
+    // permission denied or device doesn't support it — fail silently
+  }
+}
+
+function _releaseWakeLock() {
+  if (_wakeLock && !_wakeLock.released) {
+    _wakeLock.release().catch(() => {});
+    _wakeLock = null;
+  }
+}
+
+// Re-acquire when tab becomes visible again (OS can drop the lock on hide)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && tRunning) {
+    _acquireWakeLock();
+  }
+});
+
 function tStart(){
   if(tState==='idle'){
     tTotal=getRounds();tRound=1;
+    _acquireWakeLock();
     // Always do 3-2-1 countdown before first round
     _startCountdown(()=>_beginWork());
     return;
   }
   // Resuming from pause — no countdown, just go
+  _acquireWakeLock();
   tRunning=true;tUpdateDisplay();updateRing();tInterval=setInterval(tTick,1000);
 }
 
@@ -1816,10 +1851,11 @@ function _beginRestThenWork(){
   tRunning=true;tUpdateDisplay();updateRing(true);tInterval=setInterval(tTick,1000);
 }
 
-function tPause(){tRunning=false;clearInterval(tInterval);tUpdateDisplay()}
+function tPause(){tRunning=false;clearInterval(tInterval);_releaseWakeLock();tUpdateDisplay()}
 
 function tReset(){
   tRunning=false;clearInterval(tInterval);clearTimeout(_cdTimeout);
+  _releaseWakeLock();
   _hideCountdownNum();
   tState='idle';tRound=1;_cdCount=0;
   const prep=getPrep();tSecs=prep||getWork();tStateDuration=tSecs;
@@ -1862,6 +1898,7 @@ function tTick(){
 
 function tDone(){
   clearInterval(tInterval);tRunning=false;tState='done';tSecs=0;tStateDuration=1;
+  _releaseWakeLock();
   doneSound();  // ← end bell (normal tempo) for session complete
   setBg('idle');updateRing();tUpdateDisplay();toast('Session complete 🏆');
 }

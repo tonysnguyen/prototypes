@@ -70,7 +70,6 @@ body.light .confirm-box{background:var(--card)}
 body.light .si{background:var(--card);border-color:var(--border)}
 body.light .card{box-shadow:0 1px 4px rgba(0,0,0,.06)}
 body.light .stat{box-shadow:0 1px 3px rgba(0,0,0,.05);background:var(--card)}
-body.light #t-mobile-settings{background:var(--card);box-shadow:0 -8px 40px rgba(0,0,0,.1)}
 body.light .t-ring-track{stroke:rgba(0,0,0,.06)}
 body.light .t-clock{color:var(--text)}
 body.light .t-clock.work{color:var(--green)}
@@ -339,7 +338,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
    ═══════════════════════════════════════════════════════ */
 #page-timer{background:var(--bg);overflow:hidden}
 
-/* ─── Mobile portrait: three-zone absolute-overlay pattern ─── */
+/* ─── Mobile portrait: timer fills all space, never moves ─── */
 #t-mobile{display:flex;flex-direction:column;height:100%;position:relative;overflow:hidden}
 
 #t-mobile .t-mode-row{
@@ -350,29 +349,56 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #t-mobile-clock{
   flex:1;display:flex;flex-direction:column;align-items:center;
   justify-content:center;width:100%;position:relative;z-index:1;
-  min-height:0;padding:8px 0 0;
+  min-height:0;padding:8px 0;
 }
 
+/* ── Portrait settings: full-screen overlay — timer stays put ── */
 #t-mobile-settings{
-  position:absolute;bottom:0;left:0;right:0;z-index:10;
+  position:fixed;inset:0;z-index:200;
+  display:none;align-items:flex-end;justify-content:center;
+  background:rgba(8,9,12,.72);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+#t-mobile-settings.open{display:flex!important}
+body.light #t-mobile-settings{background:rgba(240,237,232,.78)}
+
+/* The card that slides up */
+#t-mobile-settings-card{
+  width:100%;max-width:520px;
   background:var(--card);
+  border-radius:24px 24px 0 0;
   border-top:1px solid var(--border2);
-  border-radius:20px 20px 0 0;
-  max-height:62%;display:flex;flex-direction:column;
-  box-shadow:0 -8px 40px rgba(0,0,0,.4);
-  transition:box-shadow .3s;
+  max-height:80vh;
+  display:flex;flex-direction:column;
+  box-shadow:0 -16px 60px rgba(0,0,0,.5);
 }
-body.light #t-mobile-settings{box-shadow:0 -8px 40px rgba(0,0,0,.1)}
-#t-mobile-settings::before{
+body.light #t-mobile-settings-card{
+  background:var(--card);
+  box-shadow:0 -8px 40px rgba(0,0,0,.12);
+}
+/* Slide-up animation */
+#t-mobile-settings.open #t-mobile-settings-card{
+  animation:sheetUp .32s var(--ease-out) both;
+}
+@keyframes sheetUp{
+  from{transform:translateY(100%)}
+  to{transform:translateY(0)}
+}
+/* Drag handle */
+#t-mobile-settings-card::before{
   content:'';display:block;width:36px;height:4px;border-radius:2px;
-  background:var(--border3);margin:10px auto 0;flex-shrink:0;
+  background:var(--border3);margin:12px auto 0;flex-shrink:0;
 }
-#t-mobile-settings .ts-hdr{flex-shrink:0;padding:12px 20px 14px;cursor:pointer;user-select:none}
+#t-mobile-settings .ts-hdr{
+  flex-shrink:0;padding:10px 20px 14px;
+  cursor:pointer;user-select:none;
+}
 #t-mobile-settings .ts-body{
   overflow-y:auto;-webkit-overflow-scrolling:touch;
-  padding:0 20px 32px;flex:1;
+  padding:0 20px 40px;flex:1;
+  display:block;
 }
-#t-mobile-settings .ts-body.open{display:flex;flex-direction:column}
 
 /* ─── Desktop: sidebar split — fix the overlap issue ─── */
 #t-desk{display:none}
@@ -577,6 +603,24 @@ body.light #t-mobile-settings{box-shadow:0 -8px 40px rgba(0,0,0,.1)}
 
 /* ─── Controls ─── */
 .t-controls{display:flex;align-items:center;gap:20px;justify-content:center;width:100%;position:relative;z-index:1}
+
+/* Settings trigger pill — sits below controls, opens the overlay */
+#t-settings-trigger{
+  display:flex;align-items:center;gap:6px;
+  margin-top:20px;
+  padding:8px 18px;
+  border-radius:var(--radius-pill);
+  background:var(--card2);
+  border:1px solid var(--border2);
+  color:var(--text3);
+  font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  cursor:pointer;
+  transition:all .2s var(--ease-out);
+  position:relative;z-index:2;
+}
+#t-settings-trigger:hover{color:var(--text2);border-color:var(--border3);background:var(--card3)}
+#t-settings-trigger:active{transform:scale(.96)}
 .tc-start{
   width:84px;height:84px;border-radius:50%;
   background:var(--accent);border:none;cursor:pointer;
@@ -609,9 +653,6 @@ body.light .t-settings{background:var(--card)}
 .ts-caret.open{transform:rotate(180deg)}
 .ts-body{display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
 .ts-body.open{display:block}
-#t-mobile-settings .ts-hdr{margin:0}
-#t-mobile-settings .ts-body{margin-top:0;border-top:1px solid var(--border);padding-top:12px}
-#t-mobile-settings .ts-body.open{display:block}
 .ts-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 .ts-field label{
   font-size:10px;font-family:var(--font-mono);color:var(--text3);
@@ -847,28 +888,36 @@ body.light .badge.unlocked .badge-desc{color:rgba(255,255,255,.7)}
               <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
             </button>
           </div>
+
+          <!-- Settings trigger — always visible, opens the overlay -->
+          <button id="t-settings-trigger" onclick="toggleTsettings()" aria-label="Open settings">
+            <span id="ts-lbl-trigger">Tabata</span>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
         </div>
 
-        <!-- Zone 3: Settings panel (portrait only, absolute drawer) -->
-        <div id="t-mobile-settings">
-          <div class="ts-hdr" onclick="toggleTsettings()">
-            <span class="ts-hdr-lbl" id="ts-lbl">Settings · Tabata</span>
-            <span class="ts-caret" id="ts-caret">▾</span>
-          </div>
-          <div class="ts-body" id="ts-body">
-            <div id="ts-fields"></div>
-            <div id="custom-timer-create" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-              <div style="font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Save as Named Timer</div>
-              <div style="display:flex;gap:8px;align-items:center">
-                <input type="text" id="custom-timer-name" placeholder="e.g. Bag Work, Clinch Drill…" class="fi" style="flex:1;font-size:13px;padding:8px 10px">
-                <button class="btn btn-primary btn-sm" onclick="saveCustomTimer()">Save</button>
+        <!-- Portrait settings: full-screen overlay with slide-up card -->
+        <div id="t-mobile-settings" onclick="_closePortraitSettings(event)">
+          <div id="t-mobile-settings-card">
+            <div class="ts-hdr" onclick="_closePortraitSettings(null)">
+              <span class="ts-hdr-lbl" id="ts-lbl">Tabata</span>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="color:var(--text3);flex-shrink:0"><path d="M18 9l-6 6-6-6"/></svg>
+            </div>
+            <div class="ts-body" id="ts-body">
+              <div id="ts-fields"></div>
+              <div id="custom-timer-create" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+                <div style="font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Save as Named Timer</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="text" id="custom-timer-name" placeholder="e.g. Bag Work, Clinch Drill…" class="fi" style="flex:1;font-size:13px;padding:8px 10px">
+                  <button class="btn btn-primary btn-sm" onclick="saveCustomTimer()">Save</button>
+                </div>
               </div>
+              <div class="snd-row">
+                <span class="snd-lbl">Sound cues</span>
+                <div class="sw on" id="snd-mob" onclick="toggleSound()"><div class="sw-k"></div></div>
+              </div>
+              <div class="ts-hint" id="ts-hint"></div>
             </div>
-            <div class="snd-row">
-              <span class="snd-lbl">Sound cues</span>
-              <div class="sw on" id="snd-mob" onclick="toggleSound()"><div class="sw-k"></div></div>
-            </div>
-            <div class="ts-hint" id="ts-hint"></div>
           </div>
         </div>
       </div>
@@ -1802,22 +1851,17 @@ function renderModeRows(){
 function setModeSaved(id){
   const t=loadCustomTimers().find(x=>x.id===id);
   if(!t)return;
-  tMode=id;  // use the timer's id as the tMode key
+  tMode=id;
   tReset();
   renderModeRows();
-  // Apply saved field values into the custom fields
   MODES.custom.fields.forEach(f=>{
     const v=t.cfg[f.id];
     if(v===undefined)return;
-    const mob=document.getElementById(f.id);   const desk=document.getElementById('d-'+f.id);
-    if(mob)mob.value=v; if(desk)desk.value=v;
+    const mob=document.getElementById(f.id);const desk=document.getElementById('d-'+f.id);
+    if(mob)mob.value=v;if(desk)desk.value=v;
   });
-  const lbl=t.name;
-  const tsLbl=document.getElementById('ts-lbl');if(tsLbl)tsLbl.textContent=lbl;
-  const tsLD=document.getElementById('ts-lbl-desk');if(tsLD)tsLD.textContent=lbl;
-  // Show custom fields + hide save section (already saved)
+  const tsLD=document.getElementById('ts-lbl-desk');if(tsLD)tsLD.textContent=t.name;
   buildFieldsForMode('custom');
-  // Populate fields again after buildFields resets them
   MODES.custom.fields.forEach(f=>{
     const v=t.cfg[f.id];if(v===undefined)return;
     const mob=document.getElementById(f.id);const desk=document.getElementById('d-'+f.id);
@@ -1828,6 +1872,7 @@ function setModeSaved(id){
   });
   updateHint();
   tUpdateDisplay();
+  _syncSettingsLabel();
 }
 
 function saveCustomTimer(){
@@ -1997,9 +2042,9 @@ function setMode(m){
   tMode=m;tReset();
   renderModeRows();
   const lbl=MODES[m].label;
-  const tsLbl=document.getElementById('ts-lbl');if(tsLbl)tsLbl.textContent=lbl;
   const ld=document.getElementById('ts-lbl-desk');if(ld)ld.textContent=lbl;
   buildFields();tUpdateDisplay();
+  _syncSettingsLabel();
 
   // In landscape, show a settings overlay so user can adjust values
   if(isLand){_openLandscapeBaseOverlay(m);}
@@ -2116,18 +2161,33 @@ function updateHint(){
 }
 
 function toggleTsettings(){
-  const b=document.getElementById('ts-body');
-  const c=document.getElementById('ts-caret');
-  b.classList.toggle('open');
-  c.classList.toggle('open');
-  setTimeout(_updateClockPadding,50);
+  const overlay=document.getElementById('t-mobile-settings');
+  if(!overlay)return;
+  // Always open — close happens via backdrop tap or card header tap
+  overlay.classList.add('open');
 }
+
+function _closePortraitSettings(e){
+  // If e is null it's a deliberate close; otherwise only close if tap hit the backdrop
+  const card=document.getElementById('t-mobile-settings-card');
+  if(e&&card&&card.contains(e.target))return;
+  const overlay=document.getElementById('t-mobile-settings');
+  if(overlay)overlay.classList.remove('open');
+}
+
+/* Sync the settings trigger label + card header label with current mode name */
+function _syncSettingsLabel(){
+  const baseTabs={tabata:'Tabata',fight:'Fight',custom:'Custom'};
+  const saved=loadCustomTimers().find(t=>t.id===tMode);
+  const lbl=saved?saved.name:(baseTabs[tMode]||'Settings');
+  const trigger=document.getElementById('ts-lbl-trigger');
+  const header=document.getElementById('ts-lbl');
+  if(trigger)trigger.textContent=lbl;
+  if(header)header.textContent=lbl;
+}
+
 function _updateClockPadding(){
-  const panel=document.getElementById('t-mobile-settings');
-  const clock=document.getElementById('t-mobile-clock');
-  if(!panel||!clock)return;
-  const isLandscape=window.innerHeight<500&&window.innerWidth>window.innerHeight;
-  clock.style.paddingBottom=isLandscape?'0':panel.offsetHeight+'px';
+  // No-op: portrait settings is now a fixed overlay — timer never moves
 }
 window.addEventListener('resize',_updateClockPadding);
 setTimeout(_updateClockPadding,0);
@@ -2197,8 +2257,13 @@ window.addEventListener('resize',()=>{
   const isLand=window.innerHeight<500&&window.innerWidth>window.innerHeight;
   if(isLand===_lastLandscape)return;
   _lastLandscape=isLand;
-  // Close overlay when rotating back to portrait
-  if(!isLand)_closeLandscapeOverlay(null);
+  if(isLand){
+    // Rotating to landscape: close the portrait settings overlay
+    _closePortraitSettings(null);
+  } else {
+    // Rotating to portrait: close landscape overlay
+    _closeLandscapeOverlay(null);
+  }
   setTimeout(_updateClockPadding,60);
 });
 function toggleSound(isDesk){
@@ -2460,6 +2525,7 @@ tUpdateDisplay();
 updateRing();
 go('timer');
 renderTips();
+_syncSettingsLabel();
 setTimeout(_updateClockPadding,50);
 </script>
 </body>

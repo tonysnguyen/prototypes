@@ -339,7 +339,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
    ═══════════════════════════════════════════════════════ */
 #page-timer{background:var(--bg);overflow:hidden}
 
-/* ─── Mobile: three-zone absolute-overlay pattern ─── */
+/* ─── Mobile portrait: three-zone absolute-overlay pattern ─── */
 #t-mobile{display:flex;flex-direction:column;height:100%;position:relative;overflow:hidden}
 
 #t-mobile .t-mode-row{
@@ -374,11 +374,14 @@ body.light #t-mobile-settings{box-shadow:0 -8px 40px rgba(0,0,0,.1)}
 }
 #t-mobile-settings .ts-body.open{display:flex;flex-direction:column}
 
-/* ─── Desktop: sidebar split ─── */
+/* ─── Desktop: sidebar split — fix the overlap issue ─── */
 #t-desk{display:none}
 @media(min-width:700px){
+  /* Timer page takes full remaining height after the top nav inside #shell */
   #t-mobile{display:none}
-  #t-desk{display:flex;width:100%;height:100%}
+  #page-timer{max-width:100%!important;overflow:hidden}
+  #page-timer.active{display:flex!important;flex-direction:row!important;height:100%}
+  #t-desk{display:flex;width:100%;height:100%;overflow:hidden}
   #t-desk-settings{
     width:270px;flex-shrink:0;border-right:1px solid var(--border);
     padding:28px 22px;overflow-y:auto;background:var(--bg2);
@@ -389,41 +392,102 @@ body.light #t-mobile-settings{box-shadow:0 -8px 40px rgba(0,0,0,.1)}
   }
 }
 
-/* ─── Landscape: timer as full-screen hero ─── */
+/* ─────────────────────────────────────────────────────────
+   LANDSCAPE MODE — fullscreen timer, no nav, overlay panel
+   ───────────────────────────────────────────────────────── */
 @media(orientation:landscape) and (max-height:500px){
+  /* Hide ALL chrome — pure immersive timer */
   #bottom-nav{display:none!important}
-  #page-timer.active{display:flex!important;flex-direction:row!important}
+  #top-nav{display:none!important}
+
+  /* page-timer fills the full viewport */
+  #shell{max-width:100%!important}
+  #pages{height:100%}
+  #page-timer{max-width:100%!important}
+  #page-timer.active{display:flex!important;flex-direction:column!important;height:100%}
+
+  /* #t-mobile becomes the single full-screen element */
   #t-mobile{
-    display:flex!important;flex-direction:row!important;
-    height:100%;width:100%;
+    display:flex!important;flex-direction:column!important;
+    width:100%;height:100%;position:relative;overflow:hidden;
   }
-  #t-mobile .t-mode-row{
-    display:none!important; /* hide mode tabs in landscape — use side panel */
+  /* Desktop pane stays hidden */
+  #t-desk{display:none!important}
+
+  /* ── Landscape top bar: mode pills pinned at top ── */
+  #t-landscape-bar{
+    display:flex!important;
+    align-items:center;gap:6px;flex-wrap:nowrap;
+    padding:8px 14px;
+    flex-shrink:0;z-index:20;position:relative;
+    background:rgba(8,9,12,.7);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
   }
+
+  /* Hide portrait mode row in landscape */
+  #t-mobile .t-mode-row{display:none!important}
+
+  /* Clock zone fills everything below the top bar */
   #t-mobile-clock{
-    flex:1;height:100%;padding:8px;
-    justify-content:center;align-items:center;
+    flex:1;height:auto;width:100%;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    padding:4px 0 0;position:relative;z-index:1;
   }
-  #t-mobile-settings{
-    position:relative!important;bottom:auto!important;
-    width:200px;min-width:180px;flex-shrink:0;
-    height:100%;max-height:none!important;border-radius:0!important;
-    border-top:none!important;border-left:1px solid var(--border)!important;
-    overflow-y:auto;box-shadow:none!important;
-  }
-  #t-mobile-settings::before{display:none!important}
-  #t-mobile-settings .ts-body{display:flex!important;flex-direction:column!important;padding:12px 16px 24px!important;flex:1}
-  #t-mobile-settings .ts-hdr{padding:16px 16px 10px!important}
-  /* Compact ring in landscape */
+
+  /* Compact ring */
   #t-ring-mob{
-    width:min(42vh,220px)!important;
-    height:min(42vh,220px)!important;
+    width:min(40vh,200px)!important;
+    height:min(40vh,200px)!important;
     margin-bottom:10px!important;
   }
-  /* Show landscape mode tabs inside settings header area */
-  #t-landscape-mode-row{display:flex!important;flex-direction:column!important;gap:4px;margin-bottom:14px}
+
+  /* Settings drawer stays hidden in landscape — replaced by overlay */
+  #t-mobile-settings{display:none!important}
+
+  /* ── Landscape settings overlay (shown when a tab is active) ── */
+  #t-landscape-overlay{
+    display:none;position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    z-index:50;
+    background:rgba(8,9,12,.88);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    flex-direction:column;
+    align-items:center;justify-content:center;
+    padding:16px;
+    animation:fadeIn .2s var(--ease-out);
+  }
+  #t-landscape-overlay.open{display:flex!important}
+
+  #t-landscape-panel{
+    background:var(--card);
+    border:1px solid var(--border2);
+    border-radius:16px;
+    padding:18px 20px;
+    width:100%;max-width:360px;
+    max-height:90%;
+    overflow-y:auto;
+  }
+  #t-landscape-panel-title{
+    font-family:var(--font-mono);font-size:10px;color:var(--text3);
+    letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;
+  }
+  #t-landscape-close{
+    position:absolute;top:12px;right:14px;
+    background:var(--card2);border:1px solid var(--border);
+    border-radius:50%;width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--text2);font-size:16px;z-index:60;
+  }
 }
-#t-landscape-mode-row{display:none}
+
+/* Hide landscape-only elements in portrait */
+#t-landscape-bar{display:none}
+#t-landscape-overlay{display:none}
+#t-landscape-panel{}
 
 /* ─── Mode tabs ─── */
 .t-mode-row{display:flex;gap:5px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
@@ -724,12 +788,38 @@ body.light .badge.unlocked .badge-desc{color:rgba(255,255,255,.7)}
         <div id="t-flash"></div>
         <div class="t-bg" id="t-bg-mob"></div>
 
-        <!-- Zone 1: Mode tabs -->
+        <!-- LANDSCAPE: top bar with mode pills (hidden in portrait via CSS) -->
+        <div id="t-landscape-bar">
+          <div id="t-mode-row-land" style="display:flex;gap:5px;flex-wrap:nowrap;align-items:center;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+          <span id="t-land-lbl" style="font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;padding-left:8px;flex-shrink:0"></span>
+        </div>
+
+        <!-- LANDSCAPE: settings overlay (floats over timer, closes on outside tap) -->
+        <div id="t-landscape-overlay" onclick="_closeLandscapeOverlay(event)">
+          <button id="t-landscape-close" onclick="_closeLandscapeOverlay(null)">✕</button>
+          <div id="t-landscape-panel">
+            <div id="t-landscape-panel-title"></div>
+            <div id="ts-fields-land"></div>
+            <div id="custom-timer-create-land" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+              <div style="font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Save as Named Timer</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="text" id="custom-timer-name-land" placeholder="e.g. Bag Work, Clinch Drill…" class="fi" style="flex:1;font-size:13px;padding:8px 10px">
+                <button class="btn btn-primary btn-sm" onclick="saveCustomTimer()">Save</button>
+              </div>
+            </div>
+            <div class="snd-row" style="margin-top:12px">
+              <span class="snd-lbl">Sound cues</span>
+              <div class="sw on" id="snd-land" onclick="toggleSound()"><div class="sw-k"></div></div>
+            </div>
+            <div class="ts-hint" id="ts-hint-land" style="margin-top:10px"></div>
+          </div>
+        </div>
+
+        <!-- Zone 1: Mode tabs (portrait only) -->
         <div class="t-mode-row" id="t-mode-row-mob"></div>
 
-        <!-- Zone 2: Clock + controls (vertically centered, never scrolls) -->
+        <!-- Zone 2: Clock + controls -->
         <div id="t-mobile-clock">
-          <!-- Ring + clock -->
           <div class="t-ring-wrap" id="t-ring-mob" style="width:min(62vw,280px);height:min(62vw,280px);margin-bottom:20px">
             <svg class="t-ring-svg" viewBox="0 0 300 300" id="t-ring-svg-mob">
               <circle class="t-ring-track" cx="150" cy="150" r="132" stroke-width="10"/>
@@ -742,7 +832,6 @@ body.light .badge.unlocked .badge-desc{color:rgba(255,255,255,.7)}
               <div class="t-clock" id="t-clk-mob" style="font-size:clamp(46px,13vw,80px)">0:20</div>
               <div class="t-round-lbl" id="t-rl-mob"></div>
             </div>
-            <!-- 3-2-1 countdown overlay -->
             <div class="t-cd-overlay" id="t-cd-mob"><span class="t-cd-num"></span></div>
           </div>
 
@@ -760,15 +849,13 @@ body.light .badge.unlocked .badge-desc{color:rgba(255,255,255,.7)}
           </div>
         </div>
 
-        <!-- Zone 3: Settings panel (scrollable body, never overlaps clock) -->
+        <!-- Zone 3: Settings panel (portrait only, absolute drawer) -->
         <div id="t-mobile-settings">
           <div class="ts-hdr" onclick="toggleTsettings()">
             <span class="ts-hdr-lbl" id="ts-lbl">Settings · Tabata</span>
             <span class="ts-caret" id="ts-caret">▾</span>
           </div>
           <div class="ts-body" id="ts-body">
-            <!-- Landscape mode tabs shown inline in settings -->
-            <div id="t-landscape-mode-row"></div>
             <div id="ts-fields"></div>
             <div id="custom-timer-create" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
               <div style="font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Save as Named Timer</div>
@@ -1672,7 +1759,9 @@ function renderModeRows(){
     {m:'fight',label:'Fight'},
     {m:'custom',label:'Custom'},
   ];
-  function buildHTML(attr){
+
+  // Portrait mode row HTML (standard pills)
+  function buildPortrait(attr){
     let h=baseTabs.map(t=>`<button class="tmode${tMode===t.m?' on':''}" ${attr}="${t.m}" onclick="setMode('${t.m}')">${t.label}</button>`).join('');
     h+=timers.map(t=>`
       <span class="tmode-saved${tMode===t.id?' on':''}">
@@ -1681,12 +1770,32 @@ function renderModeRows(){
       </span>`).join('');
     return h;
   }
+
+  // Landscape bar HTML — base tabs tap to set mode, saved timers tap to open overlay
+  function buildLandscape(){
+    let h=baseTabs.map(t=>`<button class="tmode${tMode===t.m?' on':''}" data-ml="${t.m}" onclick="setMode('${t.m}')">${t.label}</button>`).join('');
+    h+=timers.map(t=>`
+      <span class="tmode-saved${tMode===t.id?' on':''}">
+        <button class="tmode-saved-lbl" onclick="_openLandscapeOverlay('${t.id}')" title="${esc(t.name)}">${esc(t.name)}</button>
+        <button class="tmode-saved-del" onclick="deleteCustomTimer('${t.id}')" title="Delete">✕</button>
+      </span>`).join('');
+    return h;
+  }
+
   const mob=document.getElementById('t-mode-row-mob');
   const desk=document.getElementById('t-mode-row-desk');
-  const land=document.getElementById('t-landscape-mode-row');
-  if(mob)mob.innerHTML=buildHTML('data-m');
-  if(desk)desk.innerHTML=buildHTML('data-m2');
-  if(land)land.innerHTML=buildHTML('data-ml');
+  const land=document.getElementById('t-mode-row-land');
+  if(mob)mob.innerHTML=buildPortrait('data-m');
+  if(desk)desk.innerHTML=buildPortrait('data-m2');
+  if(land)land.innerHTML=buildLandscape();
+
+  // Update landscape label
+  const landLbl=document.getElementById('t-land-lbl');
+  if(landLbl){
+    const baseMatch=baseTabs.find(t=>t.m===tMode);
+    const savedMatch=loadCustomTimers().find(t=>t.id===tMode);
+    landLbl.textContent=(baseMatch?.label||savedMatch?.name||'');
+  }
 }
 
 /* Switch to a saved custom timer by ID */
@@ -1724,7 +1833,8 @@ function setModeSaved(id){
 function saveCustomTimer(){
   const mob=document.getElementById('custom-timer-name');
   const desk=document.getElementById('custom-timer-name-desk');
-  const name=(mob?.value||desk?.value||'').trim();
+  const land=document.getElementById('custom-timer-name-land');
+  const name=(mob?.value||desk?.value||land?.value||'').trim();
   if(!name){toast('Enter a timer name first');return;}
   // Read current custom field values
   const cfg={};
@@ -1738,6 +1848,7 @@ function saveCustomTimer(){
   localStorage.setItem(K_CT,JSON.stringify(timers));
   if(mob)mob.value='';
   if(desk)desk.value='';
+  if(land)land.value='';
   renderModeRows();
   toast('Timer saved: '+name);
 }
@@ -1877,12 +1988,55 @@ function updateRing(snapToFull){
 }
 
 function setMode(m){
+  // In landscape: tapping the active base mode tab toggles the overlay
+  const isLand=window.innerHeight<500&&window.innerWidth>window.innerHeight;
+  if(isLand&&tMode===m&&_landscapeOverlayId==='base-'+m){
+    _closeLandscapeOverlay(null);return;
+  }
+
   tMode=m;tReset();
   renderModeRows();
   const lbl=MODES[m].label;
   const tsLbl=document.getElementById('ts-lbl');if(tsLbl)tsLbl.textContent=lbl;
   const ld=document.getElementById('ts-lbl-desk');if(ld)ld.textContent=lbl;
   buildFields();tUpdateDisplay();
+
+  // In landscape, show a settings overlay so user can adjust values
+  if(isLand){_openLandscapeBaseOverlay(m);}
+}
+
+function _openLandscapeBaseOverlay(m){
+  const lbl=MODES[m]?.label||m;
+  const title=document.getElementById('t-landscape-panel-title');
+  if(title)title.textContent=lbl;
+
+  // Build fields using the mode's own field definitions
+  const fs=MODES[m]?.fields||MODES.custom.fields;
+  let h='';let i=0;
+  while(i<fs.length){
+    const f=fs[i];
+    if(f.id==='tf-rdlen-m'&&i+1<fs.length&&fs[i+1].id==='tf-rdlen-s'){
+      const fm=f,fs2=fs[i+1];
+      h+=`<div class="ts-row"><div class="ts-field"><label>Round (min)</label><input type="number" id="land-${fm.id}" value="${fm.v}" min="${fm.min}" max="${fm.max}" oninput="updateHint()"></div><div class="ts-field"><label>Round (sec)</label><input type="number" id="land-${fs2.id}" value="${fs2.v}" min="${fs2.min}" max="${fs2.max}" oninput="updateHint()"></div></div>`;
+      i+=2;continue;
+    }
+    const pair=fs.slice(i,i+2);
+    h+=`<div class="ts-row">${pair.map(f=>`<div class="ts-field"><label>${f.label}</label><input type="number" id="land-${f.id}" value="${f.v}" min="${f.min}" max="${f.max}" oninput="updateHint()"></div>`).join('')}</div>`;
+    i+=pair.length;
+  }
+  const fieldsEl=document.getElementById('ts-fields-land');
+  if(fieldsEl)fieldsEl.innerHTML=h;
+
+  // Show/hide save section for custom mode only
+  const saveLand=document.getElementById('custom-timer-create-land');
+  if(saveLand)saveLand.style.display=m==='custom'?'block':'none';
+
+  const sndLand=document.getElementById('snd-land');
+  if(sndLand)sndLand.classList.toggle('on',soundOn);
+
+  _landscapeOverlayId='base-'+m;
+  const overlay=document.getElementById('t-landscape-overlay');
+  if(overlay)overlay.classList.add('open');
 }
 
 function buildFieldsForMode(forceMode){
@@ -1941,6 +2095,12 @@ function syncField(baseId,fromPfx){
 
 function gv(id){
   const isDesk=window.innerWidth>=700;
+  const isLand=window.innerHeight<500&&window.innerWidth>window.innerHeight;
+  // Priority: landscape overlay fields → desktop fields → mobile fields
+  if(isLand){
+    const landEl=document.getElementById('land-'+id);
+    if(landEl)return parseInt(landEl.value)||0;
+  }
   const pfx=isDesk?'d-':'';
   const el=document.getElementById(pfx+id)||document.getElementById(id);
   return el?parseInt(el.value)||0:0;
@@ -1952,7 +2112,7 @@ function updateHint(){
   if(m==='tabata'){const work=gv('tw-work'),rest=gv('tw-rest'),r=gv('tw-rounds');const t=r*(work+rest);hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`}
   else if(m==='fight'){const r=gv('tf-rounds'),rl=_fightRoundSecs(),b=gv('tf-break');const t=r*rl+(r-1)*b;hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')} · ${r} rounds`}
   else{const work=gv('tc-work'),rest=gv('tc-rest'),r=gv('tc-rounds');const t=r*(work+rest);hint=`Total: ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`}
-  ['ts-hint','ts-hint-desk'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=hint});
+  ['ts-hint','ts-hint-desk','ts-hint-land'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=hint});
 }
 
 function toggleTsettings(){
@@ -1972,27 +2132,78 @@ function _updateClockPadding(){
 window.addEventListener('resize',_updateClockPadding);
 setTimeout(_updateClockPadding,0);
 
-/* Auto-open settings in landscape so mode tabs are visible, auto-close on portrait */
+/* ── Landscape overlay: open when a saved timer pill is tapped ── */
+let _landscapeOverlayId=null;
+
+function _openLandscapeOverlay(timerId){
+  // If already open for same timer, close it
+  if(_landscapeOverlayId===timerId){_closeLandscapeOverlay(null);return;}
+  const t=loadCustomTimers().find(x=>x.id===timerId);
+  if(!t)return;
+  _landscapeOverlayId=timerId;
+
+  // Populate the overlay fields
+  const title=document.getElementById('t-landscape-panel-title');
+  if(title)title.textContent=t.name;
+
+  // Build fields for this saved timer (uses custom fields layout)
+  const fs=MODES.custom.fields;
+  function makeRows(){
+    let h='';
+    let i=0;
+    while(i<fs.length){
+      const f=fs[i];
+      if(f.id==='tf-rdlen-m'&&i+1<fs.length&&fs[i+1].id==='tf-rdlen-s'){
+        const fm=f,fs2=fs[i+1];
+        h+=`<div class="ts-row"><div class="ts-field"><label>Round (min)</label><input type="number" id="land-${fm.id}" value="${t.cfg[fm.id]??fm.v}" min="${fm.min}" max="${fm.max}" oninput="updateHint()"></div><div class="ts-field"><label>Round (sec)</label><input type="number" id="land-${fs2.id}" value="${t.cfg[fs2.id]??fs2.v}" min="${fs2.min}" max="${fs2.max}" oninput="updateHint()"></div></div>`;
+        i+=2;continue;
+      }
+      const pair=fs.slice(i,i+2);
+      h+=`<div class="ts-row">${pair.map(f=>`<div class="ts-field"><label>${f.label}</label><input type="number" id="land-${f.id}" value="${t.cfg[f.id]??f.v}" min="${f.min}" max="${f.max}" oninput="updateHint()"></div>`).join('')}</div>`;
+      i+=pair.length;
+    }
+    return h;
+  }
+  const fieldsEl=document.getElementById('ts-fields-land');
+  if(fieldsEl)fieldsEl.innerHTML=makeRows();
+
+  // Hide save section (already saved)
+  const saveLand=document.getElementById('custom-timer-create-land');
+  if(saveLand)saveLand.style.display='none';
+
+  // Sync sound switch
+  const sndLand=document.getElementById('snd-land');
+  if(sndLand)sndLand.classList.toggle('on',soundOn);
+
+  // Show overlay
+  const overlay=document.getElementById('t-landscape-overlay');
+  if(overlay)overlay.classList.add('open');
+
+  // Apply these settings to active timer
+  setModeSaved(timerId);
+}
+
+function _closeLandscapeOverlay(e){
+  // If click was on the panel itself (not backdrop), don't close
+  if(e&&e.target&&document.getElementById('t-landscape-panel')?.contains(e.target))return;
+  _landscapeOverlayId=null;
+  const overlay=document.getElementById('t-landscape-overlay');
+  if(overlay)overlay.classList.remove('open');
+}
+
+/* Orientation change — just update clock padding, no auto-open needed */
 let _lastLandscape=null;
 window.addEventListener('resize',()=>{
   const isLand=window.innerHeight<500&&window.innerWidth>window.innerHeight;
   if(isLand===_lastLandscape)return;
   _lastLandscape=isLand;
-  const body=document.getElementById('ts-body');
-  const caret=document.getElementById('ts-caret');
-  if(!body)return;
-  if(isLand){
-    body.classList.add('open');
-    if(caret)caret.classList.add('open');
-  } else {
-    body.classList.remove('open');
-    if(caret)caret.classList.remove('open');
-  }
+  // Close overlay when rotating back to portrait
+  if(!isLand)_closeLandscapeOverlay(null);
   setTimeout(_updateClockPadding,60);
 });
 function toggleSound(isDesk){
   soundOn=!soundOn;
-  ['snd-mob','snd-desk'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',soundOn)});
+  ['snd-mob','snd-desk','snd-land'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',soundOn)});
 }
 
 const fmtT=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;

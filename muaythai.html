@@ -303,6 +303,61 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .stat-n{font-family:var(--font-disp);font-size:30px;font-weight:600;line-height:1}
 .stat-l{font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
 
+/* ── Year pip grid ── */
+/* ── Year pip grid: fills 100% width, no scrolling, responsive pips ── */
+#home-year-grid{width:100%}
+
+/* Month label row — same column template as the pip grid, set by JS */
+.year-month-labels{
+  display:grid;
+  gap:1.5px;
+  margin-bottom:3px;
+  width:100%;
+}
+.yml{
+  font-size:7px;font-family:var(--font-mono);
+  color:var(--text3);letter-spacing:.02em;
+  text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;
+  line-height:1;
+}
+
+/* Pip grid — columns set by JS to exact week count, fills 100% */
+.year-grid-inner{
+  display:grid;
+  grid-template-rows:repeat(7,1fr);
+  grid-auto-flow:column;
+  gap:1.5px;
+  width:100%;
+  aspect-ratio:auto; /* row height = auto from grid rows */
+}
+
+/* Individual pip */
+.ygp{
+  /* size is naturally 1fr of row height — just make them square via aspect-ratio */
+  aspect-ratio:1;
+  border-radius:1.5px;
+  background:var(--card2);
+  border:1px solid var(--border);
+  min-width:0;min-height:0;
+  transition:opacity .15s;
+}
+.ygp:hover{opacity:.7}
+
+/* Day type colors */
+.ygp.wo{background:var(--accent);border-color:var(--accent)}
+.ygp.mt{background:var(--gold);border-color:var(--gold)}
+.ygp.bo{background:var(--teal);border-color:var(--teal)}
+.ygp.today{box-shadow:0 0 0 1.5px #fff;opacity:1}
+body.light .ygp.today{box-shadow:0 0 0 1.5px var(--text)}
+
+/* Days outside the current year — invisible, preserve grid shape */
+.ygp-out{opacity:0;pointer-events:none;border-color:transparent!important;background:transparent!important}
+
+/* Legend dots */
+.yg-leg-item{display:flex;align-items:center;gap:4px}
+.yg-leg-dot{width:7px;height:7px;border-radius:1.5px;flex-shrink:0}
+
 /* ═══ CALENDAR ═══════════════════════════════════════ */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px}
 .cal-hdr{text-align:center;font-size:9px;font-family:var(--font-mono);color:var(--text3);text-transform:uppercase;padding:4px 0}
@@ -768,16 +823,19 @@ body.light .badge.unlocked .badge-desc{color:rgba(255,255,255,.7)}
 
   <div id="pages">
 
-    <!-- HOME — pg-pin: greeting + stats | pg-body: quick log, charts, badges -->
+    <!-- HOME — pg-pin: greeting + year pip grid | pg-body: quick log, charts, badges -->
     <div id="page-home" class="page">
-      <div class="pg-pin">
-        <div class="ph" style="margin-bottom:16px">
+      <div class="pg-pin" style="padding:16px 12px 14px">
+        <div class="ph" style="margin-bottom:10px;padding:0 0px">
           <div>
             <div class="ph-title" id="home-greeting">Good morning</div>
             <div class="ph-sub" id="home-date"></div>
           </div>
         </div>
-        <div class="stats" id="home-stats"></div>
+        <!-- Year activity pip grid -->
+        <div id="home-year-grid"></div>
+        <!-- Legend -->
+        <div id="home-year-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.04em"></div>
       </div>
       <div class="pg-body">
         <div class="sec-label" style="margin-top:0">Quick Log</div>
@@ -1326,15 +1384,108 @@ function renderHome(){
   const h=now.getHours();
   document.getElementById('home-greeting').textContent=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
   document.getElementById('home-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  const W=load(K.wo),S=load(K.se);
-  const wkS=new Date();wkS.setDate(now.getDate()-now.getDay());wkS.setHours(0,0,0,0);
-  const wW=W.filter(w=>new Date(w.date+'T00:00:00')>=wkS).length;
-  const wS=S.filter(s=>new Date(s.date+'T00:00:00')>=wkS).length;
-  document.getElementById('home-stats').innerHTML=`
-    <div class="stat"><div class="stat-n" style="color:var(--accent)">${wW}</div><div class="stat-l">Workouts</div></div>
-    <div class="stat"><div class="stat-n" style="color:var(--gold)">${wS}</div><div class="stat-l">MT Sessions</div></div>
-    <div class="stat"><div class="stat-n" style="color:var(--text2)">${W.length+S.length}</div><div class="stat-l">All Time</div></div>
-  `;
+
+  const W=load(K.wo), S=load(K.se);
+
+  // Build lookup: date string → type ('wo','mt','bo')
+  const woDates=new Set(W.map(x=>x.date));
+  const mtDates=new Set(S.map(x=>x.date));
+  function dayType(ds){
+    const w=woDates.has(ds), m=mtDates.has(ds);
+    if(w&&m)return 'bo';
+    if(w)return 'wo';
+    if(m)return 'mt';
+    return '';
+  }
+
+  // Year bounds: Jan 1 → Dec 31 of current year
+  const year=now.getFullYear();
+  const yearStart=new Date(year,0,1);   // Jan 1
+  const yearEnd=new Date(year,11,31);   // Dec 31
+  const todayStr=now.toISOString().split('T')[0];
+
+  // Align grid to Monday-based weeks
+  // Find the Monday on or before Jan 1
+  const gridStart=new Date(yearStart);
+  const dow=gridStart.getDay();            // 0=Sun
+  const offsetToMon=dow===0?-6:1-dow;     // shift to Monday
+  gridStart.setDate(gridStart.getDate()+offsetToMon);
+
+  // Collect all weeks
+  const weeks=[];
+  let cur=new Date(gridStart);
+  while(cur<=yearEnd){
+    const week=[];
+    for(let d=0;d<7;d++){
+      const dc=new Date(cur);
+      dc.setDate(cur.getDate()+d);
+      week.push(new Date(dc));
+    }
+    weeks.push(week);
+    cur.setDate(cur.getDate()+7);
+  }
+
+  // Month label positions (which week column each month starts in)
+  const monthLabels=[];
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  weeks.forEach((week,wi)=>{
+    // If any day in this week is the 1st of a month AND in current year
+    week.forEach(d=>{
+      if(d.getDate()===1&&d.getFullYear()===year){
+        monthLabels.push({wi,label:MONTHS[d.getMonth()]});
+      }
+    });
+  });
+
+  const nWeeks=weeks.length; // 52 or 53 depending on year
+  const GAP=1.5;
+
+  // Month label row — same column count as pip grid
+  let labelHTML=`<div class="year-month-labels" style="grid-template-columns:repeat(${nWeeks},1fr)">`;
+  weeks.forEach((_,wi)=>{
+    const ml=monthLabels.find(m=>m.wi===wi);
+    labelHTML+=`<div class="yml">${ml?ml.label:''}</div>`;
+  });
+  labelHTML+='</div>';
+
+  // Pip grid — grid-template-columns fills 100% with exactly nWeeks columns
+  // Row height: 7 rows × pip + 6 gaps. We fix the total grid height so pips are square-ish.
+  // Height = width/nWeeks * 7 + gaps — let CSS handle via aspect-ratio on .ygp
+  // We just need a defined height on the grid container. Use a comfortable fixed height.
+  const GRID_H=52; // px — 7 rows, each ~6px + gaps
+  const TYPENAME={wo:'Workout',mt:'MT Session',bo:'Both'};
+
+  let gridHTML=`<div class="year-grid-inner" style="grid-template-columns:repeat(${nWeeks},1fr);height:${GRID_H}px">`;
+  weeks.forEach(week=>{
+    week.forEach(day=>{
+      const ds=day.toISOString().split('T')[0];
+      const inYear=day.getFullYear()===year;
+      const type=inYear?dayType(ds):'';
+      const isToday=ds===todayStr;
+      const cls=['ygp',type,isToday?'today':'',!inYear?'ygp-out':''].filter(Boolean).join(' ');
+      const dateLabel=inYear?day.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+      const tip=dateLabel+(type?' · '+TYPENAME[type]:'');
+      gridHTML+=`<div class="${cls}"${tip?` title="${tip}"`:''}></div>`;
+    });
+  });
+  gridHTML+='</div>';
+
+  const gridEl=document.getElementById('home-year-grid');
+  if(gridEl) gridEl.innerHTML=labelHTML+gridHTML;
+  // No scrollLeft needed — entire year fits in 100% width
+
+  // Legend
+  const legEl=document.getElementById('home-year-legend');
+  if(legEl){
+    const woCount=woDates.size, mtCount=mtDates.size;
+    const bothCount=[...woDates].filter(d=>mtDates.has(d)).length;
+    legEl.innerHTML=
+      `<span class="yg-leg-item"><span class="yg-leg-dot" style="background:var(--accent)"></span>Workout (${woCount})</span>`+
+      `<span class="yg-leg-item"><span class="yg-leg-dot" style="background:var(--gold)"></span>MT Session (${mtCount})</span>`+
+      `<span class="yg-leg-item"><span class="yg-leg-dot" style="background:var(--teal)"></span>Both (${bothCount})</span>`+
+      `<span style="margin-left:auto;color:var(--text3)">${year}</span>`;
+  }
+
   renderGainsChart(W, S);
   renderBadges(W, S, load(K.no));
 }

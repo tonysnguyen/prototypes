@@ -70,7 +70,7 @@ body.light .confirm-box{background:var(--card)}
 body.light .si{background:var(--card);border-color:var(--border)}
 body.light .card{box-shadow:0 1px 4px rgba(0,0,0,.06)}
 body.light .stat{box-shadow:0 1px 3px rgba(0,0,0,.05);background:var(--card)}
-body.light .t-ring-track{stroke:rgba(0,0,0,.06)}
+body.light .t-ring-track{stroke:rgba(0,0,0,.18)}
 body.light .t-clock{color:var(--text)}
 body.light .t-clock.work{color:var(--green)}
 body.light .t-clock.rest{color:var(--accent)}
@@ -620,7 +620,7 @@ body.light #t-mobile-settings-card{
 /* ─── Ring ─── */
 .t-ring-wrap{position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0 auto}
 .t-ring-svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);pointer-events:none}
-.t-ring-track{fill:none;stroke:rgba(255,255,255,.04);transition:stroke .5s}
+.t-ring-track{fill:none;stroke:rgba(255,255,255,.22);transition:stroke .5s}
 .t-ring-prog{fill:none;stroke-linecap:round;transition:stroke-dashoffset .95s linear, stroke .4s ease}
 
 /* ─── Clock display ─── */
@@ -2619,18 +2619,18 @@ function setBg(state){
 
   // Solid flat colors — the whole screen is obviously one color
   const bgDark={
-    work:      '#0a2118',  // dark green
-    rest:      '#1f0a06',  // dark red
-    prep:      '#1a1206',  // dark amber
-    countdown: '#1a1206',
+    work:      '#0f5c38',  // bold green
+    rest:      '#5c1a0a',  // bold red
+    prep:      '#4a3008',  // bold amber
+    countdown: '#4a3008',
     idle:      '',
     done:      ''
   };
   const bgLight={
-    work:      '#d4efe2',  // clear green
-    rest:      '#f9ddd8',  // clear red
-    prep:      '#f7edcf',  // clear amber
-    countdown: '#f7edcf',
+    work:      '#7dd4a8',  // strong green
+    rest:      '#f0907a',  // strong red/coral
+    prep:      '#e8c84a',  // strong amber/gold
+    countdown: '#e8c84a',
     idle:      '',
     done:      ''
   };
@@ -2652,8 +2652,8 @@ function setBg(state){
   // Settings card: slightly lighter shade so it reads against the bg
   const settingsCard=document.getElementById('t-mobile-settings-card');
   if(settingsCard){
-    const cardDark={work:'#102d22',rest:'#2a1009',prep:'#231809',countdown:'#231809'};
-    const cardLight={work:'#c4e8d5',rest:'#f5cac2',prep:'#f0e0b8'};
+    const cardDark={work:'#1a7a48',rest:'#6e2210',prep:'#5e3e0e',countdown:'#5e3e0e'};
+    const cardLight={work:'#5cc090',rest:'#e87060',prep:'#d4b030'};
     const cardBg=isLight?cardLight:cardDark;
     settingsCard.style.background=cardBg[state]||'';
   }

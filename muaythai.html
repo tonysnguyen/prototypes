@@ -391,10 +391,17 @@ body.light .ygp.today{box-shadow:0 0 0 1.5px var(--text)}
 /* ═══════════════════════════════════════════════════════
    TIMER — Hero Component
    ═══════════════════════════════════════════════════════ */
-#page-timer{background:var(--bg);overflow:hidden}
+#page-timer{
+  background:var(--bg);overflow:hidden;
+  transition:background .7s ease;
+}
 
 /* ─── Mobile portrait: timer fills all space, never moves ─── */
-#t-mobile{display:flex;flex-direction:column;height:100%;position:relative;overflow:hidden}
+#t-mobile{
+  display:flex;flex-direction:column;height:100%;
+  position:relative;overflow:hidden;
+  transition:background .7s ease;
+}
 
 #t-mobile .t-mode-row{
   flex-shrink:0;padding:14px 16px 0;margin-bottom:0;
@@ -470,6 +477,7 @@ body.light #t-mobile-settings-card{
   #t-desk-main{
     flex:1;display:flex;flex-direction:column;align-items:center;
     justify-content:center;padding:40px;position:relative;overflow:hidden;
+    transition:background .7s ease;
   }
 }
 
@@ -2607,14 +2615,48 @@ function tDone(){
 }
 
 function setBg(state){
-  const map={
-    work:'radial-gradient(ellipse at 50% 40%,rgba(46,201,122,.18) 0%,rgba(46,201,122,.04) 50%,transparent 75%)',
-    rest:'radial-gradient(ellipse at 50% 40%,rgba(240,78,48,.16) 0%,rgba(240,78,48,.04) 50%,transparent 75%)',
-    prep:'radial-gradient(ellipse at 50% 40%,rgba(212,164,56,.14) 0%,rgba(212,164,56,.04) 50%,transparent 75%)',
-    idle:'none'
+  const isLight=document.body.classList.contains('light');
+
+  // Solid flat colors — the whole screen is obviously one color
+  const bgDark={
+    work:      '#0a2118',  // dark green
+    rest:      '#1f0a06',  // dark red
+    prep:      '#1a1206',  // dark amber
+    countdown: '#1a1206',
+    idle:      '',
+    done:      ''
   };
-  const v=map[state]||'none';
-  ['t-bg-mob','t-bg-desk'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.background=v});
+  const bgLight={
+    work:      '#d4efe2',  // clear green
+    rest:      '#f9ddd8',  // clear red
+    prep:      '#f7edcf',  // clear amber
+    countdown: '#f7edcf',
+    idle:      '',
+    done:      ''
+  };
+  const bgColors=isLight?bgLight:bgDark;
+  const bg=bgColors[state]??'';
+
+  // Apply solid bg to all timer containers
+  ['page-timer','t-mobile','t-desk-main'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.background=bg;
+  });
+
+  // Clear the old radial glow overlay — not needed anymore
+  ['t-bg-mob','t-bg-desk'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.background='none';
+  });
+
+  // Settings card: slightly lighter shade so it reads against the bg
+  const settingsCard=document.getElementById('t-mobile-settings-card');
+  if(settingsCard){
+    const cardDark={work:'#102d22',rest:'#2a1009',prep:'#231809',countdown:'#231809'};
+    const cardLight={work:'#c4e8d5',rest:'#f5cac2',prep:'#f0e0b8'};
+    const cardBg=isLight?cardLight:cardDark;
+    settingsCard.style.background=cardBg[state]||'';
+  }
 }
 
 function flash(cls){

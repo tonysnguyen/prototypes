@@ -70,10 +70,9 @@ body.light .confirm-box{background:var(--card)}
 body.light .si{background:var(--card);border-color:var(--border)}
 body.light .card{box-shadow:0 1px 4px rgba(0,0,0,.06)}
 body.light .stat{box-shadow:0 1px 3px rgba(0,0,0,.05);background:var(--card)}
-body.light .t-ring-track{stroke:rgba(0,0,0,.18)}
 body.light .t-clock{color:var(--text)}
-body.light .t-clock.work{color:var(--green)}
-body.light .t-clock.rest{color:var(--accent)}
+body.light .t-clock.work{color:var(--accent)}
+body.light .t-clock.rest{color:var(--green)}
 body.light .t-clock.prep{color:var(--gold)}
 body.light .ts-field input{background:var(--card2);color:var(--text);border-color:var(--border)}
 body.light .cue-card{background:rgba(224,57,30,.05);border-color:rgba(224,57,30,.18)}
@@ -613,14 +612,15 @@ body.light #t-mobile-settings-card{
 
 /* ─── Flash overlay ─── */
 #t-flash{position:fixed;inset:0;z-index:200;pointer-events:none;opacity:0;transition:opacity .06s}
-.fw{background:rgba(240,78,48,.2)}
-.fr2{background:rgba(31,200,187,.18)}
+.fw{background:rgba(240,78,48,.22)}
+.fr2{background:rgba(46,201,122,.2)}
 .fp{background:rgba(212,164,56,.15)}
 
 /* ─── Ring ─── */
 .t-ring-wrap{position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0 auto}
 .t-ring-svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);pointer-events:none}
-.t-ring-track{fill:none;stroke:rgba(255,255,255,.22);transition:stroke .5s}
+.t-ring-track{fill:none;stroke:rgba(0,0,0,.35);transition:stroke .5s}
+body.light .t-ring-track{stroke:rgba(0,0,0,.25)}
 .t-ring-prog{fill:none;stroke-linecap:round;transition:stroke-dashoffset .95s linear, stroke .4s ease}
 
 /* ─── Clock display ─── */
@@ -638,8 +638,8 @@ body.light #t-mobile-settings-card{
 }
 @keyframes t-idle{0%,100%{opacity:1}50%{opacity:.7}}
 .t-clock.running{animation:none}
-.t-clock.work{color:var(--green);text-shadow:0 0 60px rgba(46,201,122,.5)}
-.t-clock.rest{color:var(--accent);text-shadow:0 0 60px rgba(240,78,48,.45)}
+.t-clock.work{color:var(--accent);text-shadow:0 0 60px rgba(240,78,48,.5)}
+.t-clock.rest{color:var(--green);text-shadow:0 0 60px rgba(46,201,122,.5)}
 .t-clock.prep{color:var(--gold);text-shadow:0 0 50px rgba(212,164,56,.4)}
 .t-round-lbl{
   font-size:11px;font-family:var(--font-mono);color:var(--text3);
@@ -2170,7 +2170,7 @@ function updateRing(snapToFull){
   const pct = tStateDuration > 0 ? tSecs / tStateDuration : 0;
   const offset = CIRC * (1 - Math.max(0, Math.min(1, pct)));
 
-  const colors={work:'#2ec97a',rest:'#f04e30',prep:'#d4a438',countdown:'#d4a438',idle:'#2a2f3a',done:'#2ec97a'};
+  const colors={work:'#f04e30',rest:'#2ec97a',prep:'#d4a438',countdown:'#d4a438',idle:'#2a2f3a',done:'#2ec97a'};
   const col = colors[tState] || '#2a2f3a';
 
   ['t-ring-circle-mob','t-ring-circle-desk'].forEach(id=>{
@@ -2619,16 +2619,16 @@ function setBg(state){
 
   // Solid flat colors — the whole screen is obviously one color
   const bgDark={
-    work:      '#0f5c38',  // bold green
-    rest:      '#5c1a0a',  // bold red
+    work:      '#5c1a0a',  // bold red/orange
+    rest:      '#0f5c38',  // bold green
     prep:      '#4a3008',  // bold amber
     countdown: '#4a3008',
     idle:      '',
     done:      ''
   };
   const bgLight={
-    work:      '#7dd4a8',  // strong green
-    rest:      '#f0907a',  // strong red/coral
+    work:      '#f0907a',  // strong orange/coral
+    rest:      '#7dd4a8',  // strong green
     prep:      '#e8c84a',  // strong amber/gold
     countdown: '#e8c84a',
     idle:      '',
@@ -2652,8 +2652,8 @@ function setBg(state){
   // Settings card: slightly lighter shade so it reads against the bg
   const settingsCard=document.getElementById('t-mobile-settings-card');
   if(settingsCard){
-    const cardDark={work:'#1a7a48',rest:'#6e2210',prep:'#5e3e0e',countdown:'#5e3e0e'};
-    const cardLight={work:'#5cc090',rest:'#e87060',prep:'#d4b030'};
+    const cardDark={work:'#6e2210',rest:'#1a7a48',prep:'#5e3e0e',countdown:'#5e3e0e'};
+    const cardLight={work:'#e87060',rest:'#5cc090',prep:'#d4b030'};
     const cardBg=isLight?cardLight:cardDark;
     settingsCard.style.background=cardBg[state]||'';
   }
@@ -2673,7 +2673,7 @@ function tUpdateDisplay(){
   const round=tState==='idle'||tState==='done'?'':
     tState==='prep'?`Round ${tRound} of ${tTotal}`:`Round ${tRound} of ${tTotal}`;
   const clockClass='t-clock'+(tRunning?' running':'')+(tState==='work'?' work':tState==='rest'?' rest':tState==='prep'?' prep':'');
-  const stateColor=tState==='work'?'var(--green)':tState==='rest'?'var(--accent)':tState==='prep'?'var(--gold)':'var(--text3)';
+  const stateColor=tState==='work'?'var(--accent)':tState==='rest'?'var(--green)':tState==='prep'?'var(--gold)':'var(--text3)';
 
   [['t-clk-mob','t-sl-mob','t-rl-mob','t-sb-mob','t-play-mob','t-pause-mob'],
    ['t-clk-desk','t-sl-desk','t-rl-desk','t-sb-desk','t-play-desk','t-pause-desk']].forEach(([ck,sl,rl,sb,pi,pau])=>{

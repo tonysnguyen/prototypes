@@ -512,27 +512,27 @@ input[type=range]:active::-webkit-slider-thumb { cursor: grabbing; }
         <div class="export-opt recommended" onclick="doExport('webm')">
           <div class="exp-icon" style="background:rgba(108,99,255,0.15);color:#6c63ff">▶</div>
           <div class="exp-info">
-            <div class="exp-name">WebM / VP9</div>
-            <div class="exp-desc">Transparent alpha · Best for Figma prototypes</div>
+            <div class="exp-name">WebM — True transparent</div>
+            <div class="exp-desc">Real alpha channel · No background · Figma-ready · Chrome only</div>
           </div>
         </div>
         <div class="export-opt" onclick="doExport('gif')">
           <div class="exp-icon" style="background:rgba(245,166,35,0.1);color:#f5a623">GIF</div>
           <div class="exp-info">
             <div class="exp-name">Animated GIF</div>
-            <div class="exp-desc">Universal · Works everywhere</div>
+            <div class="exp-desc">Universal · Works everywhere · No alpha</div>
           </div>
         </div>
         <div class="export-opt" onclick="doExport('mp4')">
           <div class="exp-icon" style="background:rgba(31,216,154,0.1);color:#1fd89a">MP4</div>
           <div class="exp-info">
             <div class="exp-name">MP4 / H.264</div>
-            <div class="exp-desc">Compressed · No alpha channel</div>
+            <div class="exp-desc">Presentations & social · No alpha channel</div>
           </div>
         </div>
       </div>
       <div style="margin-top:8px;font-size:10px;color:var(--txt3);line-height:1.5;padding:0 1px">
-        WebM with VP9 supports transparency — drag directly into Figma as a video fill. GIF works in all tools. MP4 for presentations.
+        <strong style="color:var(--accent)">WebM</strong> exports with true alpha transparency — no checkerboard, no background. Drag directly into Figma as a video layer.
       </div>
     </div>
 
@@ -596,7 +596,8 @@ input[type=range]:active::-webkit-slider-thumb { cursor: grabbing; }
 
 <script>
 const canvas = document.getElementById('cc');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', { alpha: true });
+let isExportingTransparent = false;
 
 const PALETTE = ['#ff4757','#ff6348','#ffa502','#ffd32a','#7bed9f','#2ed573','#1e90ff','#a29bfe','#fd79a8','#74b9ff'];
 const LCOLORS = ['#6c63ff','#ff4d6a','#1fd89a','#f5a623','#a855f7','#06b6d4'];
@@ -731,9 +732,13 @@ function drawLaunchers() {
 }
 
 function drawBg() {
+  if (isExportingTransparent) {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    return;
+  }
   if (bgMode==='transparent') {
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    const cs=22, c1='rgba(255,255,255,0.06)', c2='rgba(255,255,255,0.02)';
+    const cs=22, c1='rgba(255,255,255,0.07)', c2='rgba(0,0,0,0)';
     for (let x=0;x<canvas.width;x+=cs)
       for (let y=0;y<canvas.height;y+=cs) {
         ctx.fillStyle = ((x/cs+y/cs)%2===0)?c1:c2;
@@ -914,34 +919,57 @@ function showRec(label) { const r=document.getElementById('recInd'); r.classList
 function hideRec() { document.getElementById('recInd').classList.remove('show'); }
 
 async function exportWebM() {
-  if (!window.MediaRecorder) { alert('MediaRecorder not supported in this browser.'); return; }
-  showRec('Recording WebM…');
-  cancelAnimationFrame(animId); animId=null;
-  gFrame=0; popFrame=0; particles=[];
+  if (!window.MediaRecorder) { alert('MediaRecorder not supported in this browser. Use Chrome.'); return; }
+
+  // Check VP9 alpha support
+  const mimeType = 'video/webm;codecs=vp9';
+  if (!MediaRecorder.isTypeSupported(mimeType)) {
+    alert('VP9 not supported in this browser. Please use Chrome for transparent WebM export.');
+    return;
+  }
+
+  showRec('Recording transparent WebM…');
+
+  // Force transparent rendering — no background fills at all
+  isExportingTransparent = true;
+
+  cancelAnimationFrame(animId); animId = null;
+  gFrame = 0; popFrame = 0; particles = [];
   if (!isPopper()) spawnNonPopper();
-  const stream=canvas.captureStream(30);
-  const rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9'});
-  const chunks=[];
-  rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-  rec.onstop=()=>{
+
+  // Ensure canvas is fully cleared before we start capturing
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const stream = canvas.captureStream(30);
+  const rec = new MediaRecorder(stream, { mimeType });
+  const chunks = [];
+
+  rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  rec.onstop = () => {
+    isExportingTransparent = false;
     hideRec();
-    const blob=new Blob(chunks,{type:'video/webm'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='confetti.webm'; a.click();
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'confetti-transparent.webm'; a.click();
+    // Resume normal preview
+    triggerBurst();
   };
-  rec.start(); animId=requestAnimationFrame(animate);
-  const dur=Math.max((cfg.duration/30)*1000+1000,2500);
-  setTimeout(()=>{ rec.stop(); },dur);
+
+  rec.start();
+  animId = requestAnimationFrame(animate);
+  const dur = Math.max((cfg.duration / 30) * 1000 + 1200, 2500);
+  setTimeout(() => { rec.stop(); cancelAnimationFrame(animId); animId = null; }, dur);
 }
 
 async function exportMP4() {
   if (!window.MediaRecorder) { alert('MediaRecorder not supported.'); return; }
-  showRec('Recording MP4…');
+  showRec('Recording MP4 (no transparency)…');
+  isExportingTransparent = false; // MP4 never transparent
   cancelAnimationFrame(animId); animId=null;
   gFrame=0; popFrame=0; particles=[];
   if (!isPopper()) spawnNonPopper();
   const stream=canvas.captureStream(30);
-  // Try mp4 first, fallback to webm
   const mimeType=MediaRecorder.isTypeSupported('video/mp4')?'video/mp4':'video/webm';
   const rec=new MediaRecorder(stream,{mimeType});
   const chunks=[];
@@ -952,10 +980,11 @@ async function exportMP4() {
     const blob=new Blob(chunks,{type:mimeType});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a'); a.href=url; a.download=`confetti.${ext}`; a.click();
+    triggerBurst();
   };
   rec.start(); animId=requestAnimationFrame(animate);
   const dur=Math.max((cfg.duration/30)*1000+1000,2500);
-  setTimeout(()=>{ rec.stop(); },dur);
+  setTimeout(()=>{ rec.stop(); cancelAnimationFrame(animId); animId=null; },dur);
 }
 
 async function exportGIF() {

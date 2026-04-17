@@ -5,191 +5,494 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Effects Studio</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#09090e;--panel:#101017;--panel2:#17171f;--panel3:#1f1f29;--panel4:#282834;
-  --border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.095);--border3:rgba(255,255,255,0.15);
-  --txt:#e0e0ef;--txt2:#72728c;--txt3:#3a3a50;
-  --accent:#6c63ff;--accent2:#8b84ff;--accent-dim:rgba(108,99,255,0.12);
-  --burst:#ff6b35;--burst2:#ff8c5a;--burst-dim:rgba(255,107,53,0.12);
-  --green:#1fd89a;--amber:#f5a623;--red:#ff4d6a;
-  --r:8px;--rsm:5px;--rxs:4px;
-  font-family:'DM Sans',system-ui,sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Core surfaces — subtle depth progression */
+  --bg:      #080810;
+  --panel:   #0e0e18;
+  --panel2:  #141420;
+  --panel3:  #1a1a28;
+  --panel4:  #222232;
+  --panel5:  #2a2a3c;
+
+  /* Borders — much softer, barely there */
+  --border:  rgba(255,255,255,0.042);
+  --border2: rgba(255,255,255,0.075);
+  --border3: rgba(255,255,255,0.12);
+
+  /* Text — strong hierarchy */
+  --txt:     #e8e8f2;
+  --txt2:    #5c5c78;  /* labels — very quiet */
+  --txt3:    #32324a;  /* metadata — barely visible */
+
+  /* Accents — one story at a time */
+  --accent:     #5a54f5;
+  --accent2:    #7b76ff;
+  --accent-dim: rgba(90,84,245,0.10);
+  --accent-glow:rgba(90,84,245,0.18);
+
+  /* Burst accent — warm, distinct */
+  --burst:     #e8622a;
+  --burst2:    #ff8050;
+  --burst-dim: rgba(232,98,42,0.10);
+
+  /* Semantic */
+  --green: #22c97a;
+  --amber: #d4920a;
+  --red:   #e8425a;
+
+  /* Radii */
+  --r:   9px;
+  --rsm: 6px;
+  --rxs: 4px;
+
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt)}
-.app{display:grid;grid-template-rows:48px 1fr 34px;grid-template-columns:256px 1fr;width:100vw;height:100vh}
 
-/* TOPBAR */
-.topbar{grid-column:1/-1;grid-row:1;display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--border);z-index:20;overflow:hidden}
-.logo{display:flex;align-items:center;gap:9px;padding:0 16px;border-right:1px solid var(--border);flex-shrink:0;min-width:256px}
-.logo-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--burst));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.logo-name{font-size:13px;font-weight:600;letter-spacing:-0.02em;color:var(--txt)}
-.logo-tag{font-size:9px;color:var(--txt3);margin-top:1px;letter-spacing:0.04em}
-.mode-tabs{display:flex;align-items:stretch;border-right:1px solid var(--border)}
-.mode-tab{display:flex;align-items:center;gap:7px;padding:0 18px;border:none;background:transparent;color:var(--txt2);font-size:12px;font-weight:500;cursor:pointer;transition:all .13s;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit}
-.mode-tab:hover{color:var(--txt);background:var(--panel2)}
-.mode-tab[data-mode="confetti"].on{color:var(--accent2);border-bottom-color:var(--accent)}
-.mode-tab[data-mode="burst"].on{color:var(--burst2);border-bottom-color:var(--burst)}
-.type-tabs{display:flex;align-items:stretch;flex:1;overflow:hidden}
-.type-tab{display:flex;align-items:center;gap:5px;padding:0 11px;border:none;background:transparent;color:var(--txt3);font-size:11px;font-weight:500;cursor:pointer;transition:all .12s;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit}
-.type-tab:hover{color:var(--txt2);background:var(--panel2)}
-.type-tab.on{color:var(--accent2);border-bottom-color:var(--accent)}
-.burst-subtabs .type-tab.on{color:var(--burst2);border-bottom-color:var(--burst)}
-.topbar-right{display:flex;align-items:center;gap:7px;margin-left:auto;padding:0 14px;flex-shrink:0}
-.bg-segs{display:flex;background:var(--panel2);border:1px solid var(--border2);border-radius:20px;padding:2px;gap:1px}
-.bg-seg{padding:3px 10px;border-radius:16px;font-size:10.5px;font-weight:500;color:var(--txt2);cursor:pointer;border:none;background:transparent;transition:all .12s;font-family:inherit}
-.bg-seg.on{background:var(--panel3);color:var(--txt)}
-.tb-div{width:1px;height:18px;background:var(--border)}
-.tb-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:var(--rsm);font-size:11.5px;font-weight:500;cursor:pointer;transition:all .13s;border:1px solid var(--border2);background:var(--panel2);color:var(--txt2);white-space:nowrap;font-family:inherit}
-.tb-btn:hover{color:var(--txt);border-color:var(--border3);background:var(--panel3)}
-.tb-btn svg{width:11px;height:11px;flex-shrink:0}
-.play-btn{background:var(--accent);border-color:var(--accent);color:#fff}
-.play-btn:hover{background:var(--accent2);border-color:var(--accent2);color:#fff}
-.play-btn.burst-play{background:var(--burst);border-color:var(--burst)}
-.play-btn.burst-play:hover{background:var(--burst2);border-color:var(--burst2)}
-.stop-btn{padding:5px 9px}
-.preview-btn{background:var(--panel2);border-color:var(--border2);color:var(--txt2)}
-.preview-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
-.preview-btn.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent2)}
-.preview-btn svg{width:12px;height:9px;flex-shrink:0}
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--txt); }
 
-/* SIDEBAR */
-.sidebar{grid-column:1;grid-row:2;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.sb-scroll{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
-.sb-scroll::-webkit-scrollbar{width:3px}
-.sb-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+/* ── LAYOUT ── */
+.app {
+  display: grid;
+  grid-template-rows: 46px 1fr 32px;
+  grid-template-columns: 248px 1fr;
+  width: 100vw; height: 100vh;
+}
 
-/* CANVAS */
-.canvas-wrap{grid-column:2;grid-row:2;position:relative;overflow:hidden}
-canvas{width:100%;height:100%;display:block;cursor:crosshair}
+/* ── TOPBAR ── */
+.topbar {
+  grid-column: 1 / -1; grid-row: 1;
+  display: flex; align-items: stretch;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  z-index: 20; overflow: hidden;
+}
 
-/* STATUSBAR */
-.statusbar{grid-column:1/-1;grid-row:3;display:flex;align-items:center;background:var(--panel);border-top:1px solid var(--border);padding:0 16px;font-size:10px;color:var(--txt3)}
-.si{display:flex;align-items:center;gap:5px;padding:0 12px;border-right:1px solid var(--border)}
-.si:first-child{padding-left:0}
-.sdot{width:5px;height:5px;border-radius:50%;background:var(--txt3)}
-.sdot.live{background:var(--green);animation:blink 2s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.sval{font-weight:600;color:var(--txt2);font-family:'DM Mono',monospace}
-.shint{margin-left:auto;font-size:10px;color:var(--txt3)}
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px;
+  border-right: 1px solid var(--border);
+  flex-shrink: 0; min-width: 248px;
+}
+.logo-mark {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: linear-gradient(140deg, var(--accent), var(--burst));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0;
+  opacity: 0.9;
+}
+.logo-name { font-size: 12.5px; font-weight: 600; letter-spacing: -0.025em; color: var(--txt); }
+.logo-tag  { font-size: 9px; color: var(--txt3); margin-top: 1px; letter-spacing: 0.03em; }
 
-/* SECTIONS */
-.sec{padding:12px 14px;border-bottom:1px solid var(--border)}
-.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.sec-title{font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.1em;text-transform:uppercase}
-.sec-act{font-size:10px;color:var(--accent);cursor:pointer;font-weight:500;background:none;border:none;font-family:inherit;transition:color .12s}
-.sec-act:hover{color:var(--accent2)}
+/* Mode tabs — emotionally distinct */
+.mode-tabs {
+  display: flex; align-items: stretch;
+  border-right: 1px solid var(--border);
+}
+.mode-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 20px; border: none; background: transparent;
+  color: var(--txt2); font-size: 11.5px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  font-family: inherit;
+  transition: color 200ms ease, background 200ms ease;
+}
+.mode-tab:hover { color: var(--txt); background: var(--panel2); }
+.mode-tab[data-mode="confetti"].on { color: var(--accent2); border-bottom-color: var(--accent); }
+.mode-tab[data-mode="burst"].on    { color: var(--burst2);  border-bottom-color: var(--burst);  }
 
-/* PARAMS */
-.param{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;margin-bottom:6px}
-.param:last-child{margin-bottom:0}
-.plbl{font-size:11px;color:var(--txt2)}
-.pval{font-size:10px;font-weight:600;color:var(--txt);background:var(--panel3);border:1px solid var(--border2);border-radius:var(--rxs);padding:2px 6px;min-width:42px;text-align:right;font-family:'DM Mono',monospace}
-.srow{margin-bottom:9px}
-.srow:last-child{margin-bottom:0}
-input[type=range]{width:100%;-webkit-appearance:none;height:2px;border-radius:1px;background:var(--panel4);outline:none;cursor:pointer;margin-top:4px}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);border:2px solid rgba(255,255,255,.1);transition:transform .1s;cursor:grab}
-input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.22);box-shadow:0 0 0 4px rgba(108,99,255,.2)}
-input[type=range].bs::-webkit-slider-thumb{background:var(--burst)}
-input[type=range].bs::-webkit-slider-thumb:hover{box-shadow:0 0 0 4px rgba(255,107,53,.2)}
+/* Sub-type tabs — quieter than mode tabs */
+.type-tabs { display: flex; align-items: stretch; flex: 1; overflow: hidden; }
+.type-tab {
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 10px; border: none; background: transparent;
+  color: var(--txt3); font-size: 10.5px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  border-bottom: 1.5px solid transparent; margin-bottom: -1px;
+  font-family: inherit;
+  transition: color 180ms ease, background 180ms ease;
+}
+.type-tab:hover { color: var(--txt2); }
+.type-tab.on { color: var(--txt); border-bottom-color: rgba(255,255,255,0.25); }
+.burst-subtabs .type-tab.on { color: var(--burst2); border-bottom-color: var(--burst); }
 
-/* TOGGLES */
-.tog-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
-.tog-lbl{font-size:11px;color:var(--txt2)}
-.tog{position:relative;width:32px;height:18px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0}
-.tog-t{position:absolute;inset:0;border-radius:9px;background:var(--panel4);cursor:pointer;border:1px solid var(--border2);transition:all .18s}
-.tog input:checked+.tog-t{background:var(--accent);border-color:var(--accent)}
-.tog-t::before{content:'';position:absolute;width:12px;height:12px;left:2px;top:2px;border-radius:50%;background:rgba(255,255,255,.85);transition:transform .18s}
-.tog input:checked+.tog-t::before{transform:translateX(14px);background:#fff}
-.bt .tog input:checked+.tog-t{background:var(--burst);border-color:var(--burst)}
+/* Topbar right actions */
+.topbar-right {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: auto; padding: 0 14px; flex-shrink: 0;
+}
+.bg-segs {
+  display: flex;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 2px; gap: 1px;
+}
+.bg-seg {
+  padding: 3px 10px; border-radius: 15px;
+  font-size: 10px; font-weight: 500; color: var(--txt2);
+  cursor: pointer; border: none; background: transparent;
+  font-family: inherit;
+  transition: color 160ms ease, background 160ms ease;
+}
+.bg-seg.on { background: var(--panel3); color: var(--txt); }
+.bg-seg:hover:not(.on) { color: var(--txt2); }
 
-/* SHAPES */
-.shapes-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
-.sh-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 3px 5px;border:1px solid var(--border);border-radius:var(--rsm);background:var(--panel2);cursor:pointer;font-size:9px;font-weight:500;color:var(--txt2);transition:all .12s;font-family:inherit}
-.sh-btn .si2{font-size:13px;line-height:1}
-.sh-btn:hover{border-color:var(--border3);color:var(--txt)}
-.sh-btn.on{border-color:rgba(245,166,35,.5);background:rgba(245,166,35,.08);color:var(--amber)}
-.sh-btn.bon{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.08);color:var(--burst)}
+.tb-div { width: 1px; height: 16px; background: var(--border2); }
 
-/* Sparkle shape selector — two-button pill row */
-.spark-shape-row{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
-.ss-btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--rsm);background:var(--panel2);cursor:pointer;font-size:10px;font-weight:500;color:var(--txt2);transition:all .12s;font-family:inherit}
-.ss-btn:hover{border-color:var(--border3);color:var(--txt)}
-.ss-btn.on{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.08);color:var(--burst)}
+.tb-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: var(--rsm);
+  font-size: 11px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--panel2); color: var(--txt2);
+  white-space: nowrap; font-family: inherit;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+.tb-btn:hover { color: var(--txt); border-color: var(--border3); background: var(--panel3); }
+.tb-btn:active { transform: scale(0.97); }
+.tb-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
 
-/* COLORS */
-.color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.sw{aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .13s}
-.sw.on{border-color:rgba(255,255,255,.6);transform:scale(1.1)}
-.sw:hover{transform:scale(1.13)}
+.stop-btn { padding: 5px 9px; }
+.preview-btn { color: var(--txt2); }
+.preview-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.preview-btn.on { background: var(--accent-dim); border-color: var(--accent); color: var(--accent2); }
+.preview-btn svg { width: 12px; height: 9px; }
 
-/* LAUNCHERS */
-.l-list{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
-.l-item{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:var(--rsm);border:1px solid transparent;cursor:pointer;transition:all .12s}
-.l-item:hover{background:var(--panel2)}
-.l-item.on{background:var(--panel2);border-color:var(--border3)}
-.l-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.l-name{font-size:11.5px;font-weight:500;color:var(--txt);flex:1}
-.l-meta{font-size:10px;color:var(--txt3);font-family:'DM Mono',monospace}
-.l-del{width:18px;height:18px;border-radius:var(--rxs);border:1px solid var(--border);background:transparent;color:var(--txt3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;font-family:inherit;line-height:1}
-.l-del:hover{background:rgba(255,77,106,.15);border-color:rgba(255,77,106,.4);color:var(--red)}
-.add-l{width:100%;padding:7px;border:1px dashed var(--border2);border-radius:var(--rsm);background:transparent;color:var(--txt3);font-size:11px;cursor:pointer;transition:all .13s;font-family:inherit}
-.add-l:hover{border-color:rgba(108,99,255,.4);color:var(--accent2);background:var(--accent-dim)}
+/* Play — primary action, confident */
+.play-btn {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+  font-weight: 600; letter-spacing: -0.01em;
+}
+.play-btn:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.play-btn.burst-play { background: var(--burst); border-color: var(--burst); }
+.play-btn.burst-play:hover { background: var(--burst2); border-color: var(--burst2); }
 
-/* BURST ORIGIN */
-.origin-card{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--rsm);margin-bottom:10px}
-.origin-dot{width:10px;height:10px;border-radius:50%;background:var(--burst);flex-shrink:0;box-shadow:0 0 6px rgba(255,107,53,.5)}
-.origin-txt{font-size:11px;color:var(--txt2);flex:1}
-.origin-pos{font-size:10px;color:var(--txt3);font-family:'DM Mono',monospace}
+/* ── SIDEBAR ── */
+.sidebar {
+  grid-column: 1; grid-row: 2;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sb-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+}
+.sb-scroll::-webkit-scrollbar { width: 3px; }
+.sb-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-/* BURST TYPE GRID */
-.bt-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.bt-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 6px 7px;border:1px solid var(--border);border-radius:var(--r);background:var(--panel2);cursor:pointer;font-size:10px;font-weight:500;color:var(--txt2);transition:all .13s;font-family:inherit}
-.bt-btn .bti{font-size:18px;line-height:1}
-.bt-btn:hover{border-color:var(--border3);color:var(--txt)}
-.bt-btn.on{border-color:rgba(255,107,53,.45);background:var(--burst-dim);color:var(--burst2)}
+/* ── CANVAS ── */
+.canvas-wrap { grid-column: 2; grid-row: 2; position: relative; overflow: hidden; }
+canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
 
-/* EXPORT */
-.export-opts{display:flex;flex-direction:column;gap:5px}
-.exp-opt{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--r);border:1px solid var(--border);background:var(--panel2);cursor:pointer;transition:all .14s;position:relative;overflow:hidden}
-.exp-opt:hover{border-color:var(--border3);background:var(--panel3)}
-.exp-opt.rec{border-color:rgba(108,99,255,.28);background:rgba(108,99,255,.05)}
-.exp-opt.rec::after{content:'Figma';position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:600;color:var(--accent);background:var(--accent-dim);padding:2px 6px;border-radius:10px;border:1px solid rgba(108,99,255,.22)}
-.exp-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace}
-.exp-info{flex:1}
-.exp-name{font-size:11.5px;font-weight:600;color:var(--txt)}
-.exp-desc{font-size:10px;color:var(--txt2);margin-top:1px;line-height:1.4}
+/* ── STATUSBAR ── */
+.statusbar {
+  grid-column: 1 / -1; grid-row: 3;
+  display: flex; align-items: center;
+  background: var(--panel); border-top: 1px solid var(--border);
+  padding: 0 16px; font-size: 9.5px; color: var(--txt3);
+}
+.si { display: flex; align-items: center; gap: 5px; padding: 0 12px; border-right: 1px solid var(--border); }
+.si:first-child { padding-left: 0; }
+.sdot { width: 5px; height: 5px; border-radius: 50%; background: var(--txt3); }
+.sdot.live { background: var(--green); animation: blink 2.5s ease-in-out infinite; }
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity: 0.25; } }
+.sval { font-weight: 500; color: var(--txt2); font-family: 'JetBrains Mono', monospace; font-size: 9.5px; }
+.shint { margin-left: auto; color: var(--txt3); }
 
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.stat-card{background:var(--panel2);border:1px solid var(--border);border-radius:var(--rsm);padding:8px 10px}
-.stat-v{font-size:19px;font-weight:600;color:var(--txt);font-family:'DM Mono',monospace;line-height:1}
-.stat-v.live{color:var(--green)}
-.stat-l{font-size:9px;color:var(--txt3);margin-top:3px;text-transform:uppercase;letter-spacing:.07em}
+/* ── SECTIONS — collapsible with disclosure ── */
+.sec { border-bottom: 1px solid var(--border); }
 
-/* CANVAS OVERLAYS */
-.canvas-info{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px;align-items:flex-end;pointer-events:none}
-.cbadge{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:3px 8px;font-size:10px;color:rgba(255,255,255,.35)}
-.rec-ind{position:absolute;top:10px;left:10px;display:none;align-items:center;gap:6px;background:rgba(255,77,106,.12);border:1px solid rgba(255,77,106,.28);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--red);font-weight:500}
-.rec-ind.show{display:flex}
-.rec-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 1s ease-in-out infinite}
-.exp-prog{position:absolute;inset:0;background:rgba(9,9,14,.82);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:30}
-.exp-prog.show{display:flex}
-.prog-wrap{width:220px;height:3px;background:var(--panel3);border-radius:2px;overflow:hidden}
-.prog-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .1s;width:0%}
-.prog-lbl{font-size:12px;color:var(--txt2)}
+/* Section header — clickable for collapse */
+.sec-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px 0;
+  cursor: pointer; user-select: none;
+}
+.sec-hd:hover .sec-title { color: var(--txt2); }
+.sec-title {
+  font-size: 9px; font-weight: 600; color: var(--txt3);
+  letter-spacing: 0.09em; text-transform: uppercase;
+  transition: color 160ms ease;
+}
+/* Chevron on collapsible sections */
+.sec-hd::after {
+  content: '';
+  width: 6px; height: 6px;
+  border-right: 1.5px solid var(--txt3); border-bottom: 1.5px solid var(--txt3);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 200ms ease, border-color 160ms ease;
+  flex-shrink: 0; margin-top: 1px;
+}
+.sec-hd:hover::after { border-color: var(--txt2); }
+.sec.collapsed .sec-hd::after { transform: rotate(-45deg) translateY(1px); }
+.sec-hd-static { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px 0; }
+.sec-body { padding: 10px 14px 13px; }
+.sec.collapsed .sec-body { display: none; }
 
-/* MODE SWITCHING */
-.c-panel{display:block}
-.b-panel{display:none}
-.app.bmode .c-panel{display:none}
-.app.bmode .b-panel{display:block}
-.app.bmode .c-subtabs{display:none}
-.app.bmode .b-subtabs{display:flex}
-.c-subtabs{display:flex}
-.b-subtabs{display:none}
+.sec-act {
+  font-size: 10px; color: var(--accent); cursor: pointer; font-weight: 500;
+  background: none; border: none; font-family: inherit;
+  transition: color 160ms ease; padding: 0;
+  pointer-events: all; /* prevent parent click stealing */
+}
+.sec-act:hover { color: var(--accent2); }
+
+/* ── PARAMS — clean instrument feel ── */
+.param {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 10px; margin-bottom: 5px;
+}
+.param:last-child { margin-bottom: 0; }
+.plbl { font-size: 10.5px; color: var(--txt2); letter-spacing: -0.01em; }
+
+/* Value pill — monospace, instrument-like, minimal */
+.pval {
+  font-size: 9.5px; font-weight: 500; color: var(--txt);
+  background: transparent; border: none;
+  border-radius: 0; padding: 0;
+  min-width: 36px; text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.02em;
+  opacity: 0.7;
+}
+
+.srow { margin-bottom: 8px; padding-top: 2px; }
+.srow:last-child { margin-bottom: 0; }
+
+/* ── SLIDERS — tactile, alive ── */
+input[type=range] {
+  width: 100%; -webkit-appearance: none;
+  height: 3px; border-radius: 2px;
+  background: var(--panel4);
+  outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid rgba(10,10,20,0.6);
+  box-shadow: 0 0 0 0 rgba(90,84,245,0);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  cursor: grab;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 5px rgba(90,84,245,0.16);
+}
+input[type=range]:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+  cursor: grabbing;
+  box-shadow: 0 0 0 7px rgba(90,84,245,0.12);
+}
+input[type=range].bs::-webkit-slider-thumb { background: var(--burst); }
+input[type=range].bs::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(232,98,42,0.18); }
+input[type=range].bs:active::-webkit-slider-thumb { box-shadow: 0 0 0 7px rgba(232,98,42,0.12); }
+
+/* ── TOGGLES — smooth, calm ── */
+.tog-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; }
+.tog-lbl { font-size: 10.5px; color: var(--txt2); letter-spacing: -0.01em; }
+.tog { position: relative; width: 30px; height: 17px; flex-shrink: 0; }
+.tog input { opacity: 0; width: 0; height: 0; }
+.tog-t {
+  position: absolute; inset: 0; border-radius: 9px;
+  background: var(--panel5); cursor: pointer;
+  border: 1px solid var(--border2);
+  transition: background 240ms cubic-bezier(.4,0,.2,1), border-color 240ms ease;
+}
+.tog input:checked + .tog-t { background: var(--accent); border-color: var(--accent); }
+.tog-t::before {
+  content: ''; position: absolute;
+  width: 11px; height: 11px; left: 2px; top: 2px;
+  border-radius: 50%; background: rgba(255,255,255,0.8);
+  transition: transform 240ms cubic-bezier(.4,0,.2,1), background 240ms ease;
+}
+.tog input:checked + .tog-t::before { transform: translateX(13px); background: #fff; }
+.bt .tog input:checked + .tog-t { background: var(--burst); border-color: var(--burst); }
+
+/* ── SHAPES — compact, elegant ── */
+.shapes-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; }
+.sh-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 3px 6px;
+  border: 1px solid var(--border); border-radius: var(--rsm);
+  background: transparent; cursor: pointer;
+  font-size: 9px; font-weight: 500; color: var(--txt3);
+  font-family: inherit;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+.sh-btn .si2 { font-size: 12px; line-height: 1; }
+.sh-btn:hover { border-color: var(--border3); color: var(--txt2); }
+.sh-btn.on  { border-color: rgba(210,145,20,0.45); background: rgba(210,145,20,0.07); color: var(--amber); }
+.sh-btn.bon { border-color: rgba(232,98,42,0.45);  background: rgba(232,98,42,0.07);  color: var(--burst); }
+
+/* Sparkle shape pills */
+.spark-shape-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
+.ss-btn {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--rsm);
+  background: transparent; cursor: pointer;
+  font-size: 9.5px; font-weight: 500; color: var(--txt2);
+  font-family: inherit;
+  transition: all 150ms ease;
+}
+.ss-btn:hover { border-color: var(--border3); color: var(--txt); }
+.ss-btn.on { border-color: rgba(232,98,42,0.45); background: rgba(232,98,42,0.07); color: var(--burst2); }
+
+/* ── COLORS ── */
+.color-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 5px; }
+.sw {
+  aspect-ratio: 1; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+.sw.on   { border-color: rgba(255,255,255,0.55); transform: scale(1.08); }
+.sw:hover { transform: scale(1.1); }
+
+/* ── LAUNCHERS ── */
+.l-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.l-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 8px; border-radius: var(--rsm);
+  border: 1px solid transparent; cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.l-item:hover  { background: var(--panel2); }
+.l-item.on { background: var(--panel2); border-color: var(--border2); }
+.l-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.l-name  { font-size: 11px; font-weight: 500; color: var(--txt); flex: 1; }
+.l-meta  { font-size: 9.5px; color: var(--txt3); font-family: 'JetBrains Mono', monospace; }
+.l-del {
+  width: 17px; height: 17px; border-radius: var(--rxs);
+  border: 1px solid var(--border); background: transparent;
+  color: var(--txt3); cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-family: inherit; line-height: 1;
+  transition: all 150ms ease;
+}
+.l-del:hover { background: rgba(232,66,90,0.12); border-color: rgba(232,66,90,0.35); color: var(--red); }
+.add-l {
+  width: 100%; padding: 7px;
+  border: 1px dashed var(--border2); border-radius: var(--rsm);
+  background: transparent; color: var(--txt3); font-size: 10.5px;
+  cursor: pointer; font-family: inherit;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+.add-l:hover { border-color: rgba(90,84,245,0.35); color: var(--accent2); background: var(--accent-dim); }
+
+/* ── BURST ORIGIN ── */
+.origin-card {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: var(--rsm);
+  margin-bottom: 10px;
+}
+.origin-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--burst); flex-shrink: 0; }
+.origin-txt  { font-size: 10.5px; color: var(--txt2); flex: 1; }
+.origin-pos  { font-size: 9.5px; color: var(--txt3); font-family: 'JetBrains Mono', monospace; }
+
+/* ── TYPE GRID (confetti styles + burst styles) ── */
+.bt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.bt-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 9px 6px 7px;
+  border: 1px solid var(--border); border-radius: var(--r);
+  background: transparent; cursor: pointer;
+  font-size: 9.5px; font-weight: 500; color: var(--txt3);
+  font-family: inherit;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+.bt-btn .bti { font-size: 17px; line-height: 1; }
+.bt-btn:hover { border-color: var(--border2); color: var(--txt2); background: var(--panel2); }
+/* Confetti type active — cool accent */
+.bt-btn.on[data-type] { border-color: rgba(90,84,245,0.4); background: var(--accent-dim); color: var(--accent2); }
+/* Burst type active — warm accent */
+.bt-btn.on[data-btype] { border-color: rgba(232,98,42,0.4); background: var(--burst-dim); color: var(--burst2); }
+
+/* ── EXPORT ── */
+.export-opts { display: flex; flex-direction: column; gap: 4px; }
+.exp-opt {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 11px; border-radius: var(--r);
+  border: 1px solid var(--border); background: transparent;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+.exp-opt:hover { border-color: var(--border2); background: var(--panel2); }
+.exp-opt.rec { border-color: rgba(90,84,245,0.22); background: rgba(90,84,245,0.04); }
+.exp-opt.rec::after {
+  content: 'Figma'; position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+  font-size: 8.5px; font-weight: 600; color: var(--accent);
+  background: var(--accent-dim); padding: 2px 6px; border-radius: 10px;
+  border: 1px solid rgba(90,84,245,0.2);
+}
+.exp-icon {
+  width: 26px; height: 26px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+.exp-info { flex: 1; }
+.exp-name { font-size: 11px; font-weight: 600; color: var(--txt); }
+.exp-desc { font-size: 9.5px; color: var(--txt2); margin-top: 1px; line-height: 1.4; }
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.stat-card { background: var(--panel2); border: 1px solid var(--border); border-radius: var(--rsm); padding: 8px 10px; }
+.stat-v { font-size: 18px; font-weight: 500; color: var(--txt); font-family: 'JetBrains Mono', monospace; line-height: 1; letter-spacing: -0.03em; }
+.stat-v.live { color: var(--green); }
+.stat-l { font-size: 8.5px; color: var(--txt3); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.07em; }
+
+/* ── CANVAS OVERLAYS ── */
+.canvas-info {
+  position: absolute; top: 12px; right: 12px;
+  display: flex; flex-direction: column; gap: 4px;
+  align-items: flex-end; pointer-events: none;
+}
+.cbadge {
+  background: rgba(0,0,0,0.42);
+  border: 1px solid rgba(255,255,255,0.055);
+  border-radius: 4px; padding: 3px 7px;
+  font-size: 9.5px; color: rgba(255,255,255,0.28);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.rec-ind {
+  position: absolute; top: 10px; left: 10px;
+  display: none; align-items: center; gap: 6px;
+  background: rgba(232,66,90,0.1); border: 1px solid rgba(232,66,90,0.24);
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 10.5px; color: var(--red); font-weight: 500;
+}
+.rec-ind.show { display: flex; }
+.rec-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); animation: blink 1s ease-in-out infinite; }
+.exp-prog {
+  position: absolute; inset: 0;
+  background: rgba(8,8,16,0.85);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; z-index: 30;
+}
+.exp-prog.show { display: flex; }
+.prog-wrap { width: 200px; height: 2px; background: var(--panel3); border-radius: 1px; overflow: hidden; }
+.prog-bar  { height: 100%; background: var(--accent); border-radius: 1px; transition: width 100ms linear; width: 0%; }
+.prog-lbl  { font-size: 11px; color: var(--txt2); }
+
+/* ── MODE PANEL SWITCHING ── */
+.c-panel  { display: block; }
+.b-panel  { display: none; }
+.app.bmode .c-panel { display: none; }
+.app.bmode .b-panel { display: block; }
+.app.bmode .c-subtabs { display: none; }
+.app.bmode .b-subtabs { display: flex; }
+.c-subtabs { display: flex; }
+.b-subtabs { display: none; }
 </style>
 </head>
 <body>
@@ -198,37 +501,44 @@ input[type=range].bs::-webkit-slider-thumb:hover{box-shadow:0 0 0 4px rgba(255,1
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="logo">
-    <div class="logo-mark">✦</div>
+    <div class="logo-mark">&#10022;</div>
     <div>
       <div class="logo-name">Effects Studio</div>
       <div class="logo-tag">Figma-ready animation export</div>
     </div>
   </div>
+
+  <!-- Mode tabs -->
   <div class="mode-tabs">
-    <button class="mode-tab on" data-mode="confetti" onclick="setMode(this)">🎊 Confetti</button>
-    <button class="mode-tab" data-mode="burst" onclick="setMode(this)">✦ Burst FX</button>
+    <button class="mode-tab on" data-mode="confetti" onclick="setMode(this)">&#127882; Confetti</button>
+    <button class="mode-tab" data-mode="burst" onclick="setMode(this)">&#10022; Burst FX</button>
   </div>
+
+  <!-- Confetti sub-type tabs -->
   <div class="type-tabs c-subtabs">
-    <button class="type-tab on" data-type="poppers" onclick="setCType(this)">🎉 Poppers</button>
-    <button class="type-tab" data-type="cannon" onclick="setCType(this)">💥 Cannon</button>
-    <button class="type-tab" data-type="blast" onclick="setCType(this)">⚡ Blast</button>
-    <button class="type-tab" data-type="freefall" onclick="setCType(this)">🌨 Fall</button>
-    <button class="type-tab" data-type="rain" onclick="setCType(this)">🎊 Cascade</button>
-    <button class="type-tab" data-type="fountain" onclick="setCType(this)">⛲ Fountain</button>
-    <button class="type-tab" data-type="fireworks" onclick="setCType(this)">✨ Fireworks</button>
-    <button class="type-tab" data-type="spiral" onclick="setCType(this)">🌀 Spiral</button>
-    <button class="type-tab" data-type="sides" onclick="setCType(this)">↔ Sides</button>
-    <button class="type-tab" data-type="overhead" onclick="setCType(this)">⬇ Overhead</button>
+    <button class="type-tab on" data-type="poppers" onclick="setCType(this)">&#127881; Poppers</button>
+    <button class="type-tab" data-type="cannon" onclick="setCType(this)">&#128165; Cannon</button>
+    <button class="type-tab" data-type="blast" onclick="setCType(this)">&#9889; Blast</button>
+    <button class="type-tab" data-type="freefall" onclick="setCType(this)">&#127784; Fall</button>
+    <button class="type-tab" data-type="rain" onclick="setCType(this)">&#127882; Cascade</button>
+    <button class="type-tab" data-type="fountain" onclick="setCType(this)">&#9970; Fountain</button>
+    <button class="type-tab" data-type="fireworks" onclick="setCType(this)">&#10024; Fireworks</button>
+    <button class="type-tab" data-type="spiral" onclick="setCType(this)">&#127744; Spiral</button>
+    <button class="type-tab" data-type="sides" onclick="setCType(this)">&#8596; Sides</button>
+    <button class="type-tab" data-type="overhead" onclick="setCType(this)">&#11015; Overhead</button>
   </div>
+
+  <!-- Burst sub-type tabs -->
   <div class="type-tabs b-subtabs burst-subtabs">
-    <button class="type-tab on" data-btype="starburst" onclick="setBType(this)">✦ Starburst</button>
-    <button class="type-tab" data-btype="lensflare" onclick="setBType(this)">☀ Lens Flare</button>
-    <button class="type-tab" data-btype="softglow" onclick="setBType(this)">◉ Soft Glow</button>
-    <button class="type-tab" data-btype="sparkfield" onclick="setBType(this)">✧ Spark Field</button>
-    <button class="type-tab" data-btype="orb" onclick="setBType(this)">● Orb</button>
-    <button class="type-tab" data-btype="corona" onclick="setBType(this)">⊙ Corona</button>
-    <button class="type-tab" data-btype="stardust" onclick="setBType(this)">✺ Stardust</button>
+    <button class="type-tab on" data-btype="starburst" onclick="setBType(this)">&#10022; Starburst</button>
+    <button class="type-tab" data-btype="lensflare" onclick="setBType(this)">&#9728; Lens Flare</button>
+    <button class="type-tab" data-btype="softglow" onclick="setBType(this)">&#9685; Soft Glow</button>
+    <button class="type-tab" data-btype="sparkfield" onclick="setBType(this)">&#10023; Spark Field</button>
+    <button class="type-tab" data-btype="orb" onclick="setBType(this)">&#9679; Orb</button>
+    <button class="type-tab" data-btype="corona" onclick="setBType(this)">&#8857; Corona</button>
+    <button class="type-tab" data-btype="stardust" onclick="setBType(this)">&#10042; Stardust</button>
   </div>
+
   <div class="topbar-right">
     <div class="bg-segs">
       <button class="bg-seg on" onclick="setBg(this,'dark')">Dark</button>
@@ -236,10 +546,18 @@ input[type=range].bs::-webkit-slider-thumb:hover{box-shadow:0 0 0 4px rgba(255,1
       <button class="bg-seg" onclick="setBg(this,'transparent')">Transparent</button>
     </div>
     <div class="tb-div"></div>
-    <button class="tb-btn stop-btn" onclick="stopAnim()"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1.5" fill="currentColor"/></svg></button>
-    <button class="tb-btn preview-btn" id="previewBtn" onclick="togglePreview(this)"><svg viewBox="0 0 12 9" fill="none"><path d="M1 4.5C2.5 1.5 5.5 0 6 0s3.5 1.5 5 4.5C9.5 7.5 6.5 9 6 9S2.5 7.5 1 4.5z" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.8" fill="currentColor"/></svg> Preview</button>
+    <button class="tb-btn stop-btn" onclick="stopAnim()" title="Stop">
+      <svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1.5" fill="currentColor"/></svg>
+    </button>
+    <button class="tb-btn preview-btn" id="previewBtn" onclick="togglePreview(this)">
+      <svg viewBox="0 0 12 9" fill="none"><path d="M1 4.5C2.5 1.5 5.5 0 6 0s3.5 1.5 5 4.5C9.5 7.5 6.5 9 6 9S2.5 7.5 1 4.5z" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.8" fill="currentColor"/></svg>
+      Preview
+    </button>
     <div class="tb-div"></div>
-    <button class="tb-btn play-btn" id="playBtn" onclick="triggerPlay()"><svg viewBox="0 0 10 12" fill="white"><path d="M1 1l8 5-8 5V1z"/></svg> Play</button>
+    <button class="tb-btn play-btn" id="playBtn" onclick="triggerPlay()">
+      <svg viewBox="0 0 10 12" fill="white"><path d="M1 1l8 5-8 5V1z"/></svg>
+      Play
+    </button>
   </div>
 </div>
 
@@ -247,216 +565,320 @@ input[type=range].bs::-webkit-slider-thumb:hover{box-shadow:0 0 0 4px rgba(255,1
 <div class="sidebar">
 <div class="sb-scroll">
 
-  <!-- CONFETTI PANELS -->
+  <!-- ===== CONFETTI PANEL ===== -->
   <div class="c-panel">
 
+    <!-- Confetti style picker -->
     <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Confetti style</div>
-      <div class="bt-grid">
-        <button class="bt-btn on" data-type="poppers" onclick="setCTypeSidebar(this)"><span class="bti">🎉</span>Poppers</button>
-        <button class="bt-btn" data-type="cannon" onclick="setCTypeSidebar(this)"><span class="bti">💥</span>Cannon</button>
-        <button class="bt-btn" data-type="blast" onclick="setCTypeSidebar(this)"><span class="bti">⚡</span>Blast</button>
-        <button class="bt-btn" data-type="freefall" onclick="setCTypeSidebar(this)"><span class="bti">🌨</span>Fall</button>
-        <button class="bt-btn" data-type="rain" onclick="setCTypeSidebar(this)"><span class="bti">🎊</span>Cascade</button>
-        <button class="bt-btn" data-type="fountain" onclick="setCTypeSidebar(this)"><span class="bti">⛲</span>Fountain</button>
-        <button class="bt-btn" data-type="fireworks" onclick="setCTypeSidebar(this)"><span class="bti">✨</span>Fireworks</button>
-        <button class="bt-btn" data-type="spiral" onclick="setCTypeSidebar(this)"><span class="bti">🌀</span>Spiral</button>
-        <button class="bt-btn" data-type="sides" onclick="setCTypeSidebar(this)"><span class="bti">↔</span>Sides</button>
-        <button class="bt-btn" data-type="overhead" onclick="setCTypeSidebar(this)"><span class="bti">⬇</span>Overhead</button>
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Confetti style</span>
       </div>
-    </div>
-
-    <div class="sec" id="launcher-sec">
-      <div class="sec-hd"><span class="sec-title">Launchers</span><button class="sec-act" onclick="addLauncher()">+ Add</button></div>
-      <div class="l-list" id="launcherList"></div>
-      <button class="add-l" onclick="addLauncher()">+ Add launcher</button>
-      <div style="margin-top:11px">
-        <div class="param"><span class="plbl">Aim angle</span><span class="pval" id="v-angle">-90°</span></div>
-        <div class="srow"><input type="range" min="-180" max="0" value="-90" id="sl-angle" oninput="updateLAngle(this.value)"></div>
-        <div class="param"><span class="plbl">Cone spread</span><span class="pval" id="v-cone">60°</span></div>
-        <div class="srow"><input type="range" min="5" max="170" value="60" id="sl-cone" oninput="updateLCone(this.value)"></div>
-      </div>
-    </div>
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Particles</div>
-      <div class="param"><span class="plbl">Amount</span><span class="pval" id="v-amt">80</span></div>
-      <div class="srow"><input type="range" min="10" max="300" value="80" step="5" oninput="cfg.amount=+this.value;sv('v-amt',this.value)"></div>
-      <div class="param"><span class="plbl">Size</span><span class="pval" id="v-sz">1.0x</span></div>
-      <div class="srow"><input type="range" min="1" max="50" value="10" oninput="cfg.size=this.value*.1;sv('v-sz',cfg.size.toFixed(1)+'x')"></div>
-      <div class="param"><span class="plbl">Chaos</span><span class="pval" id="v-rnd">70%</span></div>
-      <div class="srow"><input type="range" min="0" max="100" value="70" oninput="cfg.random=+this.value;sv('v-rnd',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Duration</span><span class="pval" id="v-dur">120</span></div>
-      <div class="srow"><input type="range" min="30" max="300" value="120" step="10" oninput="cfg.duration=+this.value;sv('v-dur',this.value)"></div>
-    </div>
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Physics</div>
-      <div class="param"><span class="plbl">Gravity</span><span class="pval" id="v-grav">0.15</span></div>
-      <div class="srow"><input type="range" min="0" max="100" value="15" oninput="cfg.gravity=this.value*.01;sv('v-grav',cfg.gravity.toFixed(2))"></div>
-      <div class="param"><span class="plbl">Velocity</span><span class="pval" id="v-vel">12</span></div>
-      <div class="srow"><input type="range" min="1" max="50" value="12" oninput="cfg.velocity=+this.value;sv('v-vel',this.value)"></div>
-      <div class="param"><span class="plbl">Wind</span><span class="pval" id="v-wind">0.0</span></div>
-      <div class="srow"><input type="range" min="-50" max="50" value="0" oninput="cfg.wind=this.value*.1;sv('v-wind',cfg.wind.toFixed(1))"></div>
-      <div class="param"><span class="plbl">Flutter</span><span class="pval" id="v-flu">80%</span></div>
-      <div class="srow"><input type="range" min="0" max="100" value="80" oninput="cfg.flutter=+this.value;sv('v-flu',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Drag</span><span class="pval" id="v-drg">2%</span></div>
-      <div class="srow"><input type="range" min="0" max="20" value="2" oninput="cfg.drag=+this.value;sv('v-drg',this.value+'%')"></div>
-    </div>
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Shapes</div>
-      <div class="shapes-grid">
-        <button class="sh-btn on" data-s="rect" onclick="toggleShape(this,'c')"><span class="si2">▬</span>Rect</button>
-        <button class="sh-btn on" data-s="square" onclick="toggleShape(this,'c')"><span class="si2">■</span>Sq</button>
-        <button class="sh-btn on" data-s="circle" onclick="toggleShape(this,'c')"><span class="si2">●</span>Circle</button>
-        <button class="sh-btn on" data-s="star" onclick="toggleShape(this,'c')"><span class="si2">★</span>Star</button>
-        <button class="sh-btn" data-s="line" onclick="toggleShape(this,'c')"><span class="si2">—</span>Line</button>
-      </div>
-    </div>
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Colors</div>
-      <div class="color-grid" id="c-swatches"></div>
-    </div>
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:8px">Behavior</div>
-      <div class="tog-row"><span class="tog-lbl">Loop animation</span><label class="tog"><input type="checkbox" checked onchange="cfg.loop=this.checked"><span class="tog-t"></span></label></div>
-      <div class="tog-row"><span class="tog-lbl">Fade out</span><label class="tog"><input type="checkbox" checked onchange="cfg.fadeOut=this.checked"><span class="tog-t"></span></label></div>
-      <div class="tog-row"><span class="tog-lbl">Randomize rotation</span><label class="tog"><input type="checkbox" checked onchange="cfg.randomRotation=this.checked"><span class="tog-t"></span></label></div>
-      <div class="tog-row"><span class="tog-lbl">Randomize size</span><label class="tog"><input type="checkbox" onchange="cfg.randomSize=this.checked"><span class="tog-t"></span></label></div>
-      <div class="tog-row"><span class="tog-lbl">Motion blur</span><label class="tog"><input type="checkbox" checked onchange="cfg.motionBlur=this.checked"><span class="tog-t"></span></label></div>
-    </div>
-  </div>
-
-  <!-- BURST PANELS -->
-  <div class="b-panel">
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Origin point</div>
-      <div class="origin-card">
-        <div class="origin-dot"></div>
-        <span class="origin-txt">Drag canvas to reposition</span>
-        <span class="origin-pos" id="b-pos">50% · 50%</span>
-      </div>
-    </div>
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Light burst style</div>
-      <div class="bt-grid">
-        <button class="bt-btn on" data-btype="starburst" onclick="setBTypeSidebar(this)"><span class="bti">✦</span>Starburst</button>
-        <button class="bt-btn" data-btype="lensflare" onclick="setBTypeSidebar(this)"><span class="bti">☀</span>Lens Flare</button>
-        <button class="bt-btn" data-btype="softglow" onclick="setBTypeSidebar(this)"><span class="bti">◉</span>Soft Glow</button>
-        <button class="bt-btn" data-btype="sparkfield" onclick="setBTypeSidebar(this)"><span class="bti">✧</span>Spark Field</button>
-        <button class="bt-btn" data-btype="orb" onclick="setBTypeSidebar(this)"><span class="bti">●</span>Orb</button>
-        <button class="bt-btn" data-btype="corona" onclick="setBTypeSidebar(this)"><span class="bti">⊙</span>Corona</button>
-        <button class="bt-btn" data-btype="stardust" onclick="setBTypeSidebar(this)"><span class="bti">✺</span>Stardust</button>
-      </div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Rays</div>
-      <div class="param"><span class="plbl">Ray count</span><span class="pval" id="b-rays">12</span></div>
-      <div class="srow"><input type="range" class="bs" min="3" max="32" value="12" oninput="bc.rays=+this.value;sv('b-rays',this.value)"></div>
-      <div class="param"><span class="plbl">Ray length</span><span class="pval" id="b-rlen">70%</span></div>
-      <div class="srow"><input type="range" class="bs" min="10" max="100" value="70" oninput="bc.rayLen=+this.value;sv('b-rlen',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Ray width</span><span class="pval" id="b-rwid">40%</span></div>
-      <div class="srow"><input type="range" class="bs" min="1" max="100" value="40" oninput="bc.rayWidth=+this.value;sv('b-rwid',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Ray sharpness</span><span class="pval" id="b-rsharp">60%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="60" oninput="bc.raySharp=+this.value;sv('b-rsharp',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Alternate size</span><span class="pval" id="b-ralt">50%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="50" oninput="bc.rayAlt=+this.value;sv('b-ralt',this.value+'%')"></div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Core &amp; glow</div>
-      <div class="param"><span class="plbl">Core radius</span><span class="pval" id="b-corer">30%</span></div>
-      <div class="srow"><input type="range" class="bs" min="1" max="100" value="30" oninput="bc.coreR=+this.value;sv('b-corer',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Core brightness</span><span class="pval" id="b-corebr">90%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="90" oninput="bc.coreBright=+this.value;sv('b-corebr',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Glow radius</span><span class="pval" id="b-glowr">60%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="60" oninput="bc.glowR=+this.value;sv('b-glowr',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Glow intensity</span><span class="pval" id="b-glowi">70%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="70" oninput="bc.glowI=+this.value;sv('b-glowi',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Halo ring</span><span class="pval" id="b-halo">30%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="30" oninput="bc.halo=+this.value;sv('b-halo',this.value+'%')"></div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Sparkles</div>
-      <div class="param"><span class="plbl">Sparkle count</span><span class="pval" id="b-scount">24</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="80" value="24" oninput="bc.sparkCount=+this.value;sv('b-scount',this.value)"></div>
-      <div class="param"><span class="plbl">Sparkle scatter</span><span class="pval" id="b-sscat">80%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="80" oninput="bc.sparkScatter=+this.value;sv('b-sscat',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Sparkle size</span><span class="pval" id="b-ssize">50%</span></div>
-      <div class="srow"><input type="range" class="bs" min="10" max="100" value="50" oninput="bc.sparkSize=+this.value;sv('b-ssize',this.value+'%')"></div>
-      <div style="margin-top:6px">
-        <div class="plbl" style="margin-bottom:5px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em">Shape</div>
-        <div class="spark-shape-row">
-          <button class="ss-btn on" id="ss-dot" onclick="setSparkShape('dot',this)">● Dot</button>
-          <button class="ss-btn" id="ss-star" onclick="setSparkShape('star',this)">✦ Tiny star</button>
+      <div class="sec-body">
+        <div class="bt-grid">
+          <button class="bt-btn on" data-type="poppers" onclick="setCTypeSidebar(this)"><span class="bti">&#127881;</span>Poppers</button>
+          <button class="bt-btn" data-type="cannon" onclick="setCTypeSidebar(this)"><span class="bti">&#128165;</span>Cannon</button>
+          <button class="bt-btn" data-type="blast" onclick="setCTypeSidebar(this)"><span class="bti">&#9889;</span>Blast</button>
+          <button class="bt-btn" data-type="freefall" onclick="setCTypeSidebar(this)"><span class="bti">&#127784;</span>Fall</button>
+          <button class="bt-btn" data-type="rain" onclick="setCTypeSidebar(this)"><span class="bti">&#127882;</span>Cascade</button>
+          <button class="bt-btn" data-type="fountain" onclick="setCTypeSidebar(this)"><span class="bti">&#9970;</span>Fountain</button>
+          <button class="bt-btn" data-type="fireworks" onclick="setCTypeSidebar(this)"><span class="bti">&#10024;</span>Fireworks</button>
+          <button class="bt-btn" data-type="spiral" onclick="setCTypeSidebar(this)"><span class="bti">&#127744;</span>Spiral</button>
+          <button class="bt-btn" data-type="sides" onclick="setCTypeSidebar(this)"><span class="bti">&#8596;</span>Sides</button>
+          <button class="bt-btn" data-type="overhead" onclick="setCTypeSidebar(this)"><span class="bti">&#11015;</span>Overhead</button>
         </div>
       </div>
     </div>
 
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Animation</div>
-      <div class="param"><span class="plbl">Duration (frames)</span><span class="pval" id="b-dur">120</span></div>
-      <div class="srow"><input type="range" class="bs" min="20" max="360" value="120" step="10" oninput="bc.duration=+this.value;sv('b-dur',this.value)"></div>
-      <div class="param"><span class="plbl">Rotation speed</span><span class="pval" id="b-rotspd">0.0°</span></div>
-      <div class="srow"><input type="range" class="bs" min="-100" max="100" value="0" oninput="bc.rotSpeed=this.value*.02;sv('b-rotspd',(bc.rotSpeed).toFixed(2)+'°')"></div>
-      <div class="param"><span class="plbl">Pulse speed</span><span class="pval" id="b-pulse">30%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="30" oninput="bc.pulseSpeed=+this.value;sv('b-pulse',this.value+'%')"></div>
-      <div class="param"><span class="plbl">Flicker</span><span class="pval" id="b-flicker">20%</span></div>
-      <div class="srow"><input type="range" class="bs" min="0" max="100" value="20" oninput="bc.flicker=+this.value;sv('b-flicker',this.value+'%')"></div>
-    </div>
-
-    <div class="sec">
-      <div class="sec-title" style="margin-bottom:10px">Color</div>
-      <div class="color-grid" id="b-swatches"></div>
-      <div style="margin-top:10px">
-        <div class="param"><span class="plbl">Color temperature</span><span class="pval" id="b-temp">Warm</span></div>
-        <div class="srow"><input type="range" class="bs" min="0" max="100" value="70" oninput="setBurstTemp(this.value)"></div>
+    <!-- Launchers (only shown for launcher-based types) -->
+    <div class="sec" id="launcher-sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Launchers</span>
+        <button class="sec-act" onclick="event.stopPropagation();addLauncher()">+ Add</button>
+      </div>
+      <div class="sec-body">
+        <div class="l-list" id="launcherList"></div>
+        <button class="add-l" onclick="addLauncher()">+ Add launcher</button>
+        <div style="margin-top:12px">
+          <div class="param"><span class="plbl">Aim angle</span><span class="pval" id="v-angle">-90&#xb0;</span></div>
+          <div class="srow"><input type="range" min="-180" max="0" value="-90" id="sl-angle" oninput="updateLAngle(this.value)"></div>
+          <div class="param"><span class="plbl">Cone spread</span><span class="pval" id="v-cone">60&#xb0;</span></div>
+          <div class="srow"><input type="range" min="5" max="170" value="60" id="sl-cone" oninput="updateLCone(this.value)"></div>
+        </div>
       </div>
     </div>
 
+    <!-- Particles -->
     <div class="sec">
-      <div class="sec-title" style="margin-bottom:8px">Behavior</div>
-      <div class="tog-row"><span class="tog-lbl">Loop</span><label class="tog bt"><input type="checkbox" checked onchange="bc.loop=this.checked"><span class="tog-t"></span></label></div>
-      <div class="tog-row"><span class="tog-lbl">Hold &amp; rotate</span><label class="tog bt"><input type="checkbox" onchange="bc.holdRotate=this.checked"><span class="tog-t"></span></label></div>
-      <div class="tog-row"><span class="tog-lbl">Breathing pulse</span><label class="tog bt"><input type="checkbox" checked onchange="bc.breathe=this.checked"><span class="tog-t"></span></label></div>
-      <div class="tog-row"><span class="tog-lbl">Intro flash</span><label class="tog bt"><input type="checkbox" checked onchange="bc.introFlash=this.checked"><span class="tog-t"></span></label></div>
-      <div class="tog-row"><span class="tog-lbl">Fade out</span><label class="tog bt"><input type="checkbox" onchange="bc.fadeOut=this.checked"><span class="tog-t"></span></label></div>
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Particles</span>
+      </div>
+      <div class="sec-body">
+        <div class="param"><span class="plbl">Amount</span><span class="pval" id="v-amt">80</span></div>
+        <div class="srow"><input type="range" min="10" max="300" value="80" step="5" oninput="cfg.amount=+this.value;sv('v-amt',this.value)"></div>
+        <div class="param"><span class="plbl">Size</span><span class="pval" id="v-sz">1.0x</span></div>
+        <div class="srow"><input type="range" min="1" max="50" value="10" oninput="cfg.size=this.value*.1;sv('v-sz',cfg.size.toFixed(1)+'x')"></div>
+        <div class="param"><span class="plbl">Chaos</span><span class="pval" id="v-rnd">70%</span></div>
+        <div class="srow"><input type="range" min="0" max="100" value="70" oninput="cfg.random=+this.value;sv('v-rnd',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Duration</span><span class="pval" id="v-dur">120</span></div>
+        <div class="srow"><input type="range" min="30" max="300" value="120" step="10" oninput="cfg.duration=+this.value;sv('v-dur',this.value)"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- EXPORT (shared) -->
+    <!-- Physics -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Physics</span>
+      </div>
+      <div class="sec-body">
+        <div class="param"><span class="plbl">Gravity</span><span class="pval" id="v-grav">0.15</span></div>
+        <div class="srow"><input type="range" min="0" max="100" value="15" oninput="cfg.gravity=this.value*.01;sv('v-grav',cfg.gravity.toFixed(2))"></div>
+        <div class="param"><span class="plbl">Velocity</span><span class="pval" id="v-vel">12</span></div>
+        <div class="srow"><input type="range" min="1" max="50" value="12" oninput="cfg.velocity=+this.value;sv('v-vel',this.value)"></div>
+        <div class="param"><span class="plbl">Wind</span><span class="pval" id="v-wind">0.0</span></div>
+        <div class="srow"><input type="range" min="-50" max="50" value="0" oninput="cfg.wind=this.value*.1;sv('v-wind',cfg.wind.toFixed(1))"></div>
+        <div class="param"><span class="plbl">Flutter</span><span class="pval" id="v-flu">80%</span></div>
+        <div class="srow"><input type="range" min="0" max="100" value="80" oninput="cfg.flutter=+this.value;sv('v-flu',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Drag</span><span class="pval" id="v-drg">2%</span></div>
+        <div class="srow"><input type="range" min="0" max="20" value="2" oninput="cfg.drag=+this.value;sv('v-drg',this.value+'%')"></div>
+      </div>
+    </div>
+
+    <!-- Shapes -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Shapes</span>
+      </div>
+      <div class="sec-body">
+        <div class="shapes-grid">
+          <button class="sh-btn on" data-s="rect" onclick="toggleShape(this,'c')"><span class="si2">&#9644;</span>Rect</button>
+          <button class="sh-btn on" data-s="square" onclick="toggleShape(this,'c')"><span class="si2">&#9632;</span>Sq</button>
+          <button class="sh-btn on" data-s="circle" onclick="toggleShape(this,'c')"><span class="si2">&#9679;</span>Circle</button>
+          <button class="sh-btn on" data-s="star" onclick="toggleShape(this,'c')"><span class="si2">&#9733;</span>Star</button>
+          <button class="sh-btn" data-s="line" onclick="toggleShape(this,'c')"><span class="si2">&#8212;</span>Line</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colors -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Colors</span>
+      </div>
+      <div class="sec-body">
+        <div class="color-grid" id="c-swatches"></div>
+      </div>
+    </div>
+
+    <!-- Behavior -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Behavior</span>
+      </div>
+      <div class="sec-body">
+        <div class="tog-row"><span class="tog-lbl">Loop animation</span><label class="tog"><input type="checkbox" checked onchange="cfg.loop=this.checked"><span class="tog-t"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Fade out</span><label class="tog"><input type="checkbox" checked onchange="cfg.fadeOut=this.checked"><span class="tog-t"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Randomize rotation</span><label class="tog"><input type="checkbox" checked onchange="cfg.randomRotation=this.checked"><span class="tog-t"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Randomize size</span><label class="tog"><input type="checkbox" onchange="cfg.randomSize=this.checked"><span class="tog-t"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Motion blur</span><label class="tog"><input type="checkbox" checked onchange="cfg.motionBlur=this.checked"><span class="tog-t"></span></label></div>
+      </div>
+    </div>
+
+  </div><!-- /c-panel -->
+
+  <!-- ===== BURST FX PANEL ===== -->
+  <div class="b-panel">
+
+    <!-- Origin -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Origin point</span>
+      </div>
+      <div class="sec-body">
+        <div class="origin-card">
+          <div class="origin-dot"></div>
+          <span class="origin-txt">Drag canvas to reposition</span>
+          <span class="origin-pos" id="b-pos">50% &middot; 50%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Burst style -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Light burst style</span>
+      </div>
+      <div class="sec-body">
+        <div class="bt-grid">
+          <button class="bt-btn on" data-btype="starburst" onclick="setBTypeSidebar(this)"><span class="bti">&#10022;</span>Starburst</button>
+          <button class="bt-btn" data-btype="lensflare" onclick="setBTypeSidebar(this)"><span class="bti">&#9728;</span>Lens Flare</button>
+          <button class="bt-btn" data-btype="softglow" onclick="setBTypeSidebar(this)"><span class="bti">&#9685;</span>Soft Glow</button>
+          <button class="bt-btn" data-btype="sparkfield" onclick="setBTypeSidebar(this)"><span class="bti">&#10023;</span>Spark Field</button>
+          <button class="bt-btn" data-btype="orb" onclick="setBTypeSidebar(this)"><span class="bti">&#9679;</span>Orb</button>
+          <button class="bt-btn" data-btype="corona" onclick="setBTypeSidebar(this)"><span class="bti">&#8857;</span>Corona</button>
+          <button class="bt-btn" data-btype="stardust" onclick="setBTypeSidebar(this)"><span class="bti">&#10042;</span>Stardust</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rays -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Rays</span>
+      </div>
+      <div class="sec-body">
+        <div class="param"><span class="plbl">Ray count</span><span class="pval" id="b-rays">12</span></div>
+        <div class="srow"><input type="range" class="bs" min="3" max="32" value="12" oninput="bc.rays=+this.value;sv('b-rays',this.value)"></div>
+        <div class="param"><span class="plbl">Ray length</span><span class="pval" id="b-rlen">70%</span></div>
+        <div class="srow"><input type="range" class="bs" min="10" max="100" value="70" oninput="bc.rayLen=+this.value;sv('b-rlen',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Ray width</span><span class="pval" id="b-rwid">40%</span></div>
+        <div class="srow"><input type="range" class="bs" min="1" max="100" value="40" oninput="bc.rayWidth=+this.value;sv('b-rwid',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Ray sharpness</span><span class="pval" id="b-rsharp">60%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="60" oninput="bc.raySharp=+this.value;sv('b-rsharp',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Alternate size</span><span class="pval" id="b-ralt">50%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="50" oninput="bc.rayAlt=+this.value;sv('b-ralt',this.value+'%')"></div>
+      </div>
+    </div>
+
+    <!-- Core & Glow -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Core &amp; Glow</span>
+      </div>
+      <div class="sec-body">
+        <div class="param"><span class="plbl">Core radius</span><span class="pval" id="b-corer">30%</span></div>
+        <div class="srow"><input type="range" class="bs" min="1" max="100" value="30" oninput="bc.coreR=+this.value;sv('b-corer',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Core brightness</span><span class="pval" id="b-corebr">90%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="90" oninput="bc.coreBright=+this.value;sv('b-corebr',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Glow radius</span><span class="pval" id="b-glowr">60%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="60" oninput="bc.glowR=+this.value;sv('b-glowr',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Glow intensity</span><span class="pval" id="b-glowi">70%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="70" oninput="bc.glowI=+this.value;sv('b-glowi',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Halo ring</span><span class="pval" id="b-halo">30%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="30" oninput="bc.halo=+this.value;sv('b-halo',this.value+'%')"></div>
+      </div>
+    </div>
+
+    <!-- Sparkles -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Sparkles</span>
+      </div>
+      <div class="sec-body">
+        <div class="param"><span class="plbl">Count</span><span class="pval" id="b-scount">24</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="80" value="24" oninput="bc.sparkCount=+this.value;sv('b-scount',this.value)"></div>
+        <div class="param"><span class="plbl">Scatter</span><span class="pval" id="b-sscat">80%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="80" oninput="bc.sparkScatter=+this.value;sv('b-sscat',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Size</span><span class="pval" id="b-ssize">50%</span></div>
+        <div class="srow"><input type="range" class="bs" min="10" max="100" value="50" oninput="bc.sparkSize=+this.value;sv('b-ssize',this.value+'%')"></div>
+        <div style="margin-top:8px">
+          <div class="plbl" style="margin-bottom:6px;font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em">Shape</div>
+          <div class="spark-shape-row">
+            <button class="ss-btn on" id="ss-dot" onclick="setSparkShape('dot',this)">&#9679; Dot</button>
+            <button class="ss-btn" id="ss-star" onclick="setSparkShape('star',this)">&#10022; Tiny star</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Animation -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Animation</span>
+      </div>
+      <div class="sec-body">
+        <div class="param"><span class="plbl">Duration</span><span class="pval" id="b-dur">120</span></div>
+        <div class="srow"><input type="range" class="bs" min="20" max="360" value="120" step="10" oninput="bc.duration=+this.value;sv('b-dur',this.value)"></div>
+        <div class="param"><span class="plbl">Rotation speed</span><span class="pval" id="b-rotspd">0.00&#xb0;</span></div>
+        <div class="srow"><input type="range" class="bs" min="-100" max="100" value="0" oninput="bc.rotSpeed=this.value*.02;sv('b-rotspd',(bc.rotSpeed).toFixed(2)+'\u00b0')"></div>
+        <div class="param"><span class="plbl">Pulse speed</span><span class="pval" id="b-pulse">30%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="30" oninput="bc.pulseSpeed=+this.value;sv('b-pulse',this.value+'%')"></div>
+        <div class="param"><span class="plbl">Flicker</span><span class="pval" id="b-flicker">20%</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="20" oninput="bc.flicker=+this.value;sv('b-flicker',this.value+'%')"></div>
+      </div>
+    </div>
+
+    <!-- Color -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Color</span>
+      </div>
+      <div class="sec-body">
+        <div class="color-grid" id="b-swatches"></div>
+        <div style="margin-top:10px">
+          <div class="param"><span class="plbl">Temperature</span><span class="pval" id="b-temp">Warm</span></div>
+          <div class="srow"><input type="range" class="bs" min="0" max="100" value="70" oninput="setBurstTemp(this.value)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Behavior -->
+    <div class="sec">
+      <div class="sec-hd" onclick="toggleSec(this)">
+        <span class="sec-title">Behavior</span>
+      </div>
+      <div class="sec-body">
+        <div class="tog-row"><span class="tog-lbl">Loop</span><label class="tog bt"><input type="checkbox" checked onchange="bc.loop=this.checked"><span class="tog-t"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Hold &amp; rotate</span><label class="tog bt"><input type="checkbox" onchange="bc.holdRotate=this.checked"><span class="tog-t"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Breathing pulse</span><label class="tog bt"><input type="checkbox" checked onchange="bc.breathe=this.checked"><span class="tog-t"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Intro flash</span><label class="tog bt"><input type="checkbox" checked onchange="bc.introFlash=this.checked"><span class="tog-t"></span></label></div>
+        <div class="tog-row"><span class="tog-lbl">Fade out</span><label class="tog bt"><input type="checkbox" onchange="bc.fadeOut=this.checked"><span class="tog-t"></span></label></div>
+      </div>
+    </div>
+
+  </div><!-- /b-panel -->
+
+  <!-- ===== EXPORT (shared) ===== -->
   <div class="sec">
-    <div class="sec-title" style="margin-bottom:10px">Export</div>
-    <div class="export-opts">
-      <div class="exp-opt rec" onclick="doExport('webm')">
-        <div class="exp-icon" style="background:rgba(108,99,255,.15);color:var(--accent)">VP9</div>
-        <div class="exp-info"><div class="exp-name">WebM — True transparent</div><div class="exp-desc">Real alpha · No bg · Figma-ready · Chrome</div></div>
+    <div class="sec-hd" onclick="toggleSec(this)">
+      <span class="sec-title">Export</span>
+    </div>
+    <div class="sec-body">
+      <div class="export-opts">
+        <div class="exp-opt rec" onclick="doExport('webm')">
+          <div class="exp-icon" style="background:rgba(90,84,245,.14);color:var(--accent)">VP9</div>
+          <div class="exp-info">
+            <div class="exp-name">WebM &mdash; True transparent</div>
+            <div class="exp-desc">Real alpha &middot; No bg &middot; Figma-ready &middot; Chrome</div>
+          </div>
+        </div>
+        <div class="exp-opt" onclick="doExport('gif')">
+          <div class="exp-icon" style="background:rgba(210,145,20,.1);color:var(--amber)">GIF</div>
+          <div class="exp-info">
+            <div class="exp-name">Animated GIF</div>
+            <div class="exp-desc">Universal &middot; Works everywhere</div>
+          </div>
+        </div>
+        <div class="exp-opt" onclick="doExport('mp4')">
+          <div class="exp-icon" style="background:rgba(34,201,122,.1);color:var(--green)">MP4</div>
+          <div class="exp-info">
+            <div class="exp-name">MP4 / H.264</div>
+            <div class="exp-desc">Presentations &amp; social &middot; No alpha</div>
+          </div>
+        </div>
       </div>
-      <div class="exp-opt" onclick="doExport('gif')">
-        <div class="exp-icon" style="background:rgba(245,166,35,.1);color:var(--amber)">GIF</div>
-        <div class="exp-info"><div class="exp-name">Animated GIF</div><div class="exp-desc">Universal · Works everywhere</div></div>
-      </div>
-      <div class="exp-opt" onclick="doExport('mp4')">
-        <div class="exp-icon" style="background:rgba(31,216,154,.1);color:var(--green)">MP4</div>
-        <div class="exp-info"><div class="exp-name">MP4 / H.264</div><div class="exp-desc">Presentations & social · No alpha</div></div>
+      <div style="margin-top:8px;font-size:9.5px;color:var(--txt3);line-height:1.5">
+        <strong style="color:var(--accent2)">WebM</strong> exports with true alpha &mdash; drag into Figma as a video fill.
       </div>
     </div>
-    <div style="margin-top:8px;font-size:10px;color:var(--txt3);line-height:1.5"><strong style="color:var(--accent)">WebM</strong> exports with true alpha — drag into Figma as a video fill layer.</div>
   </div>
 
-  <!-- STATS -->
+  <!-- ===== STATS (shared) ===== -->
   <div class="sec">
-    <div class="sec-title" style="margin-bottom:10px">Live stats</div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-v" id="st-p">0</div><div class="stat-l">Particles</div></div>
-      <div class="stat-card"><div class="stat-v" id="st-l">2</div><div class="stat-l">Launchers</div></div>
-      <div class="stat-card"><div class="stat-v" id="st-f">0</div><div class="stat-l">Frame</div></div>
-      <div class="stat-card"><div class="stat-v live" id="st-s">—</div><div class="stat-l">Status</div></div>
+    <div class="sec-hd" onclick="toggleSec(this)">
+      <span class="sec-title">Live stats</span>
+    </div>
+    <div class="sec-body">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-v" id="st-p">0</div><div class="stat-l">Particles</div></div>
+        <div class="stat-card"><div class="stat-v" id="st-l">2</div><div class="stat-l">Launchers</div></div>
+        <div class="stat-card"><div class="stat-v" id="st-f">0</div><div class="stat-l">Frame</div></div>
+        <div class="stat-card"><div class="stat-v live" id="st-s">&mdash;</div><div class="stat-l">Status</div></div>
+      </div>
     </div>
   </div>
 
-</div>
-</div>
+</div><!-- /sb-scroll -->
+</div><!-- /sidebar -->
 
 <!-- CANVAS -->
 <div class="canvas-wrap" id="CW">
@@ -466,8 +888,14 @@ input[type=range].bs::-webkit-slider-thumb:hover{box-shadow:0 0 0 4px rgba(255,1
     <div class="cbadge" id="badge-type">Poppers</div>
     <div class="cbadge" id="badge-bg">Dark</div>
   </div>
-  <div class="rec-ind" id="recInd"><div class="rec-dot"></div><span id="recLbl">Recording…</span></div>
-  <div class="exp-prog" id="expProg"><div class="prog-lbl" id="progLbl">Capturing…</div><div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div></div>
+  <div class="rec-ind" id="recInd">
+    <div class="rec-dot"></div>
+    <span id="recLbl">Recording&hellip;</span>
+  </div>
+  <div class="exp-prog" id="expProg">
+    <div class="prog-lbl" id="progLbl">Capturing&hellip;</div>
+    <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
+  </div>
 </div>
 
 <!-- STATUSBAR -->
@@ -477,10 +905,10 @@ input[type=range].bs::-webkit-slider-thumb:hover{box-shadow:0 0 0 4px rgba(255,1
   <div class="si"><span>Particles</span><span class="sval" id="sb-p">0</span></div>
   <div class="si"><span>Frame</span><span class="sval" id="sb-f">0</span></div>
   <div class="si"><span>BG</span><span class="sval" id="sb-bg">Dark</span></div>
-  <span class="shint" id="sb-hint">Drag launcher dots · Click canvas to place launcher</span>
+  <span class="shint" id="sb-hint">Drag launchers &middot; Click canvas to add &middot; Preview hides all UI</span>
 </div>
 
-</div>
+</div><!-- /app -->
 
 <script>
 const canvas=document.getElementById('CC');
@@ -1311,6 +1739,13 @@ function expGIF(){
   alert('GIF encoding requires a server-side tool.\n\nTo convert your WebM to GIF:\n• ezgif.com/video-to-gif\n• ffmpeg -i effect-transparent.webm effect.gif\n\nExport WebM first, then convert.');
 }
 
+/* toggleSec: collapse/expand sidebar sections on header click */
+function toggleSec(hd) {
+  const sec = hd.closest('.sec');
+  if (!sec) return;
+  sec.classList.toggle('collapsed');
+}
+window.toggleSec = toggleSec;
 window.setMode=setMode;window.setCType=setCType;window.setCTypeSidebar=setCTypeSidebar;window.setBType=setBType;window.setBTypeSidebar=setBTypeSidebar;
 window.setBg=setBg;window.toggleShape=toggleShape;window.setBurstTemp=setBurstTemp;window.setSparkShape=setSparkShape;
 window.addLauncher=addLauncher;window.removeLauncher=removeLauncher;

@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focal — UX Attention Analyzer</title>
+<style>
+  /* ============================================================
+     FONTS & RESET
+  ============================================================ */
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1d2026;
+    --surface3: #242830;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8eaf0;
+    --text-dim: #7a8090;
+    --text-muted: #444a58;
+    --accent: #6ee7b7;
+    --accent2: #38bdf8;
+    --accent3: #f472b6;
+    --warn: #fbbf24;
+    --heat1: rgba(255,220,50,0.0);
+    --heat2: rgba(255,160,30,0.45);
+    --heat3: rgba(255,60,20,0.72);
+    --radius: 10px;
+    --radius-lg: 16px;
+    --hud-width: 300px;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+
+  /* ============================================================
+     LAYOUT
+  ============================================================ */
+  #app {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+
+  /* HUD PANEL */
+  #hud {
+    width: var(--hud-width);
+    min-width: var(--hud-width);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10;
+    position: relative;
+  }
+
+  #hud-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 0 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface3) transparent;
+  }
+  #hud-scroll::-webkit-scrollbar { width: 4px; }
+  #hud-scroll::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+
+  /* STAGE */
+  #stage-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+    position: relative;
+  }
+
+  #stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* BOTTOM TOOLBAR */
+  #toolbar {
+    height: 56px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* ============================================================
+     HUD COMPONENTS
+  ============================================================ */
+  .hud-logo {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .hud-logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .hud-logo-text {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hud-logo-badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    background: var(--surface3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    margin-left: auto;
+  }
+
+  .hud-section {
+    padding: 16px 20px 0;
+  }
+
+  .hud-section-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hud-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .hud-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0 0;
+  }
+
+  /* UPLOAD CONTROLS */
+  .upload-zone {
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface2);
+    position: relative;
+  }
+  .upload-zone:hover {
+    border-color: var(--accent);
+    background: rgba(110,231,183,0.04);
+  }
+  .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(110,231,183,0.08);
+    transform: scale(1.01);
+  }
+  .upload-zone input {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-zone-icon { font-size: 22px; margin-bottom: 6px; }
+  .upload-zone-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+  .upload-zone-text strong { color: var(--text); }
+
+  /* FORM ELEMENTS */
+  .form-row { margin-bottom: 10px; }
+  .form-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+    display: block;
+    font-weight: 500;
+  }
+
+  select, input[type="range"], textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: 7px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  select:focus, textarea:focus { border-color: var(--accent); }
+  select { padding: 7px 10px; appearance: none; cursor: pointer; }
+  textarea {
+    padding: 8px 10px;
+    resize: vertical;
+    min-height: 68px;
+    line-height: 1.5;
+  }
+  textarea::placeholder { color: var(--text-muted); }
+
+  .select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* ANALYZE BUTTON */
+  #btn-analyze {
+    width: 100%;
+    padding: 11px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    color: #0a1a14;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  #btn-analyze:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(110,231,183,0.25); }
+  #btn-analyze:active { transform: translateY(0); }
+  #btn-analyze:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  #btn-reset {
+    width: 100%;
+    padding: 9px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  #btn-reset:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* CONFIDENCE METER */
+  .confidence-bar {
+    height: 3px;
+    background: var(--surface3);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .confidence-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+  .confidence-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+
+  /* ============================================================
+     TOGGLE SWITCHES
+  ============================================================ */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .toggle-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .toggle {
+    position: relative;
+    width: 32px; height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .toggle input { display: none; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--surface3);
+    border-radius: 99px;
+    transition: background 0.2s;
+  }
+  .toggle input:checked ~ .toggle-track { background: var(--accent); }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 12px; height: 12px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(14px); }
+
+  /* SLIDER */
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 3px;
+    background: var(--surface3);
+    border: none;
+    border-radius: 99px;
+    cursor: pointer;
+    flex: 1;
+    padding: 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(110,231,183,0.18);
+  }
+  .slider-val {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* PRESET CHIPS */
+  .preset-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .preset-chip {
+    font-size: 10px;
+    padding: 4px 9px;
+    border-radius: 99px;
+    background: var(--surface3);
+    color: var(--text-dim);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+  }
+  .preset-chip:hover { border-color: var(--accent2); color: var(--accent2); }
+  .preset-chip.active { background: rgba(56,189,248,0.15); border-color: var(--accent2); color: var(--accent2); }
+
+  /* ============================================================
+     EMPTY STATE
+  ============================================================ */
+  #empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
+    padding: 40px;
+  }
+  .empty-grid {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 4px;
+    opacity: 0.12;
+    margin-bottom: 8px;
+  }
+  .empty-grid-cell {
+    width: 40px; height: 40px;
+    background: var(--surface2);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .empty-grid-cell.lit {
+    background: linear-gradient(135deg, rgba(110,231,183,0.3), rgba(56,189,248,0.3));
+    border-color: rgba(110,231,183,0.2);
+  }
+  .empty-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: -0.02em;
+  }
+  .empty-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    max-width: 280px;
+    line-height: 1.6;
+  }
+
+  /* ============================================================
+     ANALYSIS CANVAS AREA
+  ============================================================ */
+  #canvas-container {
+    position: relative;
+    display: none;
+    box-shadow: 0 0 0 1px var(--border), 0 24px 64px rgba(0,0,0,0.6);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-height: calc(100vh - 100px);
+  }
+  #canvas-container.visible { display: block; }
+
+  #uploaded-img {
+    display: block;
+    max-height: calc(100vh - 100px);
+    max-width: 100%;
+    object-fit: contain;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  #overlay-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Gaze markers */
+  .gaze-marker {
+    position: absolute;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(14,15,17,0.85);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.4s;
+    box-shadow: 0 0 0 4px rgba(110,231,183,0.12), 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .gaze-marker.visible { opacity: 1; }
+
+  /* Attention labels */
+  .attn-label {
+    position: absolute;
+    background: rgba(14,15,17,0.88);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 21;
+    opacity: 0;
+    transition: opacity 0.35s;
+    backdrop-filter: blur(6px);
+  }
+  .attn-label.visible { opacity: 1; }
+  .attn-label.primary { border-color: var(--accent); color: var(--accent); }
+  .attn-label.warn { border-color: var(--warn); color: var(--warn); }
+  .attn-label.low { border-color: var(--text-muted); color: var(--text-muted); }
+
+  /* ============================================================
+     TOOLBAR TOGGLES
+  ============================================================ */
+  .toolbar-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    margin-right: 4px;
+    text-transform: uppercase;
+  }
+
+  .tb-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .tb-btn .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .tb-btn:hover { border-color: var(--border2); color: var(--text); }
+  .tb-btn.active { color: var(--text); border-color: var(--border2); background: var(--surface3); }
+  .tb-btn.active .dot { box-shadow: 0 0 5px currentColor; }
+
+  .toolbar-sep {
+    width: 1px; height: 24px;
+    background: var(--border);
+    margin: 0 4px;
+    flex-shrink: 0;
+  }
+
+  .tb-btn-right {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+
+  /* ============================================================
+     PROCESSING OVERLAY
+  ============================================================ */
+  #processing-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(14,15,17,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  #processing-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .proc-logo {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .proc-ring {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--surface3);
+    border-top-color: var(--accent);
+    border-right-color: var(--accent2);
+    animation: spin 1.2s linear infinite;
+    position: relative;
+  }
+  .proc-ring::after {
+    content: '◎';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--accent);
+    animation: pulse-fade 1.2s ease-in-out infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse-fade {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .proc-steps {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .proc-step {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.3s;
+  }
+  .proc-step.active { color: var(--accent); }
+  .proc-step.done { color: var(--text-dim); }
+  .proc-step-icon { font-size: 10px; width: 14px; text-align: center; }
+  .proc-bar-wrap {
+    width: 240px;
+    height: 2px;
+    background: var(--surface3);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .proc-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  /* ============================================================
+     SUMMARY PANEL
+  ============================================================ */
+  #summary-panel {
+    display: none;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    padding: 14px 20px;
+    flex-shrink: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface3) transparent;
+  }
+  #summary-panel.visible { display: block; }
+
+  .summary-header {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .summary-badge {
+    background: rgba(110,231,183,0.12);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 9px;
+    margin-left: auto;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .summary-card-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .summary-card-value {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .summary-card-value.accent { color: var(--accent); }
+
+  /* ============================================================
+     DOWNLOAD BTN
+  ============================================================ */
+  #btn-download {
+    padding: 5px 12px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: none;
+    align-items: center;
+    gap: 6px;
+  }
+  #btn-download.visible { display: flex; }
+  #btn-download:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* ============================================================
+     LEGEND
+  ============================================================ */
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 8px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+  .legend-swatch {
+    width: 18px; height: 5px;
+    border-radius: 99px;
+  }
+
+  /* ============================================================
+     SCROLLBAR UNIVERSAL
+  ============================================================ */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+
+  /* ============================================================
+     UTILITIES & ANIMATIONS
+  ============================================================ */
+  .fade-in { animation: fadeIn 0.4s ease forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══════════════════════════ HUD PANEL ═══════════════════════════ -->
+  <aside id="hud">
+    <!-- Logo -->
+    <div class="hud-logo">
+      <div class="hud-logo-icon">◎</div>
+      <span class="hud-logo-text">Focal</span>
+      <span class="hud-logo-badge">SIMULATED</span>
+    </div>
+
+    <div id="hud-scroll">
+
+      <!-- Upload -->
+      <div class="hud-section" style="padding-top:16px;">
+        <div class="hud-section-label">Mockup Upload</div>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="file-input" accept="image/png,image/jpeg,image/jpg,image/webp">
+          <div class="upload-zone-icon">⊞</div>
+          <div class="upload-zone-text">
+            <strong>Drag & drop</strong> or click to browse<br>
+            <span style="font-size:10px;opacity:0.6;">PNG · JPG · WEBP</span>
+          </div>
+        </div>
+        <div id="file-name-display" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:6px;display:none;"></div>
+      </div>
+
+      <div class="hud-divider"></div>
+
+      <!-- Persona Context -->
+      <div class="hud-section" style="padding-top:16px;">
+        <div class="hud-section-label">Audience Context</div>
+
+        <!-- Preset chips -->
+        <div class="form-row">
+          <div class="form-label">Quick presets</div>
+          <div class="preset-chips" id="preset-chips">
+            <div class="preset-chip" data-preset="ecommerce">E-Commerce</div>
+            <div class="preset-chip" data-preset="onboarding">Onboarding</div>
+            <div class="preset-chip" data-preset="finance">Finance</div>
+            <div class="preset-chip" data-preset="health">Health</div>
+            <div class="preset-chip" data-preset="social">Social</div>
+            <div class="preset-chip" data-preset="news">News / Media</div>
+          </div>
+        </div>
+
+        <div class="select-row">
+          <div class="form-row">
+            <label class="form-label" for="sel-age">Age range</label>
+            <select id="sel-age">
+              <option value="">Any</option>
+              <option value="18-24">18–24</option>
+              <option value="25-34">25–34</option>
+              <option value="35-44">35–44</option>
+              <option value="45-54">45–54</option>
+              <option value="55+">55+</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="sel-gender">Gender</label>
+            <select id="sel-gender">
+              <option value="mixed">Mixed</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="unspecified">Unspecified</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="select-row">
+          <div class="form-row">
+            <label class="form-label" for="sel-experience">Experience</label>
+            <select id="sel-experience">
+              <option value="intermediate">Intermediate</option>
+              <option value="novice">Novice</option>
+              <option value="expert">Expert</option>
+              <option value="first-time">First-time</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="sel-region">Region</label>
+            <select id="sel-region">
+              <option value="global">Global</option>
+              <option value="na">N. America</option>
+              <option value="eu">Europe</option>
+              <option value="asia">Asia-Pacific</option>
+              <option value="latam">Latin America</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label" for="sel-goal">Primary user goal</label>
+          <select id="sel-goal">
+            <option value="">Not specified</option>
+            <option value="purchase">Complete a purchase</option>
+            <option value="browse">Browse & discover</option>
+            <option value="signin">Sign in / Register</option>
+            <option value="find-info">Find specific information</option>
+            <option value="compare">Compare options</option>
+            <option value="trust">Build trust / evaluate</option>
+            <option value="complete-task">Complete a task / form</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label" for="txt-notes">Context & notes</label>
+          <textarea id="txt-notes" placeholder="e.g. First-time users, mobile-first e-commerce targeting women 25–35, strong CTA focus, checkout flow…"></textarea>
+        </div>
+      </div>
+
+      <div class="hud-divider"></div>
+
+      <!-- Analysis Settings -->
+      <div class="hud-section" style="padding-top:16px;">
+        <div class="hud-section-label">Analysis Settings</div>
+
+        <div class="form-row">
+          <label class="form-label">Heatmap intensity</label>
+          <div class="slider-row">
+            <input type="range" id="slider-intensity" min="20" max="100" value="70">
+            <span class="slider-val" id="val-intensity">70%</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Gaze points</label>
+          <div class="slider-row">
+            <input type="range" id="slider-gaze" min="3" max="12" value="7">
+            <span class="slider-val" id="val-gaze">7</span>
+          </div>
+        </div>
+
+        <!-- Confidence -->
+        <div class="form-row" style="margin-top:12px;">
+          <div class="form-label" style="display:flex;justify-content:space-between;">
+            <span>Model confidence</span>
+            <span id="conf-pct" style="color:var(--accent);font-family:var(--font-mono);">—</span>
+          </div>
+          <div class="confidence-bar">
+            <div class="confidence-fill" id="conf-fill"></div>
+          </div>
+          <div class="confidence-label">
+            <span>Low context</span><span>High context</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-divider"></div>
+
+      <!-- Analyze / Reset -->
+      <div class="hud-section" style="padding-top:16px;padding-bottom:4px;">
+        <button id="btn-analyze" disabled>Analyze Mockup</button>
+        <button id="btn-reset">↺ Reset & Start Over</button>
+      </div>
+
+    </div><!-- end hud-scroll -->
+  </aside>
+
+  <!-- ═══════════════════════════ STAGE ═══════════════════════════ -->
+  <div id="stage-wrap">
+
+    <!-- Main preview stage -->
+    <div id="stage">
+
+      <!-- Empty state -->
+      <div id="empty-state">
+        <div class="empty-grid">
+          <div class="empty-grid-cell lit"></div>
+          <div class="empty-grid-cell"></div>
+          <div class="empty-grid-cell lit"></div>
+          <div class="empty-grid-cell"></div>
+          <div class="empty-grid-cell"></div>
+          <div class="empty-grid-cell lit"></div>
+          <div class="empty-grid-cell"></div>
+          <div class="empty-grid-cell"></div>
+          <div class="empty-grid-cell lit"></div>
+          <div class="empty-grid-cell"></div>
+          <div class="empty-grid-cell"></div>
+          <div class="empty-grid-cell lit"></div>
+        </div>
+        <div class="empty-title">Upload a mockup to begin</div>
+        <div class="empty-sub">Drop a mobile UI screenshot into the panel on the left. Focal will generate a simulated visual attention model based on your audience context.</div>
+      </div>
+
+      <!-- Analysis canvas -->
+      <div id="canvas-container">
+        <img id="uploaded-img" src="" alt="Uploaded mockup">
+        <canvas id="overlay-canvas"></canvas>
+        <!-- Gaze markers and labels injected here by JS -->
+      </div>
+
+    </div><!-- end stage -->
+
+    <!-- Analysis Summary -->
+    <div id="summary-panel">
+      <div class="summary-header">
+        Analysis Summary
+        <span class="summary-badge" id="summary-badge">—</span>
+      </div>
+      <div class="summary-grid" id="summary-grid"></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div id="toolbar">
+      <span class="toolbar-label">Layers</span>
+
+      <button class="tb-btn active" id="tb-heatmap" data-layer="heatmap">
+        <span class="dot" style="background:#ff6b35;"></span>
+        Heatmap
+      </button>
+      <button class="tb-btn active" id="tb-gaze" data-layer="gaze">
+        <span class="dot" style="background:var(--accent);"></span>
+        Eye path
+      </button>
+      <button class="tb-btn active" id="tb-labels" data-layer="labels">
+        <span class="dot" style="background:var(--accent2);"></span>
+        Labels
+      </button>
+
+      <div class="toolbar-sep"></div>
+
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:linear-gradient(90deg,rgba(255,220,50,0),#ff6b35,#ff1e00);"></div>
+          High attention
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:linear-gradient(90deg,rgba(56,189,248,0.2),rgba(56,189,248,0));"></div>
+          Low attention
+        </div>
+      </div>
+
+      <div class="tb-btn-right">
+        <button id="btn-download" title="Export analyzed image">
+          ↓ Export PNG
+        </button>
+      </div>
+    </div>
+
+  </div><!-- end stage-wrap -->
+
+</div><!-- end app -->
+
+<!-- Processing Overlay -->
+<div id="processing-overlay">
+  <div class="proc-logo">Focal · Attention Model</div>
+  <div class="proc-ring"></div>
+  <div class="proc-steps">
+    <div class="proc-step" id="ps1"><span class="proc-step-icon">·</span>Parsing visual structure</div>
+    <div class="proc-step" id="ps2"><span class="proc-step-icon">·</span>Estimating saliency regions</div>
+    <div class="proc-step" id="ps3"><span class="proc-step-icon">·</span>Applying audience context</div>
+    <div class="proc-step" id="ps4"><span class="proc-step-icon">·</span>Generating scan path</div>
+    <div class="proc-step" id="ps5"><span class="proc-step-icon">·</span>Building heatmap overlay</div>
+  </div>
+  <div class="proc-bar-wrap">
+    <div class="proc-bar-fill" id="proc-bar"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   FOCAL — UX ATTENTION ANALYZER
+   Simulated attention model based on visual hierarchy heuristics
+   and audience context inputs.
+============================================================ */
+
+/* ── State ── */
+const state = {
+  imageLoaded: false,
+  analysisReady: false,
+  imageDataUrl: null,
+  imageNaturalW: 0,
+  imageNaturalH: 0,
+  layers: { heatmap: true, gaze: true, labels: true },
+  activePreset: null,
+  gazePoints: [],      // [{x,y,rank,label,labelType}]
+  heatmapRegions: [],  // [{cx,cy,rx,ry,intensity}]
+};
+
+/* ── DOM refs ── */
+const uploadZone    = document.getElementById('upload-zone');
+const fileInput     = document.getElementById('file-input');
+const fileNameDisp  = document.getElementById('file-name-display');
+const uploadedImg   = document.getElementById('uploaded-img');
+const canvasContainer = document.getElementById('canvas-container');
+const overlayCanvas = document.getElementById('overlay-canvas');
+const emptyState    = document.getElementById('empty-state');
+const btnAnalyze    = document.getElementById('btn-analyze');
+const btnReset      = document.getElementById('btn-reset');
+const btnDownload   = document.getElementById('btn-download');
+const procOverlay   = document.getElementById('processing-overlay');
+const procBar       = document.getElementById('proc-bar');
+const summaryPanel  = document.getElementById('summary-panel');
+const summaryGrid   = document.getElementById('summary-grid');
+const summaryBadge  = document.getElementById('summary-badge');
+const confFill      = document.getElementById('conf-fill');
+const confPct       = document.getElementById('conf-pct');
+const sliderIntensity = document.getElementById('slider-intensity');
+const valIntensity  = document.getElementById('val-intensity');
+const sliderGaze    = document.getElementById('slider-gaze');
+const valGaze       = document.getElementById('val-gaze');
+
+/* ── Slider live update ── */
+sliderIntensity.addEventListener('input', () => {
+  valIntensity.textContent = sliderIntensity.value + '%';
+  if (state.analysisReady) redrawOverlays();
+});
+sliderGaze.addEventListener('input', () => {
+  valGaze.textContent = sliderGaze.value;
+});
+
+/* ── Context inputs → confidence ── */
+const contextInputs = ['sel-age','sel-gender','sel-experience','sel-region','sel-goal','txt-notes'];
+contextInputs.forEach(id => {
+  document.getElementById(id).addEventListener('change', updateConfidence);
+  document.getElementById(id).addEventListener('input', updateConfidence);
+});
+
+function updateConfidence() {
+  let score = 0;
+  if (document.getElementById('sel-age').value) score += 15;
+  if (document.getElementById('sel-gender').value !== 'mixed') score += 10;
+  if (document.getElementById('sel-experience').value) score += 15;
+  if (document.getElementById('sel-region').value !== 'global') score += 10;
+  if (document.getElementById('sel-goal').value) score += 20;
+  const notes = document.getElementById('txt-notes').value.trim();
+  if (notes.length > 20) score += 20;
+  if (notes.length > 60) score += 10;
+  if (state.activePreset) score += 10;
+  score = Math.min(score, 100);
+
+  confFill.style.width = score + '%';
+  confPct.textContent = score > 0 ? score + '%' : '—';
+}
+
+/* ── Preset chips ── */
+const presetData = {
+  ecommerce: {
+    notes: 'E-commerce checkout flow. Users want to browse, compare, and purchase products. Strong CTA, product imagery, price visibility, and social proof are critical.',
+    goal: 'purchase', experience: 'intermediate'
+  },
+  onboarding: {
+    notes: 'First-time user onboarding. Users are new to the product. Clarity, trust cues, and simple affordances are paramount. Minimize cognitive load.',
+    goal: 'signin', experience: 'first-time'
+  },
+  finance: {
+    notes: 'Financial dashboard or banking app. Users demand trust, data accuracy, and hierarchy. Conservative reading patterns, cautious engagement.',
+    goal: 'find-info', experience: 'intermediate'
+  },
+  health: {
+    notes: 'Health or wellness app. Users may be anxious or distracted. Simple hierarchy, trust signals, and CTA clarity are critical. Accessibility important.',
+    goal: 'complete-task', experience: 'novice'
+  },
+  social: {
+    notes: 'Social media or community platform. Users browse rapidly and skim. Visual content, profile imagery, and engagement actions dominate attention.',
+    goal: 'browse', experience: 'expert'
+  },
+  news: {
+    notes: 'News or media platform. Users scan headlines quickly using F-pattern or Z-pattern. Hero image and headline hierarchy dominate. Body text has lower dwell.',
+    goal: 'browse', experience: 'intermediate'
+  }
+};
+
+document.getElementById('preset-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.preset-chip');
+  if (!chip) return;
+  const preset = chip.dataset.preset;
+
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  state.activePreset = preset;
+
+  const data = presetData[preset];
+  if (data.notes) document.getElementById('txt-notes').value = data.notes;
+  if (data.goal) document.getElementById('sel-goal').value = data.goal;
+  if (data.experience) document.getElementById('sel-experience').value = data.experience;
+  updateConfidence();
+});
+
+/* ── Upload handling ── */
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.classList.add('drag-over');
+});
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleFile(file);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    state.imageDataUrl = ev.target.result;
+    uploadedImg.src = ev.target.result;
+    uploadedImg.onload = () => {
+      state.imageNaturalW = uploadedImg.naturalWidth;
+      state.imageNaturalH = uploadedImg.naturalHeight;
+      state.imageLoaded = true;
+      state.analysisReady = false;
+      clearOverlays();
+      emptyState.style.display = 'none';
+      canvasContainer.classList.add('visible');
+      fileNameDisp.textContent = '↑ ' + file.name;
+      fileNameDisp.style.display = 'block';
+      btnAnalyze.disabled = false;
+      summaryPanel.classList.remove('visible');
+      btnDownload.classList.remove('visible');
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ── Reset ── */
+btnReset.addEventListener('click', () => {
+  state.imageLoaded = false;
+  state.analysisReady = false;
+  state.imageDataUrl = null;
+  state.gazePoints = [];
+  state.heatmapRegions = [];
+  uploadedImg.src = '';
+  canvasContainer.classList.remove('visible');
+  emptyState.style.display = '';
+  fileNameDisp.style.display = 'none';
+  fileInput.value = '';
+  btnAnalyze.disabled = true;
+  summaryPanel.classList.remove('visible');
+  btnDownload.classList.remove('visible');
+  clearOverlays();
+  document.getElementById('txt-notes').value = '';
+  document.getElementById('sel-age').value = '';
+  document.getElementById('sel-gender').value = 'mixed';
+  document.getElementById('sel-experience').value = 'intermediate';
+  document.getElementById('sel-region').value = 'global';
+  document.getElementById('sel-goal').value = '';
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+  state.activePreset = null;
+  confFill.style.width = '0%';
+  confPct.textContent = '—';
+  updateConfidence();
+});
+
+/* ── Layer toggles (toolbar) ── */
+document.querySelectorAll('.tb-btn[data-layer]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const layer = btn.dataset.layer;
+    state.layers[layer] = !state.layers[layer];
+    btn.classList.toggle('active', state.layers[layer]);
+    if (state.analysisReady) redrawOverlays();
+  });
+});
+
+/* ── Analyze ── */
+btnAnalyze.addEventListener('click', () => {
+  if (!state.imageLoaded) return;
+  runAnalysis();
+});
+
+/* ══════════════════════════════════════════════════════════
+   ANALYSIS ENGINE
+   Heuristic scoring system for simulated attention modeling
+══════════════════════════════════════════════════════════ */
+
+function runAnalysis() {
+  showProcessing();
+}
+
+/* ── Processing animation ── */
+function showProcessing() {
+  procOverlay.classList.add('visible');
+  procBar.style.width = '0%';
+  const steps = ['ps1','ps2','ps3','ps4','ps5'];
+  const stepDuration = 420;
+
+  steps.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'proc-step';
+    el.querySelector('.proc-step-icon').textContent = '·';
+  });
+
+  let current = 0;
+  function nextStep() {
+    if (current > 0) {
+      const prev = document.getElementById(steps[current - 1]);
+      prev.className = 'proc-step done';
+      prev.querySelector('.proc-step-icon').textContent = '✓';
+    }
+    if (current < steps.length) {
+      const cur = document.getElementById(steps[current]);
+      cur.className = 'proc-step active';
+      cur.querySelector('.proc-step-icon').textContent = '▶';
+      procBar.style.width = ((current + 1) / steps.length * 85) + '%';
+      current++;
+      setTimeout(nextStep, stepDuration);
+    } else {
+      procBar.style.width = '100%';
+      setTimeout(() => {
+        computeAnalysis();
+        renderAnalysis();
+        procOverlay.classList.remove('visible');
+        state.analysisReady = true;
+        btnDownload.classList.add('visible');
+        summaryPanel.classList.add('visible');
+        renderSummary();
+      }, 400);
+    }
+  }
+  nextStep();
+}
+
+/* ── Core heuristic model ── */
+function computeAnalysis() {
+  const W = 1.0; // normalized width
+  const H = 1.0; // normalized height
+
+  // Gather context
+  const age = document.getElementById('sel-age').value;
+  const experience = document.getElementById('sel-experience').value;
+  const goal = document.getElementById('sel-goal').value;
+  const notes = document.getElementById('txt-notes').value.toLowerCase();
+  const preset = state.activePreset;
+  const gazeCount = parseInt(sliderGaze.value);
+
+  // ── Saliency zone seeds (normalized 0-1 coordinates) ──
+  // Based on standard mobile UI scanning heuristics:
+  // - Top-center: Logo / brand / header (strong bias)
+  // - Upper-third center: Hero image / key value prop
+  // - Center: Primary CTA or form
+  // - Lower-center: Secondary CTA / navigation
+  // - Corners: Navigation elements, icons
+
+  let zones = [
+    // {cx, cy, weight, label, labelType}
+    { cx: 0.50, cy: 0.07,  w: 1.1,  label: 'Header / Brand',           ltype: 'primary' },
+    { cx: 0.50, cy: 0.22,  w: 1.4,  label: 'Primary focal point',       ltype: 'primary' },
+    { cx: 0.50, cy: 0.40,  w: 1.0,  label: 'Content block',             ltype: 'info' },
+    { cx: 0.50, cy: 0.58,  w: 1.2,  label: 'Likely first actionable',   ltype: 'primary' },
+    { cx: 0.50, cy: 0.74,  w: 0.8,  label: 'Secondary content',         ltype: 'info' },
+    { cx: 0.50, cy: 0.88,  w: 0.9,  label: 'Footer / Navigation',       ltype: 'info' },
+    { cx: 0.25, cy: 0.35,  w: 0.55, label: 'Left content zone',         ltype: 'low' },
+    { cx: 0.75, cy: 0.35,  w: 0.45, label: 'Right content zone',        ltype: 'low' },
+    { cx: 0.25, cy: 0.60,  w: 0.5,  label: 'Possible distraction zone', ltype: 'warn' },
+    { cx: 0.75, cy: 0.60,  w: 0.4,  label: 'Low-attention region',      ltype: 'low' },
+  ];
+
+  // ── Context-based weight adjustments ──
+
+  // Older users: prefer top content, larger readable areas
+  if (age === '55+' || age === '45-54') {
+    zones[0].w *= 1.2;
+    zones[1].w *= 1.1;
+    zones[3].w *= 1.3; // CTA more prominent
+  }
+
+  // First-time / novice: onboarding cues at top dominate
+  if (experience === 'first-time' || experience === 'novice') {
+    zones[1].w *= 1.4;
+    zones[0].w *= 1.2;
+    zones[2].w *= 0.8; // Less body content scanning
+  }
+
+  // Expert users: scan more broadly, less top bias
+  if (experience === 'expert') {
+    zones[6].w *= 1.3;
+    zones[7].w *= 1.3;
+    zones[8].w *= 1.2;
+  }
+
+  // Goal: purchase
+  if (goal === 'purchase' || notes.includes('e-commerce') || notes.includes('ecommerce') || notes.includes('shop') || preset === 'ecommerce') {
+    zones[1].w *= 1.5; // product hero
+    zones[3].w *= 1.6; // CTA
+    zones[5].w *= 1.1; // trust/footer
+    zones[1].label = 'Product hero — high attention';
+    zones[3].label = 'Primary CTA (Buy/Add to Cart)';
+  }
+
+  // Goal: browse
+  if (goal === 'browse' || preset === 'social' || preset === 'news') {
+    zones[2].w *= 1.4;
+    zones[4].w *= 1.3;
+    zones[6].w *= 1.2;
+    zones[7].w *= 1.2;
+    zones[2].label = 'Feed / Content scan area';
+  }
+
+  // Finance / health: trust-heavy, conservative
+  if (notes.includes('finance') || notes.includes('bank') || notes.includes('health') || notes.includes('medical') || preset === 'finance' || preset === 'health') {
+    zones[0].w *= 1.3; // trust header
+    zones[1].w *= 0.9;
+    zones[3].w *= 1.2;
+    zones[8].label = 'Possible trust-signal zone';
+    zones[8].ltype = 'warn';
+  }
+
+  // Onboarding
+  if (experience === 'first-time' || goal === 'signin' || preset === 'onboarding') {
+    zones[1].label = 'Onboarding hero — primary';
+    zones[3].label = 'Sign-up / Get started CTA';
+    zones[3].w *= 1.5;
+  }
+
+  // Normalize weights to 0-1
+  const maxW = Math.max(...zones.map(z => z.w));
+  zones.forEach(z => z.w = z.w / maxW);
+
+  // ── Build heatmap regions (ellipses) ──
+  state.heatmapRegions = zones.map(z => ({
+    cx: z.cx,
+    cy: z.cy,
+    rx: 0.22 + (z.w * 0.1),
+    ry: 0.08 + (z.w * 0.05),
+    intensity: z.w
+  }));
+
+  // ── Build gaze path (scan order by weight) ──
+  // Sort zones by weight desc, then apply reading-order tiebreaking (top-to-bottom, left-to-right)
+  const sorted = [...zones].sort((a, b) => {
+    const weightDiff = b.w - a.w;
+    if (Math.abs(weightDiff) > 0.15) return weightDiff;
+    return a.cy - b.cy; // top-to-bottom reading order for similar weight
+  }).slice(0, gazeCount);
+
+  state.gazePoints = sorted.map((z, i) => ({
+    x: z.cx,
+    y: z.cy,
+    rank: i + 1,
+    label: z.label,
+    labelType: z.ltype
+  }));
+}
+
+/* ══════════════════════════════════════════════════════════
+   RENDERING
+══════════════════════════════════════════════════════════ */
+
+function clearOverlays() {
+  const ctx = overlayCanvas.getContext('2d');
+  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  // Remove old DOM markers
+  canvasContainer.querySelectorAll('.gaze-marker, .attn-label').forEach(el => el.remove());
+}
+
+function redrawOverlays() {
+  clearOverlays();
+  if (!state.analysisReady) return;
+
+  // Sync canvas size to displayed image size
+  const rect = uploadedImg.getBoundingClientRect();
+  const containerRect = canvasContainer.getBoundingClientRect();
+  const imgOffX = rect.left - containerRect.left;
+  const imgOffY = rect.top - containerRect.top;
+
+  overlayCanvas.width = containerRect.width;
+  overlayCanvas.height = containerRect.height;
+
+  const iW = rect.width;
+  const iH = rect.height;
+
+  const ctx = overlayCanvas.getContext('2d');
+  const intensity = parseInt(sliderIntensity.value) / 100;
+
+  // ── Heatmap ──
+  if (state.layers.heatmap) {
+    drawHeatmap(ctx, imgOffX, imgOffY, iW, iH, intensity);
+  }
+
+  // ── Gaze markers & labels ──
+  if (state.layers.gaze) {
+    state.gazePoints.forEach((pt, idx) => {
+      const px = imgOffX + pt.x * iW;
+      const py = imgOffY + pt.y * iH;
+      const marker = document.createElement('div');
+      marker.className = 'gaze-marker';
+      marker.textContent = pt.rank;
+      marker.style.left = px + 'px';
+      marker.style.top = py + 'px';
+      marker.style.borderColor = getGazeColor(pt.rank, state.gazePoints.length);
+      marker.style.color = getGazeColor(pt.rank, state.gazePoints.length);
+      canvasContainer.appendChild(marker);
+      setTimeout(() => marker.classList.add('visible'), 80 * idx);
+    });
+
+    // Draw connecting path on canvas
+    drawGazePath(ctx, imgOffX, imgOffY, iW, iH);
+  }
+
+  // ── Labels ──
+  if (state.layers.labels) {
+    state.gazePoints.slice(0, 5).forEach((pt, idx) => {
+      const px = imgOffX + pt.x * iW;
+      const py = imgOffY + pt.y * iH;
+      const label = document.createElement('div');
+      label.className = 'attn-label ' + pt.labelType;
+      label.textContent = pt.label;
+      // Position label to avoid clipping edges
+      const lx = Math.min(px + 18, containerRect.width - 160);
+      const ly = py - 24 < 0 ? py + 16 : py - 24;
+      label.style.left = lx + 'px';
+      label.style.top = ly + 'px';
+      canvasContainer.appendChild(label);
+      setTimeout(() => label.classList.add('visible'), 200 + 100 * idx);
+    });
+  }
+}
+
+function drawHeatmap(ctx, ox, oy, iW, iH, intensity) {
+  ctx.save();
+  ctx.globalAlpha = 0.72 * intensity;
+
+  state.heatmapRegions.forEach(r => {
+    const cx = ox + r.cx * iW;
+    const cy = oy + r.cy * iH;
+    const rx = r.rx * iW;
+    const ry = r.ry * iH;
+    const r0 = Math.min(rx, ry) * 0.1;
+    const r1 = Math.max(rx, ry);
+
+    const grad = ctx.createRadialGradient(cx, cy, r0, cx, cy, r1);
+    if (r.intensity > 0.75) {
+      grad.addColorStop(0,   `rgba(255, 30,  10, ${0.75 * r.intensity})`);
+      grad.addColorStop(0.35,`rgba(255, 100, 20, ${0.5  * r.intensity})`);
+      grad.addColorStop(0.7, `rgba(255, 200, 40, ${0.25 * r.intensity})`);
+      grad.addColorStop(1,   'rgba(255, 220, 60, 0)');
+    } else if (r.intensity > 0.45) {
+      grad.addColorStop(0,   `rgba(255, 120, 20, ${0.55 * r.intensity})`);
+      grad.addColorStop(0.4, `rgba(255, 180, 40, ${0.3  * r.intensity})`);
+      grad.addColorStop(1,   'rgba(255, 220, 60, 0)');
+    } else {
+      grad.addColorStop(0,   `rgba(56, 189, 248, ${0.3  * r.intensity})`);
+      grad.addColorStop(0.5, `rgba(56, 189, 248, ${0.1  * r.intensity})`);
+      grad.addColorStop(1,   'rgba(56, 189, 248, 0)');
+    }
+
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+  });
+
+  ctx.restore();
+}
+
+function drawGazePath(ctx, ox, oy, iW, iH) {
+  if (state.gazePoints.length < 2) return;
+  ctx.save();
+  ctx.setLineDash([3, 5]);
+  ctx.strokeStyle = 'rgba(110, 231, 183, 0.28)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  state.gazePoints.forEach((pt, i) => {
+    const px = ox + pt.x * iW;
+    const py = oy + pt.y * iH;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  });
+  ctx.stroke();
+  ctx.restore();
+}
+
+function getGazeColor(rank, total) {
+  // Gradient: bright green (early) → amber (mid) → rose (late)
+  const t = (rank - 1) / Math.max(total - 1, 1);
+  if (t < 0.4) return `hsl(${155 - t*80}, 80%, 65%)`;
+  if (t < 0.7) return `hsl(${43 - (t-0.4)*60}, 90%, 60%)`;
+  return `hsl(${330 + (t-0.7)*30}, 75%, 65%)`;
+}
+
+/* ── Summary panel ── */
+function renderSummary() {
+  const age       = document.getElementById('sel-age').value || 'All ages';
+  const gender    = document.getElementById('sel-gender').value;
+  const experience= document.getElementById('sel-experience').value;
+  const goal      = document.getElementById('sel-goal').value;
+  const region    = document.getElementById('sel-region').value;
+  const notes     = document.getElementById('txt-notes').value.trim();
+  const preset    = state.activePreset;
+
+  // Confidence
+  const confVal = parseInt(confFill.style.width) || 0;
+  summaryBadge.textContent = confVal + '% confidence';
+
+  // Infer scan pattern
+  let scanPattern = 'Z-pattern (typical mobile scan)';
+  if (preset === 'news' || goal === 'browse') scanPattern = 'F-pattern (content scan)';
+  if (experience === 'expert') scanPattern = 'Selective scan (non-linear)';
+  if (experience === 'first-time' || experience === 'novice') scanPattern = 'Top-down linear (cautious)';
+  if (goal === 'purchase') scanPattern = 'Goal-oriented (CTA-directed)';
+
+  // Primary focal
+  const topPt = state.gazePoints[0];
+  const primaryFocal = topPt ? topPt.label : 'Top-center region';
+
+  // Underperforming
+  const lowPts = state.gazePoints.filter(p => p.labelType === 'low');
+  const underperforming = lowPts.length > 0
+    ? lowPts[0].label
+    : 'Lower-corner regions (typical low-attention zones)';
+
+  // Audience description
+  let audience = [age, gender !== 'mixed' ? gender : null, experience, region !== 'global' ? region : null]
+    .filter(Boolean).join(', ');
+  if (!audience) audience = 'General audience (no context specified)';
+
+  const cards = [
+    { label: 'Audience', value: audience },
+    { label: 'Scan pattern', value: scanPattern, accent: true },
+    { label: 'Primary focal point', value: primaryFocal, accent: true },
+    { label: 'Under-attention area', value: underperforming },
+  ];
+
+  summaryGrid.innerHTML = cards.map(c => `
+    <div class="summary-card">
+      <div class="summary-card-label">${c.label}</div>
+      <div class="summary-card-value${c.accent ? ' accent' : ''}">${c.value}</div>
+    </div>
+  `).join('');
+}
+
+function renderAnalysis() {
+  // Sync canvas dimensions then draw
+  const rect = uploadedImg.getBoundingClientRect();
+  const containerRect = canvasContainer.getBoundingClientRect();
+  overlayCanvas.width = containerRect.width;
+  overlayCanvas.height = containerRect.height;
+  redrawOverlays();
+}
+
+/* ── Redraw on resize ── */
+window.addEventListener('resize', () => {
+  if (state.analysisReady) {
+    clearOverlays();
+    requestAnimationFrame(redrawOverlays);
+  }
+});
+
+/* ── Export ── */
+btnDownload.addEventListener('click', () => {
+  const exportCanvas = document.createElement('canvas');
+  const img = uploadedImg;
+  exportCanvas.width = img.naturalWidth;
+  exportCanvas.height = img.naturalHeight;
+  const ctx = exportCanvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  // Scale heatmap to natural image dimensions
+  const rect = img.getBoundingClientRect();
+  const scaleX = img.naturalWidth / rect.width;
+  const scaleY = img.naturalHeight / rect.height;
+
+  const intensity = parseInt(sliderIntensity.value) / 100;
+
+  if (state.layers.heatmap) {
+    ctx.save();
+    ctx.globalAlpha = 0.72 * intensity;
+    state.heatmapRegions.forEach(r => {
+      const cx = r.cx * img.naturalWidth;
+      const cy = r.cy * img.naturalHeight;
+      const rx = r.rx * img.naturalWidth;
+      const ry = r.ry * img.naturalHeight;
+      const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, Math.max(rx, ry));
+      if (r.intensity > 0.75) {
+        grad.addColorStop(0,   `rgba(255, 30,  10, ${0.75 * r.intensity})`);
+        grad.addColorStop(0.35,`rgba(255, 100, 20, ${0.5  * r.intensity})`);
+        grad.addColorStop(0.7, `rgba(255, 200, 40, ${0.25 * r.intensity})`);
+        grad.addColorStop(1,   'rgba(0,0,0,0)');
+      } else if (r.intensity > 0.45) {
+        grad.addColorStop(0,   `rgba(255, 120, 20, ${0.55 * r.intensity})`);
+        grad.addColorStop(0.4, `rgba(255, 180, 40, ${0.3  * r.intensity})`);
+        grad.addColorStop(1,   'rgba(0,0,0,0)');
+      } else {
+        grad.addColorStop(0,   `rgba(56, 189, 248, ${0.3  * r.intensity})`);
+        grad.addColorStop(0.5, `rgba(56, 189, 248, ${0.1  * r.intensity})`);
+        grad.addColorStop(1,   'rgba(0,0,0,0)');
+      }
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  // Gaze numbers on export
+  if (state.layers.gaze) {
+    ctx.save();
+    ctx.setLineDash([3, 5]);
+    ctx.strokeStyle = 'rgba(110, 231, 183, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    state.gazePoints.forEach((pt, i) => {
+      const px = pt.x * img.naturalWidth;
+      const py = pt.y * img.naturalHeight;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    state.gazePoints.forEach(pt => {
+      const px = pt.x * img.naturalWidth;
+      const py = pt.y * img.naturalHeight;
+      const r = 18;
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(14,15,17,0.82)';
+      ctx.fill();
+      ctx.strokeStyle = getGazeColor(pt.rank, state.gazePoints.length);
+      ctx.lineWidth = 2;
+      ctx.setLineDash([]);
+      ctx.stroke();
+      ctx.fillStyle = getGazeColor(pt.rank, state.gazePoints.length);
+      ctx.font = `bold ${14}px 'Syne', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(pt.rank, px, py + 1);
+    });
+    ctx.restore();
+  }
+
+  const a = document.createElement('a');
+  a.download = 'focal-analysis.png';
+  a.href = exportCanvas.toDataURL('image/png');
+  a.click();
+});
+
+/* ── Initial state ── */
+updateConfidence();
+</script>
+</body>
+</html>

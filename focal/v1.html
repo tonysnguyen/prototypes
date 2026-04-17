@@ -5,1421 +5,810 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Focal — UX Attention Analyzer</title>
 <style>
-  /* ============================================================
-     FONTS & RESET
-  ============================================================ */
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root{
+  --bg:#0b0c0f;--surface:#13151a;--surface2:#191c22;--surface3:#20242e;--surface4:#272c38;
+  --border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.1);--border3:rgba(255,255,255,0.17);
+  --text:#dde0ea;--text-dim:#72798a;--text-muted:#3a3f50;
+  --accent:#5ee8b8;--accent2:#38bdf8;--accent3:#f472b6;--warn:#fbbf24;
+  --r:9px;--hud:296px;
+  --fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+}
 
-  :root {
-    --bg: #0e0f11;
-    --surface: #16181c;
-    --surface2: #1d2026;
-    --surface3: #242830;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --text: #e8eaf0;
-    --text-dim: #7a8090;
-    --text-muted: #444a58;
-    --accent: #6ee7b7;
-    --accent2: #38bdf8;
-    --accent3: #f472b6;
-    --warn: #fbbf24;
-    --heat1: rgba(255,220,50,0.0);
-    --heat2: rgba(255,160,30,0.45);
-    --heat3: rgba(255,60,20,0.72);
-    --radius: 10px;
-    --radius-lg: 16px;
-    --hud-width: 300px;
-    --font-display: 'Syne', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
-    --font-mono: 'DM Mono', monospace;
-  }
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--fb);font-size:13.5px;line-height:1.55;overflow:hidden;}
 
-  html, body {
-    height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 14px;
-    line-height: 1.5;
-    overflow: hidden;
-  }
+/* LAYOUT */
+#app{display:flex;height:100vh;width:100vw;overflow:hidden;}
+#hud{width:var(--hud);min-width:var(--hud);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:10;}
+#hud-s{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:20px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;}
+#hud-s::-webkit-scrollbar{width:3px;}
+#hud-s::-webkit-scrollbar-thumb{background:var(--surface3);}
+#sw{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+#stage{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:var(--bg);}
+#stage.grab{cursor:grab;}
+#stage.grabbing{cursor:grabbing;}
 
-  /* ============================================================
-     LAYOUT
-  ============================================================ */
-  #app {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-  }
+/* BARS */
+#top-bar{height:44px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:7px;flex-shrink:0;}
+#bot-bar{height:48px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:5px;flex-shrink:0;}
 
-  /* HUD PANEL */
-  #hud {
-    width: var(--hud-width);
-    min-width: var(--hud-width);
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 10;
-    position: relative;
-  }
+/* HUD COMPONENTS */
+.logo{padding:17px 17px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.logo-ico{width:25px;height:25px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.logo-txt{font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:-.02em;}
+.logo-ver{font-family:var(--fm);font-size:9px;color:var(--text-muted);background:var(--surface3);padding:2px 5px;border-radius:4px;letter-spacing:.04em;margin-left:auto;}
+.sec{padding:13px 17px 0;}
+.slbl{font-family:var(--fm);font-size:9px;letter-spacing:.11em;color:var(--text-muted);text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:7px;}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.div{height:1px;background:var(--border);margin:13px 0 0;}
 
-  #hud-scroll {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0 0 24px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--surface3) transparent;
-  }
-  #hud-scroll::-webkit-scrollbar { width: 4px; }
-  #hud-scroll::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+/* UPLOAD */
+.upzone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:13px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);position:relative;}
+.upzone:hover,.upzone.drag{border-color:var(--accent);background:rgba(94,232,184,.04);}
+.upzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upzone-ico{font-size:18px;margin-bottom:4px;}
+.upzone-txt{font-size:11px;color:var(--text-dim);line-height:1.4;}
+.upzone-txt strong{color:var(--text);}
 
-  /* STAGE */
-  #stage-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--bg);
-    position: relative;
-  }
+/* FORMS */
+.fr{margin-bottom:8px;}
+.fl{font-size:11px;color:var(--text-dim);margin-bottom:4px;display:block;font-weight:500;}
+select,textarea,input[type=range]{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;font-family:var(--fb);font-size:12px;transition:border-color .2s;outline:none;}
+select:focus,textarea:focus{border-color:var(--accent);}
+select{padding:6px 8px;appearance:none;cursor:pointer;}
+textarea{padding:7px 8px;resize:vertical;min-height:60px;line-height:1.5;}
+textarea::placeholder{color:var(--text-muted);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
 
-  #stage {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
-  }
+/* MODE BUTTONS */
+.mode-g{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.mbtn{padding:7px 5px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text-dim);font-size:10px;font-family:var(--fb);font-weight:500;cursor:pointer;transition:all .15s;text-align:center;line-height:1.3;}
+.mbtn:hover{border-color:var(--border3);color:var(--text);}
+.mbtn.active{background:rgba(94,232,184,.09);border-color:var(--accent);color:var(--accent);}
+.mbtn .mi{font-size:12px;display:block;margin-bottom:2px;}
 
-  /* BOTTOM TOOLBAR */
-  #toolbar {
-    height: 56px;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    gap: 8px;
-    flex-shrink: 0;
-  }
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{font-size:10px;padding:3px 8px;border-radius:99px;background:var(--surface3);color:var(--text-dim);cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:var(--fm);}
+.chip:hover{border-color:var(--accent2);color:var(--accent2);}
+.chip.active{background:rgba(56,189,248,.1);border-color:var(--accent2);color:var(--accent2);}
 
-  /* ============================================================
-     HUD COMPONENTS
-  ============================================================ */
-  .hud-logo {
-    padding: 20px 20px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-  .hud-logo-icon {
-    width: 28px; height: 28px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-  }
-  .hud-logo-text {
-    font-family: var(--font-display);
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-  .hud-logo-badge {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-dim);
-    background: var(--surface3);
-    padding: 2px 6px;
-    border-radius: 4px;
-    letter-spacing: 0.04em;
-    margin-left: auto;
-  }
+/* SLIDERS */
+.slr{display:flex;align-items:center;gap:8px;}
+input[type=range]{-webkit-appearance:none;height:3px;background:var(--surface3);border:none;border-radius:99px;cursor:pointer;flex:1;padding:0;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 3px rgba(94,232,184,.14);}
+.sv{font-family:var(--fm);font-size:10px;color:var(--text-dim);width:26px;text-align:right;flex-shrink:0;}
 
-  .hud-section {
-    padding: 16px 20px 0;
-  }
+/* ACTION BUTTONS */
+#btn-analyze{width:100%;padding:10px;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);color:#071511;border:none;border-radius:var(--r);font-family:var(--fd);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+#btn-analyze:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 4px 18px rgba(94,232,184,.2);}
+#btn-analyze:disabled{opacity:.28;cursor:not-allowed;transform:none;box-shadow:none;}
+#btn-reset{width:100%;padding:8px;background:transparent;color:var(--text-dim);border:1px solid var(--border2);border-radius:var(--r);font-family:var(--fb);font-size:12px;cursor:pointer;transition:all .2s;margin-top:6px;}
+#btn-reset:hover{border-color:var(--accent3);color:var(--accent3);}
 
-  .hud-section-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .hud-section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+/* SIGNAL */
+.sigbar{height:3px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-top:5px;}
+.sigfill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .5s ease;width:0;}
+.sigmeta{font-family:var(--fm);font-size:10px;color:var(--text-dim);display:flex;justify-content:space-between;margin-top:3px;}
 
-  .hud-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 16px 0 0;
-  }
+/* TOOLBAR BUTTONS */
+.barlbl{font-family:var(--fm);font-size:9px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-right:1px;}
+.bsep{width:1px;height:20px;background:var(--border);margin:0 3px;flex-shrink:0;}
+.tbbtn{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:7px;font-size:11px;font-family:var(--fb);font-weight:500;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:all .15s;user-select:none;white-space:nowrap;}
+.tbbtn .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:all .2s;}
+.tbbtn:hover{border-color:var(--border2);color:var(--text);}
+.tbbtn.active{color:var(--text);border-color:var(--border2);background:var(--surface3);}
+.tbbtn.active .dot{box-shadow:0 0 6px currentColor;}
 
-  /* UPLOAD CONTROLS */
-  .upload-zone {
-    border: 1.5px dashed var(--border2);
-    border-radius: var(--radius);
-    padding: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--surface2);
-    position: relative;
-  }
-  .upload-zone:hover {
-    border-color: var(--accent);
-    background: rgba(110,231,183,0.04);
-  }
-  .upload-zone.drag-over {
-    border-color: var(--accent);
-    background: rgba(110,231,183,0.08);
-    transform: scale(1.01);
-  }
-  .upload-zone input {
-    position: absolute; inset: 0;
-    opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .upload-zone-icon { font-size: 22px; margin-bottom: 6px; }
-  .upload-zone-text {
-    font-size: 12px;
-    color: var(--text-dim);
-    line-height: 1.4;
-  }
-  .upload-zone-text strong { color: var(--text); }
+/* ZOOM */
+.zctr{display:flex;align-items:center;gap:3px;}
+.zbtn{width:25px;height:25px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.zbtn:hover{border-color:var(--border2);color:var(--text);}
+.zbtn.txt{width:auto;padding:0 8px;font-size:10px;font-family:var(--fm);}
+.zlbl{font-family:var(--fm);font-size:10px;color:var(--text-dim);min-width:34px;text-align:center;}
+.imsz{font-family:var(--fm);font-size:9px;color:var(--text-muted);margin-left:4px;}
 
-  /* FORM ELEMENTS */
-  .form-row { margin-bottom: 10px; }
-  .form-label {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-bottom: 5px;
-    display: block;
-    font-weight: 500;
-  }
+/* LEGEND */
+.leg{display:flex;align-items:center;gap:8px;margin-left:5px;}
+.legi{display:flex;align-items:center;gap:4px;font-family:var(--fm);font-size:9px;color:var(--text-muted);}
+.lsw{width:15px;height:4px;border-radius:99px;}
 
-  select, input[type="range"], textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    border-radius: 7px;
-    font-family: var(--font-body);
-    font-size: 12px;
-    transition: border-color 0.2s;
-    outline: none;
-  }
-  select:focus, textarea:focus { border-color: var(--accent); }
-  select { padding: 7px 10px; appearance: none; cursor: pointer; }
-  textarea {
-    padding: 8px 10px;
-    resize: vertical;
-    min-height: 68px;
-    line-height: 1.5;
-  }
-  textarea::placeholder { color: var(--text-muted); }
+/* DL */
+#btn-dl{padding:4px 10px;border-radius:7px;font-size:11px;font-family:var(--fb);font-weight:500;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:all .15s;display:none;align-items:center;gap:5px;}
+#btn-dl.vis{display:flex;}
+#btn-dl:hover{border-color:var(--accent2);color:var(--accent2);}
 
-  .select-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
+/* EMPTY STATE */
+#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;pointer-events:none;user-select:none;padding:40px;}
+.eg{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;opacity:.09;margin-bottom:5px;}
+.ec{width:34px;height:34px;background:var(--surface2);border-radius:5px;border:1px solid var(--border);}
+.ec.l{background:linear-gradient(135deg,rgba(94,232,184,.4),rgba(56,189,248,.3));border-color:rgba(94,232,184,.12);}
+.et{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--text-muted);letter-spacing:-.02em;}
+.es{font-size:11.5px;color:var(--text-muted);max-width:300px;line-height:1.65;}
 
-  /* ANALYZE BUTTON */
-  #btn-analyze {
-    width: 100%;
-    padding: 11px;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-    color: #0a1a14;
-    border: none;
-    border-radius: var(--radius);
-    font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  #btn-analyze:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(110,231,183,0.25); }
-  #btn-analyze:active { transform: translateY(0); }
-  #btn-analyze:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+/* VIEWPORT / CANVAS */
+#vp{position:absolute;inset:0;overflow:hidden;display:none;align-items:center;justify-content:center;}
+#vp.vis{display:flex;}
+#cw{position:relative;transform-origin:center center;will-change:transform;}
+#ui{display:block;max-width:none;user-select:none;pointer-events:none;}
+#oc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
 
-  #btn-reset {
-    width: 100%;
-    padding: 9px;
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius);
-    font-family: var(--font-body);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 8px;
-  }
-  #btn-reset:hover { border-color: var(--accent3); color: var(--accent3); }
+/* GAZE MARKERS */
+.gmk{position:absolute;width:25px;height:25px;border-radius:50%;background:rgba(11,12,15,.9);border:2px solid var(--accent);color:var(--accent);font-family:var(--fd);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);pointer-events:none;z-index:20;opacity:0;transition:opacity .4s;box-shadow:0 0 0 4px rgba(94,232,184,.1),0 2px 10px rgba(0,0,0,.6);}
+.gmk.vis{opacity:1;}
 
-  /* CONFIDENCE METER */
-  .confidence-bar {
-    height: 3px;
-    background: var(--surface3);
-    border-radius: 99px;
-    overflow: hidden;
-    margin-top: 6px;
-  }
-  .confidence-fill {
-    height: 100%;
-    border-radius: 99px;
-    background: linear-gradient(90deg, var(--accent2), var(--accent));
-    transition: width 0.5s ease;
-    width: 0%;
-  }
-  .confidence-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    display: flex;
-    justify-content: space-between;
-    margin-top: 4px;
-  }
+/* LABELS */
+.albl{position:absolute;background:rgba(11,12,15,.92);border:1px solid var(--border2);border-radius:5px;padding:3px 7px;font-family:var(--fm);font-size:9px;color:var(--text-dim);white-space:nowrap;pointer-events:none;z-index:21;opacity:0;transition:opacity .3s;backdrop-filter:blur(8px);}
+.albl.vis{opacity:1;}
+.albl.primary{border-color:var(--accent);color:var(--accent);}
+.albl.warn{border-color:var(--warn);color:var(--warn);}
+.albl.low{border-color:var(--text-muted);color:var(--text-muted);}
+.albl.cta{border-color:var(--accent2);color:var(--accent2);}
 
-  /* ============================================================
-     TOGGLE SWITCHES
-  ============================================================ */
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 7px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .toggle-row:last-child { border-bottom: none; }
+/* PROCESSING */
+#po{position:fixed;inset:0;background:rgba(11,12,15,.95);backdrop-filter:blur(10px);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;pointer-events:none;transition:opacity .3s;}
+#po.vis{opacity:1;pointer-events:all;}
+.pring{width:52px;height:52px;border-radius:50%;border:2px solid var(--surface3);border-top-color:var(--accent);border-right-color:var(--accent2);animation:spin 1.1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.plbl{font-family:var(--fd);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text-muted);text-transform:uppercase;}
+.psteps{display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
+.pstep{font-family:var(--fm);font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:8px;transition:color .3s;}
+.pstep.active{color:var(--accent);}
+.pstep.done{color:var(--text-dim);}
+.pico{font-size:10px;width:12px;text-align:center;}
+.pbar-w{width:210px;height:2px;background:var(--surface3);border-radius:99px;overflow:hidden;}
+.pbar-f{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .4s ease;}
 
-  .toggle-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-  .toggle-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+/* RESULTS */
+#res{display:none;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;max-height:210px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent;}
+#res.vis{display:block;}
+#res::-webkit-scrollbar{width:3px;}
+#res::-webkit-scrollbar-thumb{background:var(--surface3);}
+.rhdr{padding:10px 17px 9px;font-family:var(--fm);font-size:9px;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:5;}
+.rbadge{background:rgba(94,232,184,.08);color:var(--accent);border-radius:4px;padding:1px 6px;font-size:9px;margin-left:auto;}
+.rmode{background:rgba(56,189,248,.08);color:var(--accent2);border-radius:4px;padding:1px 6px;font-size:9px;}
+.rgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:11px 17px 12px;}
+.rcard{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px;}
+.rclbl{font-family:var(--fm);font-size:9px;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em;}
+.rcval{font-size:11px;color:var(--text);line-height:1.4;}
+.rcval.ac{color:var(--accent);}
+.rcval.ac2{color:var(--accent2);}
+.rcval.w{color:var(--warn);}
+.rreason{margin:0 17px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:11px;}
+.rrlbl{font-family:var(--fm);font-size:9px;color:var(--text-muted);margin-bottom:7px;letter-spacing:.06em;text-transform:uppercase;}
+.rrbody{font-size:11px;color:var(--text-dim);line-height:1.7;}
+.rrbody strong{color:var(--text);font-weight:500;}
 
-  .toggle {
-    position: relative;
-    width: 32px; height: 18px;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .toggle input { display: none; }
-  .toggle-track {
-    position: absolute; inset: 0;
-    background: var(--surface3);
-    border-radius: 99px;
-    transition: background 0.2s;
-  }
-  .toggle input:checked ~ .toggle-track { background: var(--accent); }
-  .toggle-thumb {
-    position: absolute;
-    top: 3px; left: 3px;
-    width: 12px; height: 12px;
-    background: white;
-    border-radius: 50%;
-    transition: transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-  }
-  .toggle input:checked ~ .toggle-thumb { transform: translateX(14px); }
-
-  /* SLIDER */
-  .slider-row { display: flex; align-items: center; gap: 10px; }
-  input[type="range"] {
-    -webkit-appearance: none;
-    height: 3px;
-    background: var(--surface3);
-    border: none;
-    border-radius: 99px;
-    cursor: pointer;
-    flex: 1;
-    padding: 0;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    box-shadow: 0 0 0 3px rgba(110,231,183,0.18);
-  }
-  .slider-val {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    width: 28px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  /* PRESET CHIPS */
-  .preset-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .preset-chip {
-    font-size: 10px;
-    padding: 4px 9px;
-    border-radius: 99px;
-    background: var(--surface3);
-    color: var(--text-dim);
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.15s;
-    font-family: var(--font-mono);
-    letter-spacing: 0.02em;
-  }
-  .preset-chip:hover { border-color: var(--accent2); color: var(--accent2); }
-  .preset-chip.active { background: rgba(56,189,248,0.15); border-color: var(--accent2); color: var(--accent2); }
-
-  /* ============================================================
-     EMPTY STATE
-  ============================================================ */
-  #empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    text-align: center;
-    pointer-events: none;
-    user-select: none;
-    padding: 40px;
-  }
-  .empty-grid {
-    display: grid;
-    grid-template-columns: repeat(4,1fr);
-    gap: 4px;
-    opacity: 0.12;
-    margin-bottom: 8px;
-  }
-  .empty-grid-cell {
-    width: 40px; height: 40px;
-    background: var(--surface2);
-    border-radius: 6px;
-    border: 1px solid var(--border);
-  }
-  .empty-grid-cell.lit {
-    background: linear-gradient(135deg, rgba(110,231,183,0.3), rgba(56,189,248,0.3));
-    border-color: rgba(110,231,183,0.2);
-  }
-  .empty-title {
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: -0.02em;
-  }
-  .empty-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    max-width: 280px;
-    line-height: 1.6;
-  }
-
-  /* ============================================================
-     ANALYSIS CANVAS AREA
-  ============================================================ */
-  #canvas-container {
-    position: relative;
-    display: none;
-    box-shadow: 0 0 0 1px var(--border), 0 24px 64px rgba(0,0,0,0.6);
-    border-radius: var(--radius);
-    overflow: hidden;
-    max-height: calc(100vh - 100px);
-  }
-  #canvas-container.visible { display: block; }
-
-  #uploaded-img {
-    display: block;
-    max-height: calc(100vh - 100px);
-    max-width: 100%;
-    object-fit: contain;
-    user-select: none;
-    pointer-events: none;
-  }
-
-  #overlay-canvas {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  /* Gaze markers */
-  .gaze-marker {
-    position: absolute;
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(14,15,17,0.85);
-    border: 2px solid var(--accent);
-    color: var(--accent);
-    font-family: var(--font-display);
-    font-size: 11px;
-    font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: 20;
-    opacity: 0;
-    transition: opacity 0.4s;
-    box-shadow: 0 0 0 4px rgba(110,231,183,0.12), 0 2px 12px rgba(0,0,0,0.5);
-  }
-  .gaze-marker.visible { opacity: 1; }
-
-  /* Attention labels */
-  .attn-label {
-    position: absolute;
-    background: rgba(14,15,17,0.88);
-    border: 1px solid var(--border2);
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-dim);
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 21;
-    opacity: 0;
-    transition: opacity 0.35s;
-    backdrop-filter: blur(6px);
-  }
-  .attn-label.visible { opacity: 1; }
-  .attn-label.primary { border-color: var(--accent); color: var(--accent); }
-  .attn-label.warn { border-color: var(--warn); color: var(--warn); }
-  .attn-label.low { border-color: var(--text-muted); color: var(--text-muted); }
-
-  /* ============================================================
-     TOOLBAR TOGGLES
-  ============================================================ */
-  .toolbar-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-muted);
-    letter-spacing: 0.1em;
-    margin-right: 4px;
-    text-transform: uppercase;
-  }
-
-  .tb-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: 7px;
-    font-size: 11px;
-    font-family: var(--font-body);
-    font-weight: 500;
-    color: var(--text-dim);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: all 0.15s;
-    user-select: none;
-  }
-  .tb-btn .dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    transition: background 0.2s;
-  }
-  .tb-btn:hover { border-color: var(--border2); color: var(--text); }
-  .tb-btn.active { color: var(--text); border-color: var(--border2); background: var(--surface3); }
-  .tb-btn.active .dot { box-shadow: 0 0 5px currentColor; }
-
-  .toolbar-sep {
-    width: 1px; height: 24px;
-    background: var(--border);
-    margin: 0 4px;
-    flex-shrink: 0;
-  }
-
-  .tb-btn-right {
-    margin-left: auto;
-    display: flex;
-    gap: 6px;
-  }
-
-  /* ============================================================
-     PROCESSING OVERLAY
-  ============================================================ */
-  #processing-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(14,15,17,0.92);
-    backdrop-filter: blur(8px);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
-  #processing-overlay.visible {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  .proc-logo {
-    font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-  }
-
-  .proc-ring {
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    border: 2px solid var(--surface3);
-    border-top-color: var(--accent);
-    border-right-color: var(--accent2);
-    animation: spin 1.2s linear infinite;
-    position: relative;
-  }
-  .proc-ring::after {
-    content: '◎';
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    color: var(--accent);
-    animation: pulse-fade 1.2s ease-in-out infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes pulse-fade {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
-
-  .proc-steps {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-  .proc-step {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: color 0.3s;
-  }
-  .proc-step.active { color: var(--accent); }
-  .proc-step.done { color: var(--text-dim); }
-  .proc-step-icon { font-size: 10px; width: 14px; text-align: center; }
-  .proc-bar-wrap {
-    width: 240px;
-    height: 2px;
-    background: var(--surface3);
-    border-radius: 99px;
-    overflow: hidden;
-  }
-  .proc-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 99px;
-    transition: width 0.4s ease;
-  }
-
-  /* ============================================================
-     SUMMARY PANEL
-  ============================================================ */
-  #summary-panel {
-    display: none;
-    background: var(--surface2);
-    border-top: 1px solid var(--border);
-    padding: 14px 20px;
-    flex-shrink: 0;
-    max-height: 160px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--surface3) transparent;
-  }
-  #summary-panel.visible { display: block; }
-
-  .summary-header {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .summary-badge {
-    background: rgba(110,231,183,0.12);
-    color: var(--accent);
-    border-radius: 4px;
-    padding: 1px 6px;
-    font-size: 9px;
-    margin-left: auto;
-  }
-  .summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .summary-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-  }
-  .summary-card-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .summary-card-value {
-    font-size: 12px;
-    color: var(--text);
-    line-height: 1.4;
-  }
-  .summary-card-value.accent { color: var(--accent); }
-
-  /* ============================================================
-     DOWNLOAD BTN
-  ============================================================ */
-  #btn-download {
-    padding: 5px 12px;
-    border-radius: 7px;
-    font-size: 11px;
-    font-family: var(--font-body);
-    font-weight: 500;
-    color: var(--text-dim);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: all 0.15s;
-    display: none;
-    align-items: center;
-    gap: 6px;
-  }
-  #btn-download.visible { display: flex; }
-  #btn-download:hover { border-color: var(--accent2); color: var(--accent2); }
-
-  /* ============================================================
-     LEGEND
-  ============================================================ */
-  .legend {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-left: 8px;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-muted);
-  }
-  .legend-swatch {
-    width: 18px; height: 5px;
-    border-radius: 99px;
-  }
-
-  /* ============================================================
-     SCROLLBAR UNIVERSAL
-  ============================================================ */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
-
-  /* ============================================================
-     UTILITIES & ANIMATIONS
-  ============================================================ */
-  .fade-in { animation: fadeIn 0.4s ease forwards; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px;}
 </style>
 </head>
 <body>
-
 <div id="app">
 
-  <!-- ═══════════════════════════ HUD PANEL ═══════════════════════════ -->
-  <aside id="hud">
-    <!-- Logo -->
-    <div class="hud-logo">
-      <div class="hud-logo-icon">◎</div>
-      <span class="hud-logo-text">Focal</span>
-      <span class="hud-logo-badge">SIMULATED</span>
-    </div>
-
-    <div id="hud-scroll">
-
-      <!-- Upload -->
-      <div class="hud-section" style="padding-top:16px;">
-        <div class="hud-section-label">Mockup Upload</div>
-        <div class="upload-zone" id="upload-zone">
-          <input type="file" id="file-input" accept="image/png,image/jpeg,image/jpg,image/webp">
-          <div class="upload-zone-icon">⊞</div>
-          <div class="upload-zone-text">
-            <strong>Drag & drop</strong> or click to browse<br>
-            <span style="font-size:10px;opacity:0.6;">PNG · JPG · WEBP</span>
-          </div>
-        </div>
-        <div id="file-name-display" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:6px;display:none;"></div>
-      </div>
-
-      <div class="hud-divider"></div>
-
-      <!-- Persona Context -->
-      <div class="hud-section" style="padding-top:16px;">
-        <div class="hud-section-label">Audience Context</div>
-
-        <!-- Preset chips -->
-        <div class="form-row">
-          <div class="form-label">Quick presets</div>
-          <div class="preset-chips" id="preset-chips">
-            <div class="preset-chip" data-preset="ecommerce">E-Commerce</div>
-            <div class="preset-chip" data-preset="onboarding">Onboarding</div>
-            <div class="preset-chip" data-preset="finance">Finance</div>
-            <div class="preset-chip" data-preset="health">Health</div>
-            <div class="preset-chip" data-preset="social">Social</div>
-            <div class="preset-chip" data-preset="news">News / Media</div>
-          </div>
-        </div>
-
-        <div class="select-row">
-          <div class="form-row">
-            <label class="form-label" for="sel-age">Age range</label>
-            <select id="sel-age">
-              <option value="">Any</option>
-              <option value="18-24">18–24</option>
-              <option value="25-34">25–34</option>
-              <option value="35-44">35–44</option>
-              <option value="45-54">45–54</option>
-              <option value="55+">55+</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label class="form-label" for="sel-gender">Gender</label>
-            <select id="sel-gender">
-              <option value="mixed">Mixed</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="unspecified">Unspecified</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="select-row">
-          <div class="form-row">
-            <label class="form-label" for="sel-experience">Experience</label>
-            <select id="sel-experience">
-              <option value="intermediate">Intermediate</option>
-              <option value="novice">Novice</option>
-              <option value="expert">Expert</option>
-              <option value="first-time">First-time</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label class="form-label" for="sel-region">Region</label>
-            <select id="sel-region">
-              <option value="global">Global</option>
-              <option value="na">N. America</option>
-              <option value="eu">Europe</option>
-              <option value="asia">Asia-Pacific</option>
-              <option value="latam">Latin America</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label" for="sel-goal">Primary user goal</label>
-          <select id="sel-goal">
-            <option value="">Not specified</option>
-            <option value="purchase">Complete a purchase</option>
-            <option value="browse">Browse & discover</option>
-            <option value="signin">Sign in / Register</option>
-            <option value="find-info">Find specific information</option>
-            <option value="compare">Compare options</option>
-            <option value="trust">Build trust / evaluate</option>
-            <option value="complete-task">Complete a task / form</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label" for="txt-notes">Context & notes</label>
-          <textarea id="txt-notes" placeholder="e.g. First-time users, mobile-first e-commerce targeting women 25–35, strong CTA focus, checkout flow…"></textarea>
-        </div>
-      </div>
-
-      <div class="hud-divider"></div>
-
-      <!-- Analysis Settings -->
-      <div class="hud-section" style="padding-top:16px;">
-        <div class="hud-section-label">Analysis Settings</div>
-
-        <div class="form-row">
-          <label class="form-label">Heatmap intensity</label>
-          <div class="slider-row">
-            <input type="range" id="slider-intensity" min="20" max="100" value="70">
-            <span class="slider-val" id="val-intensity">70%</span>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label">Gaze points</label>
-          <div class="slider-row">
-            <input type="range" id="slider-gaze" min="3" max="12" value="7">
-            <span class="slider-val" id="val-gaze">7</span>
-          </div>
-        </div>
-
-        <!-- Confidence -->
-        <div class="form-row" style="margin-top:12px;">
-          <div class="form-label" style="display:flex;justify-content:space-between;">
-            <span>Model confidence</span>
-            <span id="conf-pct" style="color:var(--accent);font-family:var(--font-mono);">—</span>
-          </div>
-          <div class="confidence-bar">
-            <div class="confidence-fill" id="conf-fill"></div>
-          </div>
-          <div class="confidence-label">
-            <span>Low context</span><span>High context</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="hud-divider"></div>
-
-      <!-- Analyze / Reset -->
-      <div class="hud-section" style="padding-top:16px;padding-bottom:4px;">
-        <button id="btn-analyze" disabled>Analyze Mockup</button>
-        <button id="btn-reset">↺ Reset & Start Over</button>
-      </div>
-
-    </div><!-- end hud-scroll -->
-  </aside>
-
-  <!-- ═══════════════════════════ STAGE ═══════════════════════════ -->
-  <div id="stage-wrap">
-
-    <!-- Main preview stage -->
-    <div id="stage">
-
-      <!-- Empty state -->
-      <div id="empty-state">
-        <div class="empty-grid">
-          <div class="empty-grid-cell lit"></div>
-          <div class="empty-grid-cell"></div>
-          <div class="empty-grid-cell lit"></div>
-          <div class="empty-grid-cell"></div>
-          <div class="empty-grid-cell"></div>
-          <div class="empty-grid-cell lit"></div>
-          <div class="empty-grid-cell"></div>
-          <div class="empty-grid-cell"></div>
-          <div class="empty-grid-cell lit"></div>
-          <div class="empty-grid-cell"></div>
-          <div class="empty-grid-cell"></div>
-          <div class="empty-grid-cell lit"></div>
-        </div>
-        <div class="empty-title">Upload a mockup to begin</div>
-        <div class="empty-sub">Drop a mobile UI screenshot into the panel on the left. Focal will generate a simulated visual attention model based on your audience context.</div>
-      </div>
-
-      <!-- Analysis canvas -->
-      <div id="canvas-container">
-        <img id="uploaded-img" src="" alt="Uploaded mockup">
-        <canvas id="overlay-canvas"></canvas>
-        <!-- Gaze markers and labels injected here by JS -->
-      </div>
-
-    </div><!-- end stage -->
-
-    <!-- Analysis Summary -->
-    <div id="summary-panel">
-      <div class="summary-header">
-        Analysis Summary
-        <span class="summary-badge" id="summary-badge">—</span>
-      </div>
-      <div class="summary-grid" id="summary-grid"></div>
-    </div>
-
-    <!-- Toolbar -->
-    <div id="toolbar">
-      <span class="toolbar-label">Layers</span>
-
-      <button class="tb-btn active" id="tb-heatmap" data-layer="heatmap">
-        <span class="dot" style="background:#ff6b35;"></span>
-        Heatmap
-      </button>
-      <button class="tb-btn active" id="tb-gaze" data-layer="gaze">
-        <span class="dot" style="background:var(--accent);"></span>
-        Eye path
-      </button>
-      <button class="tb-btn active" id="tb-labels" data-layer="labels">
-        <span class="dot" style="background:var(--accent2);"></span>
-        Labels
-      </button>
-
-      <div class="toolbar-sep"></div>
-
-      <div class="legend">
-        <div class="legend-item">
-          <div class="legend-swatch" style="background:linear-gradient(90deg,rgba(255,220,50,0),#ff6b35,#ff1e00);"></div>
-          High attention
-        </div>
-        <div class="legend-item">
-          <div class="legend-swatch" style="background:linear-gradient(90deg,rgba(56,189,248,0.2),rgba(56,189,248,0));"></div>
-          Low attention
-        </div>
-      </div>
-
-      <div class="tb-btn-right">
-        <button id="btn-download" title="Export analyzed image">
-          ↓ Export PNG
-        </button>
-      </div>
-    </div>
-
-  </div><!-- end stage-wrap -->
-
-</div><!-- end app -->
-
-<!-- Processing Overlay -->
-<div id="processing-overlay">
-  <div class="proc-logo">Focal · Attention Model</div>
-  <div class="proc-ring"></div>
-  <div class="proc-steps">
-    <div class="proc-step" id="ps1"><span class="proc-step-icon">·</span>Parsing visual structure</div>
-    <div class="proc-step" id="ps2"><span class="proc-step-icon">·</span>Estimating saliency regions</div>
-    <div class="proc-step" id="ps3"><span class="proc-step-icon">·</span>Applying audience context</div>
-    <div class="proc-step" id="ps4"><span class="proc-step-icon">·</span>Generating scan path</div>
-    <div class="proc-step" id="ps5"><span class="proc-step-icon">·</span>Building heatmap overlay</div>
+<!-- ═══════ HUD ═══════ -->
+<aside id="hud">
+  <div class="logo">
+    <div class="logo-ico">◎</div>
+    <span class="logo-txt">Focal</span>
+    <span class="logo-ver">v2 · SIM</span>
   </div>
-  <div class="proc-bar-wrap">
-    <div class="proc-bar-fill" id="proc-bar"></div>
+  <div id="hud-s">
+
+    <div class="sec" style="padding-top:13px;">
+      <div class="slbl">Mockup</div>
+      <div class="upzone" id="upzone">
+        <input type="file" id="finput" accept="image/png,image/jpeg,image/jpg,image/webp">
+        <div class="upzone-ico">⊞</div>
+        <div class="upzone-txt"><strong>Drop or click</strong> to upload<br><span style="font-size:10px;opacity:.55">PNG · JPG · WEBP</span></div>
+      </div>
+      <div id="fname" style="font-family:var(--fm);font-size:10px;color:var(--text-dim);margin-top:5px;display:none;"></div>
+    </div>
+
+    <div class="div"></div>
+
+    <div class="sec" style="padding-top:13px;">
+      <div class="slbl">Analysis Mode</div>
+      <div class="mode-g" id="mode-g">
+        <button class="mbtn active" data-mode="hierarchy"><span class="mi">⬡</span>Visual Hierarchy</button>
+        <button class="mbtn" data-mode="cta"><span class="mi">⊙</span>CTA Attention</button>
+        <button class="mbtn" data-mode="scan"><span class="mi">≡</span>Content Scan</button>
+        <button class="mbtn" data-mode="firstuse"><span class="mi">◈</span>First-Time User</button>
+        <button class="mbtn" data-mode="trust"><span class="mi">◆</span>Trust / Eval</button>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div class="sec" style="padding-top:13px;">
+      <div class="slbl">Audience Context</div>
+
+      <div class="fr">
+        <div class="fl">Quick presets</div>
+        <div class="chips" id="chips">
+          <div class="chip" data-p="ecommerce">E-Commerce</div>
+          <div class="chip" data-p="onboarding">Onboarding</div>
+          <div class="chip" data-p="finance">Finance</div>
+          <div class="chip" data-p="health">Health</div>
+          <div class="chip" data-p="social">Social</div>
+          <div class="chip" data-p="news">News</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="fr"><label class="fl" for="sa">Age range</label>
+          <select id="sa"><option value="">Any</option><option value="18-24">18–24</option><option value="25-34">25–34</option><option value="35-44">35–44</option><option value="45-54">45–54</option><option value="55+">55+</option></select>
+        </div>
+        <div class="fr"><label class="fl" for="sg">Gender</label>
+          <select id="sg"><option value="mixed">Mixed</option><option value="male">Male</option><option value="female">Female</option></select>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="fr"><label class="fl" for="se">Experience</label>
+          <select id="se"><option value="intermediate">Intermediate</option><option value="novice">Novice</option><option value="expert">Expert</option><option value="first-time">First-time</option></select>
+        </div>
+        <div class="fr"><label class="fl" for="sr">Region</label>
+          <select id="sr"><option value="global">Global</option><option value="na">N. America</option><option value="eu">Europe</option><option value="asia">Asia-Pac</option><option value="latam">Latin Am.</option></select>
+        </div>
+      </div>
+      <div class="fr"><label class="fl" for="sgo">User goal</label>
+        <select id="sgo"><option value="">Not specified</option><option value="purchase">Complete purchase</option><option value="browse">Browse & discover</option><option value="signin">Sign in / Register</option><option value="find-info">Find specific info</option><option value="compare">Compare options</option><option value="trust">Build trust</option><option value="task">Complete a task</option></select>
+      </div>
+      <div class="fr"><label class="fl" for="tn">Context notes</label>
+        <textarea id="tn" placeholder="e.g. First-time users, e-commerce checkout, mobile-first, strong CTA focus…"></textarea>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div class="sec" style="padding-top:13px;">
+      <div class="slbl">Parameters</div>
+      <div class="fr"><label class="fl">Heatmap intensity</label>
+        <div class="slr"><input type="range" id="si" min="20" max="100" value="72"><span class="sv" id="vi">72%</span></div>
+      </div>
+      <div class="fr"><label class="fl">Gaze points</label>
+        <div class="slr"><input type="range" id="sg2" min="3" max="10" value="6"><span class="sv" id="vg">6</span></div>
+      </div>
+      <div class="fr" style="margin-top:10px;">
+        <div class="fl" style="display:flex;justify-content:space-between;">
+          <span>Analysis signal strength</span>
+          <span id="spct" style="color:var(--accent);font-family:var(--fm);">—</span>
+        </div>
+        <div class="sigbar"><div class="sigfill" id="sfill"></div></div>
+        <div class="sigmeta"><span>Low context</span><span>Rich context</span></div>
+      </div>
+    </div>
+
+    <div class="div"></div>
+
+    <div class="sec" style="padding-top:13px;padding-bottom:4px;">
+      <button id="btn-analyze" disabled>Analyze Mockup</button>
+      <button id="btn-reset">↺ Reset &amp; Start Over</button>
+    </div>
+
   </div>
+</aside>
+
+<!-- ═══════ STAGE ═══════ -->
+<div id="sw">
+  <div id="top-bar">
+    <span class="barlbl">View</span>
+    <div class="zctr">
+      <button class="zbtn" id="bzo" title="Zoom out">−</button>
+      <span class="zlbl" id="zlbl">—</span>
+      <button class="zbtn" id="bzi" title="Zoom in">+</button>
+    </div>
+    <button class="zbtn txt" id="bfit">⊡ Fit</button>
+    <button class="zbtn txt" id="bact">1:1</button>
+    <div class="bsep"></div>
+    <span class="imsz" id="imsz"></span>
+    <div style="margin-left:auto;">
+      <button id="btn-dl">↓ Export PNG</button>
+    </div>
+  </div>
+
+  <div id="stage">
+    <div id="empty">
+      <div class="eg">
+        <div class="ec l"></div><div class="ec"></div><div class="ec l"></div><div class="ec"></div><div class="ec l"></div>
+        <div class="ec"></div><div class="ec l"></div><div class="ec"></div><div class="ec l"></div><div class="ec"></div>
+        <div class="ec l"></div><div class="ec"></div><div class="ec l"></div><div class="ec"></div><div class="ec l"></div>
+      </div>
+      <div class="et">Upload a mockup to begin</div>
+      <div class="es">Drop a mobile UI screenshot into the panel on the left. Focal will sample the image pixel structure, detect high-saliency regions, and generate a simulated attention model grounded in image analysis and your audience context.</div>
+    </div>
+    <div id="vp">
+      <div id="cw">
+        <img id="ui" src="" alt="">
+        <canvas id="oc"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div id="res">
+    <div class="rhdr">
+      Analysis Results
+      <span class="rmode" id="rmode">—</span>
+      <span class="rbadge" id="rbadge">—</span>
+    </div>
+    <div class="rgrid" id="rgrid"></div>
+    <div class="rreason" id="rreason" style="display:none;">
+      <div class="rrlbl">Model Reasoning</div>
+      <div class="rrbody" id="rrbody"></div>
+    </div>
+  </div>
+
+  <div id="bot-bar">
+    <span class="barlbl">Layers</span>
+    <button class="tbbtn active" id="tb-h" data-l="heatmap"><span class="dot" style="background:#ff4411;"></span>Heatmap</button>
+    <button class="tbbtn active" id="tb-g" data-l="gaze"><span class="dot" style="background:var(--accent);"></span>Eye path</button>
+    <button class="tbbtn active" id="tb-l" data-l="labels"><span class="dot" style="background:var(--accent2);"></span>Labels</button>
+    <div class="bsep"></div>
+    <div class="leg">
+      <div class="legi"><div class="lsw" style="background:linear-gradient(90deg,rgba(255,190,0,.1),#ff2200);"></div>High saliency</div>
+      <div class="legi"><div class="lsw" style="background:linear-gradient(90deg,rgba(56,189,248,.35),rgba(56,189,248,.04));"></div>Low saliency</div>
+      <div class="legi"><div class="lsw" style="background:linear-gradient(90deg,var(--accent),rgba(94,232,184,.05));"></div>Scan path</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Processing overlay -->
+<div id="po">
+  <div class="plbl">Focal · Attention Model</div>
+  <div class="pring"></div>
+  <div class="psteps">
+    <div class="pstep" id="ps0"><span class="pico">·</span>Sampling image pixels</div>
+    <div class="pstep" id="ps1"><span class="pico">·</span>Computing luminance &amp; contrast grid</div>
+    <div class="pstep" id="ps2"><span class="pico">·</span>Estimating edge density</div>
+    <div class="pstep" id="ps3"><span class="pico">·</span>Scoring saliency regions</div>
+    <div class="pstep" id="ps4"><span class="pico">·</span>Clustering focal zones</div>
+    <div class="pstep" id="ps5"><span class="pico">·</span>Integrating audience context</div>
+    <div class="pstep" id="ps6"><span class="pico">·</span>Building attention overlay</div>
+  </div>
+  <div class="pbar-w"><div class="pbar-f" id="pbf"></div></div>
 </div>
 
 <script>
 /* ============================================================
-   FOCAL — UX ATTENTION ANALYZER
-   Simulated attention model based on visual hierarchy heuristics
-   and audience context inputs.
+   FOCAL v2 — UX ATTENTION ANALYZER
+   Image-informed simulated attention model:
+   canvas pixel sampling → saliency grid → region clustering
+   → context weighting → heatmap + gaze path + labels
 ============================================================ */
 
 /* ── State ── */
-const state = {
-  imageLoaded: false,
-  analysisReady: false,
-  imageDataUrl: null,
-  imageNaturalW: 0,
-  imageNaturalH: 0,
-  layers: { heatmap: true, gaze: true, labels: true },
-  activePreset: null,
-  gazePoints: [],      // [{x,y,rank,label,labelType}]
-  heatmapRegions: [],  // [{cx,cy,rx,ry,intensity}]
+const S = {
+  loaded:false, ready:false, url:null,
+  nw:0, nh:0,
+  layers:{heatmap:true, gaze:true, labels:true},
+  preset:null, mode:'hierarchy',
+  zoom:1, px:0, py:0,
+  panning:false, px0:0, py0:0,
+  regions:[], gaze:[], stats:{}
 };
 
-/* ── DOM refs ── */
-const uploadZone    = document.getElementById('upload-zone');
-const fileInput     = document.getElementById('file-input');
-const fileNameDisp  = document.getElementById('file-name-display');
-const uploadedImg   = document.getElementById('uploaded-img');
-const canvasContainer = document.getElementById('canvas-container');
-const overlayCanvas = document.getElementById('overlay-canvas');
-const emptyState    = document.getElementById('empty-state');
-const btnAnalyze    = document.getElementById('btn-analyze');
-const btnReset      = document.getElementById('btn-reset');
-const btnDownload   = document.getElementById('btn-download');
-const procOverlay   = document.getElementById('processing-overlay');
-const procBar       = document.getElementById('proc-bar');
-const summaryPanel  = document.getElementById('summary-panel');
-const summaryGrid   = document.getElementById('summary-grid');
-const summaryBadge  = document.getElementById('summary-badge');
-const confFill      = document.getElementById('conf-fill');
-const confPct       = document.getElementById('conf-pct');
-const sliderIntensity = document.getElementById('slider-intensity');
-const valIntensity  = document.getElementById('val-intensity');
-const sliderGaze    = document.getElementById('slider-gaze');
-const valGaze       = document.getElementById('val-gaze');
+/* ── DOM ── */
+const $=id=>document.getElementById(id);
+const upzone=$('upzone'),finput=$('finput'),fname=$('fname');
+const ui=$('ui'),vp=$('vp'),cw=$('cw'),oc=$('oc');
+const empty=$('empty');
+const btnA=$('btn-analyze'),btnR=$('btn-reset'),btnDl=$('btn-dl');
+const po=$('po'),pbf=$('pbf');
+const res=$('res'),rgrid=$('rgrid'),rmode=$('rmode'),rbadge=$('rbadge');
+const rreason=$('rreason'),rrbody=$('rrbody');
+const sfill=$('sfill'),spct=$('spct');
+const si=$('si'),vi=$('vi'),sg2=$('sg2'),vg=$('vg');
+const imsz=$('imsz'),zlbl=$('zlbl');
 
-/* ── Slider live update ── */
-sliderIntensity.addEventListener('input', () => {
-  valIntensity.textContent = sliderIntensity.value + '%';
-  if (state.analysisReady) redrawOverlays();
+/* ── Sliders ── */
+si.addEventListener('input',()=>{vi.textContent=si.value+'%';if(S.ready)redraw();});
+sg2.addEventListener('input',()=>{vg.textContent=sg2.value;});
+
+/* ── Signal ── */
+['sa','sg','se','sr','sgo','tn'].forEach(id=>{
+  $(id).addEventListener('change',calcSig);
+  $(id).addEventListener('input',calcSig);
 });
-sliderGaze.addEventListener('input', () => {
-  valGaze.textContent = sliderGaze.value;
-});
-
-/* ── Context inputs → confidence ── */
-const contextInputs = ['sel-age','sel-gender','sel-experience','sel-region','sel-goal','txt-notes'];
-contextInputs.forEach(id => {
-  document.getElementById(id).addEventListener('change', updateConfidence);
-  document.getElementById(id).addEventListener('input', updateConfidence);
-});
-
-function updateConfidence() {
-  let score = 0;
-  if (document.getElementById('sel-age').value) score += 15;
-  if (document.getElementById('sel-gender').value !== 'mixed') score += 10;
-  if (document.getElementById('sel-experience').value) score += 15;
-  if (document.getElementById('sel-region').value !== 'global') score += 10;
-  if (document.getElementById('sel-goal').value) score += 20;
-  const notes = document.getElementById('txt-notes').value.trim();
-  if (notes.length > 20) score += 20;
-  if (notes.length > 60) score += 10;
-  if (state.activePreset) score += 10;
-  score = Math.min(score, 100);
-
-  confFill.style.width = score + '%';
-  confPct.textContent = score > 0 ? score + '%' : '—';
+function calcSig(){
+  let s=0;
+  if($('sa').value)s+=12;
+  if($('sg').value!=='mixed')s+=8;
+  if($('se').value&&$('se').value!=='intermediate')s+=12;
+  if($('sr').value!=='global')s+=8;
+  if($('sgo').value)s+=18;
+  const n=$('tn').value.trim();
+  if(n.length>15)s+=15;if(n.length>50)s+=10;if(n.length>120)s+=7;
+  if(S.preset)s+=10;
+  if(S.loaded&&S.stats.cs!==undefined)s+=Math.round(S.stats.cs*8);
+  s=Math.min(s,100);
+  sfill.style.width=s+'%';
+  spct.textContent=s>0?s+'%':'—';
 }
 
-/* ── Preset chips ── */
-const presetData = {
-  ecommerce: {
-    notes: 'E-commerce checkout flow. Users want to browse, compare, and purchase products. Strong CTA, product imagery, price visibility, and social proof are critical.',
-    goal: 'purchase', experience: 'intermediate'
-  },
-  onboarding: {
-    notes: 'First-time user onboarding. Users are new to the product. Clarity, trust cues, and simple affordances are paramount. Minimize cognitive load.',
-    goal: 'signin', experience: 'first-time'
-  },
-  finance: {
-    notes: 'Financial dashboard or banking app. Users demand trust, data accuracy, and hierarchy. Conservative reading patterns, cautious engagement.',
-    goal: 'find-info', experience: 'intermediate'
-  },
-  health: {
-    notes: 'Health or wellness app. Users may be anxious or distracted. Simple hierarchy, trust signals, and CTA clarity are critical. Accessibility important.',
-    goal: 'complete-task', experience: 'novice'
-  },
-  social: {
-    notes: 'Social media or community platform. Users browse rapidly and skim. Visual content, profile imagery, and engagement actions dominate attention.',
-    goal: 'browse', experience: 'expert'
-  },
-  news: {
-    notes: 'News or media platform. Users scan headlines quickly using F-pattern or Z-pattern. Hero image and headline hierarchy dominate. Body text has lower dwell.',
-    goal: 'browse', experience: 'intermediate'
-  }
+/* ── Mode ── */
+$('mode-g').addEventListener('click',e=>{
+  const b=e.target.closest('.mbtn');if(!b)return;
+  document.querySelectorAll('.mbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');S.mode=b.dataset.mode;
+});
+
+/* ── Presets ── */
+const presets={
+  ecommerce:{notes:'E-commerce checkout. Users want to browse, compare, and purchase. Strong CTA, product imagery, price visibility, and social proof are critical.',goal:'purchase',exp:'intermediate'},
+  onboarding:{notes:'First-time onboarding. New users unfamiliar with product. Clarity, trust cues, and affordances paramount. Minimize cognitive load.',goal:'signin',exp:'first-time'},
+  finance:{notes:'Financial dashboard or banking app. Users demand trust, data accuracy, and hierarchy. Conservative reading patterns.',goal:'find-info',exp:'intermediate'},
+  health:{notes:'Health or wellness app. Users may be anxious. Simple hierarchy, trust signals, and CTA clarity critical. Accessibility matters.',goal:'task',exp:'novice'},
+  social:{notes:'Social platform. Users browse rapidly and skim feeds. Visual content, profile imagery, and engagement actions dominate attention.',goal:'browse',exp:'expert'},
+  news:{notes:'News or media platform. Users scan headlines using F-pattern. Hero image and headline hierarchy dominate. Body text lower dwell.',goal:'browse',exp:'intermediate'}
 };
-
-document.getElementById('preset-chips').addEventListener('click', e => {
-  const chip = e.target.closest('.preset-chip');
-  if (!chip) return;
-  const preset = chip.dataset.preset;
-
-  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
-  chip.classList.add('active');
-  state.activePreset = preset;
-
-  const data = presetData[preset];
-  if (data.notes) document.getElementById('txt-notes').value = data.notes;
-  if (data.goal) document.getElementById('sel-goal').value = data.goal;
-  if (data.experience) document.getElementById('sel-experience').value = data.experience;
-  updateConfidence();
+$('chips').addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c)return;
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');S.preset=c.dataset.p;
+  const p=presets[S.preset];
+  if(p.notes)$('tn').value=p.notes;
+  if(p.goal)$('sgo').value=p.goal;
+  if(p.exp)$('se').value=p.exp;
+  calcSig();
 });
 
-/* ── Upload handling ── */
-uploadZone.addEventListener('dragover', e => {
-  e.preventDefault();
-  uploadZone.classList.add('drag-over');
+/* ── Upload ── */
+upzone.addEventListener('dragover',e=>{e.preventDefault();upzone.classList.add('drag');});
+upzone.addEventListener('dragleave',()=>upzone.classList.remove('drag'));
+upzone.addEventListener('drop',e=>{
+  e.preventDefault();upzone.classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('image/'))loadFile(f);
 });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) handleFile(file);
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) handleFile(fileInput.files[0]);
-});
+finput.addEventListener('change',()=>{if(finput.files[0])loadFile(finput.files[0]);});
 
-function handleFile(file) {
-  const reader = new FileReader();
-  reader.onload = ev => {
-    state.imageDataUrl = ev.target.result;
-    uploadedImg.src = ev.target.result;
-    uploadedImg.onload = () => {
-      state.imageNaturalW = uploadedImg.naturalWidth;
-      state.imageNaturalH = uploadedImg.naturalHeight;
-      state.imageLoaded = true;
-      state.analysisReady = false;
+function loadFile(file){
+  const r=new FileReader();
+  r.onload=ev=>{
+    S.url=ev.target.result;
+    ui.src=ev.target.result;
+    ui.onload=()=>{
+      S.nw=ui.naturalWidth;S.nh=ui.naturalHeight;
+      S.loaded=true;S.ready=false;
       clearOverlays();
-      emptyState.style.display = 'none';
-      canvasContainer.classList.add('visible');
-      fileNameDisp.textContent = '↑ ' + file.name;
-      fileNameDisp.style.display = 'block';
-      btnAnalyze.disabled = false;
-      summaryPanel.classList.remove('visible');
-      btnDownload.classList.remove('visible');
+      empty.style.display='none';
+      vp.classList.add('vis');
+      fname.textContent='↑ '+file.name;fname.style.display='block';
+      btnA.disabled=false;
+      res.classList.remove('vis');
+      btnDl.classList.remove('vis');
+      imsz.textContent=S.nw+' × '+S.nh+'px';
+      fitWindow();calcSig();
     };
   };
-  reader.readAsDataURL(file);
+  r.readAsDataURL(file);
 }
 
 /* ── Reset ── */
-btnReset.addEventListener('click', () => {
-  state.imageLoaded = false;
-  state.analysisReady = false;
-  state.imageDataUrl = null;
-  state.gazePoints = [];
-  state.heatmapRegions = [];
-  uploadedImg.src = '';
-  canvasContainer.classList.remove('visible');
-  emptyState.style.display = '';
-  fileNameDisp.style.display = 'none';
-  fileInput.value = '';
-  btnAnalyze.disabled = true;
-  summaryPanel.classList.remove('visible');
-  btnDownload.classList.remove('visible');
-  clearOverlays();
-  document.getElementById('txt-notes').value = '';
-  document.getElementById('sel-age').value = '';
-  document.getElementById('sel-gender').value = 'mixed';
-  document.getElementById('sel-experience').value = 'intermediate';
-  document.getElementById('sel-region').value = 'global';
-  document.getElementById('sel-goal').value = '';
-  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
-  state.activePreset = null;
-  confFill.style.width = '0%';
-  confPct.textContent = '—';
-  updateConfidence();
+btnR.addEventListener('click',()=>{
+  Object.assign(S,{loaded:false,ready:false,url:null,nw:0,nh:0,preset:null,
+    zoom:1,px:0,py:0,regions:[],gaze:[],stats:{}});
+  ui.src='';vp.classList.remove('vis');empty.style.display='';
+  fname.style.display='none';finput.value='';btnA.disabled=true;
+  res.classList.remove('vis');btnDl.classList.remove('vis');
+  clearOverlays();imsz.textContent='';zlbl.textContent='—';
+  $('tn').value='';$('sa').value='';$('sg').value='mixed';
+  $('se').value='intermediate';$('sr').value='global';$('sgo').value='';
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  sfill.style.width='0%';spct.textContent='—';
 });
 
-/* ── Layer toggles (toolbar) ── */
-document.querySelectorAll('.tb-btn[data-layer]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const layer = btn.dataset.layer;
-    state.layers[layer] = !state.layers[layer];
-    btn.classList.toggle('active', state.layers[layer]);
-    if (state.analysisReady) redrawOverlays();
+/* ── Layer toggles ── */
+document.querySelectorAll('.tbbtn[data-l]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    S.layers[btn.dataset.l]=!S.layers[btn.dataset.l];
+    btn.classList.toggle('active',S.layers[btn.dataset.l]);
+    if(S.ready)redraw();
   });
+});
+
+/* ── Zoom / Pan ── */
+function applyTf(){
+  cw.style.transform=`translate(${S.px}px,${S.py}px) scale(${S.zoom})`;
+  zlbl.textContent=Math.round(S.zoom*100)+'%';
+}
+function fitWindow(){
+  if(!S.loaded)return;
+  const st=$('stage'),sw=st.clientWidth-40,sh=st.clientHeight-40;
+  const ar=S.nw/S.nh;
+  let dw,dh;
+  if(sw/sh>ar){dh=Math.min(sh,S.nh);dw=dh*ar;}
+  else{dw=Math.min(sw,S.nw);dh=dw/ar;}
+  ui.style.width=dw+'px';ui.style.height=dh+'px';
+  S.zoom=1;S.px=0;S.py=0;applyTf();
+  if(S.ready)setTimeout(redraw,50);
+}
+function setZoom(z){
+  S.zoom=Math.max(0.2,Math.min(4,z));applyTf();
+  if(S.ready)redraw();
+}
+$('bzi').addEventListener('click',()=>setZoom(S.zoom*1.25));
+$('bzo').addEventListener('click',()=>setZoom(S.zoom/1.25));
+$('bfit').addEventListener('click',fitWindow);
+$('bact').addEventListener('click',()=>{
+  ui.style.width=S.nw+'px';ui.style.height=S.nh+'px';
+  S.zoom=1;S.px=0;S.py=0;applyTf();
+  if(S.ready)setTimeout(redraw,50);
+});
+$('stage').addEventListener('wheel',e=>{
+  if(!S.loaded)return;e.preventDefault();
+  setZoom(S.zoom*(e.deltaY>0?0.9:1.11));
+},{passive:false});
+$('stage').addEventListener('mousedown',e=>{
+  if(!S.loaded||e.button!==0)return;
+  S.panning=true;S.px0=e.clientX-S.px;S.py0=e.clientY-S.py;
+  $('stage').classList.add('grabbing');
+});
+window.addEventListener('mousemove',e=>{
+  if(!S.panning)return;
+  S.px=e.clientX-S.px0;S.py=e.clientY-S.py0;applyTf();
+});
+window.addEventListener('mouseup',()=>{
+  if(S.panning){S.panning=false;$('stage').classList.remove('grabbing');}
 });
 
 /* ── Analyze ── */
-btnAnalyze.addEventListener('click', () => {
-  if (!state.imageLoaded) return;
-  runAnalysis();
-});
+btnA.addEventListener('click',()=>{if(S.loaded)doAnalyze();});
 
 /* ══════════════════════════════════════════════════════════
    ANALYSIS ENGINE
-   Heuristic scoring system for simulated attention modeling
+   1. Pixel sampling via offscreen canvas
+   2. Luminance + contrast + edge grid
+   3. Greedy region clustering
+   4. Context weighting
+   5. Gaze path generation
 ══════════════════════════════════════════════════════════ */
 
-function runAnalysis() {
-  showProcessing();
+function doAnalyze(){
+  showProc(async()=>{
+    await analyzeImage();
+    applyContext();
+    buildGaze();
+    S.ready=true;
+    redraw();
+    showResults();
+    calcSig();
+    btnDl.classList.add('vis');
+    res.classList.add('vis');
+  });
 }
 
-/* ── Processing animation ── */
-function showProcessing() {
-  procOverlay.classList.add('visible');
-  procBar.style.width = '0%';
-  const steps = ['ps1','ps2','ps3','ps4','ps5'];
-  const stepDuration = 420;
+function showProc(cb){
+  po.classList.add('vis');pbf.style.width='0%';
+  const ids=['ps0','ps1','ps2','ps3','ps4','ps5','ps6'];
+  ids.forEach(id=>{const el=$(id);el.className='pstep';el.querySelector('.pico').textContent='·';});
+  let cur=0;const dur=330;
+  function tick(){
+    if(cur>0){const p=$(ids[cur-1]);p.className='pstep done';p.querySelector('.pico').textContent='✓';}
+    if(cur<ids.length){
+      const el=$(ids[cur]);el.className='pstep active';el.querySelector('.pico').textContent='▶';
+      pbf.style.width=((cur+1)/ids.length*88)+'%';cur++;setTimeout(tick,dur);
+    } else {
+      pbf.style.width='100%';
+      setTimeout(()=>{cb();setTimeout(()=>po.classList.remove('vis'),200);},280);
+    }
+  }
+  tick();
+}
 
-  steps.forEach((id, i) => {
-    const el = document.getElementById(id);
-    el.className = 'proc-step';
-    el.querySelector('.proc-step-icon').textContent = '·';
+async function analyzeImage(){
+  return new Promise(resolve=>{
+    /* ── Pixel sampling ── */
+    const GRID=28; // cells per axis
+    const off=document.createElement('canvas');
+    off.width=GRID;off.height=GRID;
+    const octx=off.getContext('2d');
+    octx.drawImage(ui,0,0,GRID,GRID);
+    const px=octx.getImageData(0,0,GRID,GRID).data;
+
+    /* ── Build cell array ── */
+    const cells=[];
+    for(let row=0;row<GRID;row++){
+      for(let col=0;col<GRID;col++){
+        const i=(row*GRID+col)*4;
+        const r=px[i]/255,g=px[i+1]/255,b=px[i+2]/255;
+        // Perceived luminance (sRGB)
+        const lum=0.2126*r+0.7152*g+0.0722*b;
+        // Saturation (HSL approximation)
+        const mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+        const sat=(mx+mn)/2>0.5?(mx-mn)/(2-mx-mn):(mx-mn)/(mx+mn)||0;
+        cells.push({row,col,lum,sat,nx:col/(GRID-1),ny:row/(GRID-1)});
+      }
+    }
+
+    /* ── Local contrast + edge per cell ── */
+    const DIRS=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
+    cells.forEach(c=>{
+      const nbs=DIRS.map(([dr,dc])=>{
+        const nr=c.row+dr,nc=c.col+dc;
+        return(nr>=0&&nr<GRID&&nc>=0&&nc<GRID)?cells[nr*GRID+nc].lum:null;
+      }).filter(v=>v!==null);
+      const avg=nbs.reduce((a,b)=>a+b,0)/nbs.length;
+      c.contrast=Math.abs(c.lum-avg);
+      c.edge=Math.max(...nbs.map(n=>Math.abs(c.lum-n)));
+      c.complexity=c.contrast*0.55+c.edge*0.35+c.sat*0.1;
+    });
+
+    /* ── Global image stats ── */
+    const lums=cells.map(c=>c.lum);
+    const meanLum=lums.reduce((a,b)=>a+b,0)/lums.length;
+    const maxContrast=Math.max(...cells.map(c=>c.contrast));
+    S.stats={meanLum,maxContrast,cs:Math.min(maxContrast/0.45,1)};
+
+    /* ── Saliency score per cell ── */
+    cells.forEach(c=>{
+      const topB=1-c.ny*0.65;
+      const cxB=1-Math.abs(c.nx-0.5)*1.1;
+      const lumDev=Math.abs(c.lum-meanLum);
+      c.score=(c.complexity*2.2+lumDev*0.9)*topB*(cxB*0.45+0.55);
+    });
+
+    /* ── Normalize ── */
+    const maxS=Math.max(...cells.map(c=>c.score))||1;
+    cells.forEach(c=>c.score/=maxS);
+
+    S._cells=cells;S._GRID=GRID;
+
+    /* ── Cluster regions ── */
+    clusterRegions(cells,GRID);
+    resolve();
+  });
+}
+
+function clusterRegions(cells,GRID){
+  const THRESH=0.12,MERGE=5.5;
+  const sorted=[...cells].filter(c=>c.score>THRESH).sort((a,b)=>b.score-a.score);
+  const assigned=new Set();
+  const raw=[];
+
+  sorted.forEach(seed=>{
+    const key=seed.row*GRID+seed.col;
+    if(assigned.has(key))return;
+    const members=sorted.filter(c=>{
+      const k=c.row*GRID+c.col;
+      if(assigned.has(k))return false;
+      return Math.hypot(c.row-seed.row,c.col-seed.col)<=MERGE;
+    });
+    if(!members.length)return;
+    members.forEach(m=>assigned.add(m.row*GRID+m.col));
+    const tw=members.reduce((s,m)=>s+m.score,0);
+    const cx=members.reduce((s,m)=>s+m.nx*m.score,0)/tw;
+    const cy=members.reduce((s,m)=>s+m.ny*m.score,0)/tw;
+    const top=Math.max(...members.map(m=>m.score));
+    const spX=Math.max(...members.map(m=>Math.abs(m.nx-cx)))+0.05;
+    const spY=Math.max(...members.map(m=>Math.abs(m.ny-cy)))+0.04;
+    raw.push({cx,cy,rx:Math.min(spX+0.09,0.3),ry:Math.min(spY+0.05,0.18),score:top,n:members.length});
   });
 
-  let current = 0;
-  function nextStep() {
-    if (current > 0) {
-      const prev = document.getElementById(steps[current - 1]);
-      prev.className = 'proc-step done';
-      prev.querySelector('.proc-step-icon').textContent = '✓';
-    }
-    if (current < steps.length) {
-      const cur = document.getElementById(steps[current]);
-      cur.className = 'proc-step active';
-      cur.querySelector('.proc-step-icon').textContent = '▶';
-      procBar.style.width = ((current + 1) / steps.length * 85) + '%';
-      current++;
-      setTimeout(nextStep, stepDuration);
-    } else {
-      procBar.style.width = '100%';
-      setTimeout(() => {
-        computeAnalysis();
-        renderAnalysis();
-        procOverlay.classList.remove('visible');
-        state.analysisReady = true;
-        btnDownload.classList.add('visible');
-        summaryPanel.classList.add('visible');
-        renderSummary();
-      }, 400);
-    }
-  }
-  nextStep();
+  let top=raw.sort((a,b)=>b.score-a.score).slice(0,11);
+
+  // Guarantee minimal screen coverage if image is low-contrast
+  const fallbacks=[
+    {cx:.5,cy:.1,rx:.24,ry:.08,score:.8,n:1},
+    {cx:.5,cy:.3,rx:.28,ry:.1,score:.7,n:1},
+    {cx:.5,cy:.58,rx:.25,ry:.09,score:.55,n:1},
+    {cx:.5,cy:.82,rx:.22,ry:.07,score:.4,n:1},
+  ];
+  fallbacks.forEach(fb=>{
+    if(!top.some(r=>Math.abs(r.cy-fb.cy)<0.13))top.push(fb);
+  });
+
+  const ms=Math.max(...top.map(r=>r.score))||1;
+  top.forEach(r=>r.score/=ms);
+  S.regions=top;
 }
 
-/* ── Core heuristic model ── */
-function computeAnalysis() {
-  const W = 1.0; // normalized width
-  const H = 1.0; // normalized height
+/* ── Context weighting ── */
+function applyContext(){
+  const age=$('sa').value,exp=$('se').value;
+  const goal=$('sgo').value,n=$('tn').value.toLowerCase();
+  const mode=S.mode;
 
-  // Gather context
-  const age = document.getElementById('sel-age').value;
-  const experience = document.getElementById('sel-experience').value;
-  const goal = document.getElementById('sel-goal').value;
-  const notes = document.getElementById('txt-notes').value.toLowerCase();
-  const preset = state.activePreset;
-  const gazeCount = parseInt(sliderGaze.value);
+  S.regions.forEach(r=>{
+    const{cy:ny,cx:nx}=r;let m=1;
+    // Mode
+    if(mode==='hierarchy') m*=(1+(1-ny)*0.55);
+    else if(mode==='cta'){const b=1-Math.abs(ny-.65)*1.4;m*=(.65+Math.max(0,b)*.9);}
+    else if(mode==='scan') m*=(1-Math.abs(nx-.25)*.5);
+    else if(mode==='firstuse') m*=(1+(1-ny)*.75);
+    else if(mode==='trust'){const b=1-Math.abs(ny-.55)*.8;m*=(.6+b*.8);}
+    // Age
+    if(age==='55+'||age==='45-54') m*=(1+(1-ny)*.35);
+    if(age==='18-24') m*=(.8+ny*.35);
+    // Experience
+    if(exp==='first-time'||exp==='novice') m*=(1+(1-ny)*.45);
+    if(exp==='expert') m*=(1-Math.abs(nx-.5)*.25)*1.1;
+    // Goal
+    if(goal==='purchase'&&ny>.4&&ny<.8) m*=1.3;
+    if(goal==='browse'&&ny>.2) m*=(1+.22*ny);
+    if(goal==='signin'&&ny>.3&&ny<.7) m*=1.25;
+    // Notes keywords
+    const ec=n.includes('ecommerce')||n.includes('e-commerce')||n.includes('shop');
+    const fin=n.includes('finance')||n.includes('bank');
+    const hth=n.includes('health')||n.includes('medical');
+    if(ec&&ny>.4) m*=1.2;
+    if(fin&&ny<.4) m*=1.18;
+    if(hth&&ny<.35) m*=1.2;
+    if(n.includes('older')&&ny<.5) m*=1.25;
+    if(n.includes('onboard')&&ny<.3) m*=1.3;
+    r.score=Math.min(r.score*m,1);
+  });
 
-  // ── Saliency zone seeds (normalized 0-1 coordinates) ──
-  // Based on standard mobile UI scanning heuristics:
-  // - Top-center: Logo / brand / header (strong bias)
-  // - Upper-third center: Hero image / key value prop
-  // - Center: Primary CTA or form
-  // - Lower-center: Secondary CTA / navigation
-  // - Corners: Navigation elements, icons
+  S.regions.sort((a,b)=>b.score-a.score);
+  labelRegions();
+}
 
-  let zones = [
-    // {cx, cy, weight, label, labelType}
-    { cx: 0.50, cy: 0.07,  w: 1.1,  label: 'Header / Brand',           ltype: 'primary' },
-    { cx: 0.50, cy: 0.22,  w: 1.4,  label: 'Primary focal point',       ltype: 'primary' },
-    { cx: 0.50, cy: 0.40,  w: 1.0,  label: 'Content block',             ltype: 'info' },
-    { cx: 0.50, cy: 0.58,  w: 1.2,  label: 'Likely first actionable',   ltype: 'primary' },
-    { cx: 0.50, cy: 0.74,  w: 0.8,  label: 'Secondary content',         ltype: 'info' },
-    { cx: 0.50, cy: 0.88,  w: 0.9,  label: 'Footer / Navigation',       ltype: 'info' },
-    { cx: 0.25, cy: 0.35,  w: 0.55, label: 'Left content zone',         ltype: 'low' },
-    { cx: 0.75, cy: 0.35,  w: 0.45, label: 'Right content zone',        ltype: 'low' },
-    { cx: 0.25, cy: 0.60,  w: 0.5,  label: 'Possible distraction zone', ltype: 'warn' },
-    { cx: 0.75, cy: 0.60,  w: 0.4,  label: 'Low-attention region',      ltype: 'low' },
-  ];
+function labelRegions(){
+  const mode=S.mode,goal=$('sgo').value,n=$('tn').value.toLowerCase();
+  const ec=n.includes('ecommerce')||n.includes('e-commerce')||goal==='purchase';
+  const ob=n.includes('onboard')||goal==='signin';
+  const fin=n.includes('finance')||n.includes('bank');
 
-  // ── Context-based weight adjustments ──
+  S.regions.forEach((r,i)=>{
+    const{cy:ny}=r;
+    if(i===0){
+      if(ny<.18) r.label='Strong visual anchor — header';
+      else if(ny<.45&&ec) r.label='Product hero — primary focus';
+      else if(ny<.45&&ob) r.label='Onboarding hero — primary';
+      else r.label='Primary focal point';
+      r.lt='primary';
+    } else if(i===1){
+      if(mode==='cta'||(ny>.45&&ny<.8)) {r.label=ec?'Primary CTA — Buy / Add':'Likely first actionable';r.lt='cta';}
+      else if(ny<.3){r.label='Strong visual anchor';r.lt='primary';}
+      else{r.label='Content-dense scan zone';r.lt='cta';}
+    } else if(i===2){
+      if(fin&&ny>.5){r.label='Trust / reassurance area';r.lt='warn';}
+      else if(ny>.72){r.label='Secondary supporting content';r.lt='low';}
+      else{r.label='Content-dense scan zone';r.lt='cta';}
+    } else if(i===3){
+      r.label=ny>.75?'Navigation / footer':'Secondary content block';r.lt='low';
+    } else if(i===4){
+      r.label=r.score<.35?'Low-emphasis region':'Possible distraction area';
+      r.lt=r.score<.35?'low':'warn';
+    } else {
+      r.label=r.score<.3?'Low-attention region':'Secondary element';r.lt='low';
+    }
+  });
+}
 
-  // Older users: prefer top content, larger readable areas
-  if (age === '55+' || age === '45-54') {
-    zones[0].w *= 1.2;
-    zones[1].w *= 1.1;
-    zones[3].w *= 1.3; // CTA more prominent
+/* ── Gaze path ── */
+function buildGaze(){
+  const cnt=parseInt(sg2.value),mode=S.mode,exp=$('se').value;
+  const pool=S.regions.slice(0,Math.min(cnt+3,S.regions.length));
+  let ord=[...pool];
+
+  if(mode==='scan'){
+    ord.sort((a,b)=>{
+      if(Math.abs(a.cy-b.cy)<.12)return a.cx-b.cx;
+      return a.cy-b.cy;
+    });
+  } else if(mode==='cta'){
+    ord.sort((a,b)=>b.score-a.score);
+  } else {
+    // Reading-order with saliency interrupt
+    ord=ord.map(r=>({...r,ro:r.cy+(1-r.score)*.22}));
+    ord.sort((a,b)=>a.ro-b.ro);
   }
 
-  // First-time / novice: onboarding cues at top dominate
-  if (experience === 'first-time' || experience === 'novice') {
-    zones[1].w *= 1.4;
-    zones[0].w *= 1.2;
-    zones[2].w *= 0.8; // Less body content scanning
+  // Expert users: non-linear mid-section
+  if(exp==='expert'&&ord.length>3){
+    const mid=ord.splice(1,ord.length-2);
+    // Mild reorder by score for non-linear feel
+    mid.sort((a,b)=>(b.score-a.score)+(.3*Math.random()-.15));
+    ord.splice(1,0,...mid);
   }
 
-  // Expert users: scan more broadly, less top bias
-  if (experience === 'expert') {
-    zones[6].w *= 1.3;
-    zones[7].w *= 1.3;
-    zones[8].w *= 1.2;
-  }
-
-  // Goal: purchase
-  if (goal === 'purchase' || notes.includes('e-commerce') || notes.includes('ecommerce') || notes.includes('shop') || preset === 'ecommerce') {
-    zones[1].w *= 1.5; // product hero
-    zones[3].w *= 1.6; // CTA
-    zones[5].w *= 1.1; // trust/footer
-    zones[1].label = 'Product hero — high attention';
-    zones[3].label = 'Primary CTA (Buy/Add to Cart)';
-  }
-
-  // Goal: browse
-  if (goal === 'browse' || preset === 'social' || preset === 'news') {
-    zones[2].w *= 1.4;
-    zones[4].w *= 1.3;
-    zones[6].w *= 1.2;
-    zones[7].w *= 1.2;
-    zones[2].label = 'Feed / Content scan area';
-  }
-
-  // Finance / health: trust-heavy, conservative
-  if (notes.includes('finance') || notes.includes('bank') || notes.includes('health') || notes.includes('medical') || preset === 'finance' || preset === 'health') {
-    zones[0].w *= 1.3; // trust header
-    zones[1].w *= 0.9;
-    zones[3].w *= 1.2;
-    zones[8].label = 'Possible trust-signal zone';
-    zones[8].ltype = 'warn';
-  }
-
-  // Onboarding
-  if (experience === 'first-time' || goal === 'signin' || preset === 'onboarding') {
-    zones[1].label = 'Onboarding hero — primary';
-    zones[3].label = 'Sign-up / Get started CTA';
-    zones[3].w *= 1.5;
-  }
-
-  // Normalize weights to 0-1
-  const maxW = Math.max(...zones.map(z => z.w));
-  zones.forEach(z => z.w = z.w / maxW);
-
-  // ── Build heatmap regions (ellipses) ──
-  state.heatmapRegions = zones.map(z => ({
-    cx: z.cx,
-    cy: z.cy,
-    rx: 0.22 + (z.w * 0.1),
-    ry: 0.08 + (z.w * 0.05),
-    intensity: z.w
-  }));
-
-  // ── Build gaze path (scan order by weight) ──
-  // Sort zones by weight desc, then apply reading-order tiebreaking (top-to-bottom, left-to-right)
-  const sorted = [...zones].sort((a, b) => {
-    const weightDiff = b.w - a.w;
-    if (Math.abs(weightDiff) > 0.15) return weightDiff;
-    return a.cy - b.cy; // top-to-bottom reading order for similar weight
-  }).slice(0, gazeCount);
-
-  state.gazePoints = sorted.map((z, i) => ({
-    x: z.cx,
-    y: z.cy,
-    rank: i + 1,
-    label: z.label,
-    labelType: z.ltype
+  S.gaze=ord.slice(0,cnt).map((r,i)=>({
+    x:r.cx,y:r.cy,rank:i+1,label:r.label,lt:r.lt,score:r.score
   }));
 }
 
@@ -1427,297 +816,238 @@ function computeAnalysis() {
    RENDERING
 ══════════════════════════════════════════════════════════ */
 
-function clearOverlays() {
-  const ctx = overlayCanvas.getContext('2d');
-  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-  // Remove old DOM markers
-  canvasContainer.querySelectorAll('.gaze-marker, .attn-label').forEach(el => el.remove());
+function clearOverlays(){
+  const ctx=oc.getContext('2d');
+  ctx.clearRect(0,0,oc.width,oc.height);
+  cw.querySelectorAll('.gmk,.albl').forEach(el=>el.remove());
 }
 
-function redrawOverlays() {
+function redraw(){
   clearOverlays();
-  if (!state.analysisReady) return;
-
-  // Sync canvas size to displayed image size
-  const rect = uploadedImg.getBoundingClientRect();
-  const containerRect = canvasContainer.getBoundingClientRect();
-  const imgOffX = rect.left - containerRect.left;
-  const imgOffY = rect.top - containerRect.top;
-
-  overlayCanvas.width = containerRect.width;
-  overlayCanvas.height = containerRect.height;
-
-  const iW = rect.width;
-  const iH = rect.height;
-
-  const ctx = overlayCanvas.getContext('2d');
-  const intensity = parseInt(sliderIntensity.value) / 100;
-
-  // ── Heatmap ──
-  if (state.layers.heatmap) {
-    drawHeatmap(ctx, imgOffX, imgOffY, iW, iH, intensity);
-  }
-
-  // ── Gaze markers & labels ──
-  if (state.layers.gaze) {
-    state.gazePoints.forEach((pt, idx) => {
-      const px = imgOffX + pt.x * iW;
-      const py = imgOffY + pt.y * iH;
-      const marker = document.createElement('div');
-      marker.className = 'gaze-marker';
-      marker.textContent = pt.rank;
-      marker.style.left = px + 'px';
-      marker.style.top = py + 'px';
-      marker.style.borderColor = getGazeColor(pt.rank, state.gazePoints.length);
-      marker.style.color = getGazeColor(pt.rank, state.gazePoints.length);
-      canvasContainer.appendChild(marker);
-      setTimeout(() => marker.classList.add('visible'), 80 * idx);
-    });
-
-    // Draw connecting path on canvas
-    drawGazePath(ctx, imgOffX, imgOffY, iW, iH);
-  }
-
-  // ── Labels ──
-  if (state.layers.labels) {
-    state.gazePoints.slice(0, 5).forEach((pt, idx) => {
-      const px = imgOffX + pt.x * iW;
-      const py = imgOffY + pt.y * iH;
-      const label = document.createElement('div');
-      label.className = 'attn-label ' + pt.labelType;
-      label.textContent = pt.label;
-      // Position label to avoid clipping edges
-      const lx = Math.min(px + 18, containerRect.width - 160);
-      const ly = py - 24 < 0 ? py + 16 : py - 24;
-      label.style.left = lx + 'px';
-      label.style.top = ly + 'px';
-      canvasContainer.appendChild(label);
-      setTimeout(() => label.classList.add('visible'), 200 + 100 * idx);
-    });
-  }
+  if(!S.ready)return;
+  oc.width=ui.offsetWidth;
+  oc.height=ui.offsetHeight;
+  const W=oc.width,H=oc.height;
+  const ctx=oc.getContext('2d');
+  const inten=parseInt(si.value)/100;
+  if(S.layers.heatmap)drawHeat(ctx,W,H,inten);
+  if(S.layers.gaze){drawPath(ctx,W,H);placeMarkers(W,H);}
+  if(S.layers.labels)placeLabels(W,H);
 }
 
-function drawHeatmap(ctx, ox, oy, iW, iH, intensity) {
+function drawHeat(ctx,W,H,inten){
   ctx.save();
-  ctx.globalAlpha = 0.72 * intensity;
-
-  state.heatmapRegions.forEach(r => {
-    const cx = ox + r.cx * iW;
-    const cy = oy + r.cy * iH;
-    const rx = r.rx * iW;
-    const ry = r.ry * iH;
-    const r0 = Math.min(rx, ry) * 0.1;
-    const r1 = Math.max(rx, ry);
-
-    const grad = ctx.createRadialGradient(cx, cy, r0, cx, cy, r1);
-    if (r.intensity > 0.75) {
-      grad.addColorStop(0,   `rgba(255, 30,  10, ${0.75 * r.intensity})`);
-      grad.addColorStop(0.35,`rgba(255, 100, 20, ${0.5  * r.intensity})`);
-      grad.addColorStop(0.7, `rgba(255, 200, 40, ${0.25 * r.intensity})`);
-      grad.addColorStop(1,   'rgba(255, 220, 60, 0)');
-    } else if (r.intensity > 0.45) {
-      grad.addColorStop(0,   `rgba(255, 120, 20, ${0.55 * r.intensity})`);
-      grad.addColorStop(0.4, `rgba(255, 180, 40, ${0.3  * r.intensity})`);
-      grad.addColorStop(1,   'rgba(255, 220, 60, 0)');
+  ctx.globalAlpha=inten*0.76;
+  S.regions.forEach(r=>{
+    const cx=r.cx*W,cy=r.cy*H;
+    const rx=r.rx*W,ry=r.ry*H;
+    const rad=Math.max(rx,ry);
+    const g=ctx.createRadialGradient(cx,cy,1,cx,cy,rad);
+    if(r.score>.72){
+      g.addColorStop(0,`rgba(255,22,5,${.84*r.score})`);
+      g.addColorStop(.3,`rgba(255,88,10,${.56*r.score})`);
+      g.addColorStop(.65,`rgba(255,175,30,${.3*r.score})`);
+      g.addColorStop(1,'rgba(255,215,55,0)');
+    } else if(r.score>.42){
+      g.addColorStop(0,`rgba(255,108,15,${.66*r.score})`);
+      g.addColorStop(.42,`rgba(255,172,32,${.38*r.score})`);
+      g.addColorStop(1,'rgba(255,215,55,0)');
     } else {
-      grad.addColorStop(0,   `rgba(56, 189, 248, ${0.3  * r.intensity})`);
-      grad.addColorStop(0.5, `rgba(56, 189, 248, ${0.1  * r.intensity})`);
-      grad.addColorStop(1,   'rgba(56, 189, 248, 0)');
+      g.addColorStop(0,`rgba(48,182,244,${.38*r.score})`);
+      g.addColorStop(.5,`rgba(48,182,244,${.14*r.score})`);
+      g.addColorStop(1,'rgba(48,182,244,0)');
     }
-
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-    ctx.fillStyle = grad;
-    ctx.fill();
+    ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+    ctx.fillStyle=g;ctx.fill();
   });
-
   ctx.restore();
 }
 
-function drawGazePath(ctx, ox, oy, iW, iH) {
-  if (state.gazePoints.length < 2) return;
-  ctx.save();
-  ctx.setLineDash([3, 5]);
-  ctx.strokeStyle = 'rgba(110, 231, 183, 0.28)';
-  ctx.lineWidth = 1.5;
+function drawPath(ctx,W,H){
+  if(S.gaze.length<2)return;
+  ctx.save();ctx.setLineDash([3,6]);
+  ctx.strokeStyle='rgba(94,232,184,0.22)';ctx.lineWidth=1.5;
   ctx.beginPath();
-  state.gazePoints.forEach((pt, i) => {
-    const px = ox + pt.x * iW;
-    const py = oy + pt.y * iH;
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+  S.gaze.forEach((p,i)=>{
+    if(i===0)ctx.moveTo(p.x*W,p.y*H);
+    else ctx.lineTo(p.x*W,p.y*H);
   });
-  ctx.stroke();
-  ctx.restore();
+  ctx.stroke();ctx.restore();
 }
 
-function getGazeColor(rank, total) {
-  // Gradient: bright green (early) → amber (mid) → rose (late)
-  const t = (rank - 1) / Math.max(total - 1, 1);
-  if (t < 0.4) return `hsl(${155 - t*80}, 80%, 65%)`;
-  if (t < 0.7) return `hsl(${43 - (t-0.4)*60}, 90%, 60%)`;
-  return `hsl(${330 + (t-0.7)*30}, 75%, 65%)`;
+function placeMarkers(W,H){
+  const tot=S.gaze.length;
+  S.gaze.forEach((p,i)=>{
+    const mk=document.createElement('div');
+    mk.className='gmk';mk.textContent=p.rank;
+    mk.style.left=p.x*W+'px';mk.style.top=p.y*H+'px';
+    const c=gcol(p.rank,tot);mk.style.borderColor=c;mk.style.color=c;
+    cw.appendChild(mk);
+    setTimeout(()=>mk.classList.add('vis'),55*i);
+  });
 }
 
-/* ── Summary panel ── */
-function renderSummary() {
-  const age       = document.getElementById('sel-age').value || 'All ages';
-  const gender    = document.getElementById('sel-gender').value;
-  const experience= document.getElementById('sel-experience').value;
-  const goal      = document.getElementById('sel-goal').value;
-  const region    = document.getElementById('sel-region').value;
-  const notes     = document.getElementById('txt-notes').value.trim();
-  const preset    = state.activePreset;
-
-  // Confidence
-  const confVal = parseInt(confFill.style.width) || 0;
-  summaryBadge.textContent = confVal + '% confidence';
-
-  // Infer scan pattern
-  let scanPattern = 'Z-pattern (typical mobile scan)';
-  if (preset === 'news' || goal === 'browse') scanPattern = 'F-pattern (content scan)';
-  if (experience === 'expert') scanPattern = 'Selective scan (non-linear)';
-  if (experience === 'first-time' || experience === 'novice') scanPattern = 'Top-down linear (cautious)';
-  if (goal === 'purchase') scanPattern = 'Goal-oriented (CTA-directed)';
-
-  // Primary focal
-  const topPt = state.gazePoints[0];
-  const primaryFocal = topPt ? topPt.label : 'Top-center region';
-
-  // Underperforming
-  const lowPts = state.gazePoints.filter(p => p.labelType === 'low');
-  const underperforming = lowPts.length > 0
-    ? lowPts[0].label
-    : 'Lower-corner regions (typical low-attention zones)';
-
-  // Audience description
-  let audience = [age, gender !== 'mixed' ? gender : null, experience, region !== 'global' ? region : null]
-    .filter(Boolean).join(', ');
-  if (!audience) audience = 'General audience (no context specified)';
-
-  const cards = [
-    { label: 'Audience', value: audience },
-    { label: 'Scan pattern', value: scanPattern, accent: true },
-    { label: 'Primary focal point', value: primaryFocal, accent: true },
-    { label: 'Under-attention area', value: underperforming },
-  ];
-
-  summaryGrid.innerHTML = cards.map(c => `
-    <div class="summary-card">
-      <div class="summary-card-label">${c.label}</div>
-      <div class="summary-card-value${c.accent ? ' accent' : ''}">${c.value}</div>
-    </div>
-  `).join('');
+function placeLabels(W,H){
+  S.gaze.slice(0,5).forEach((p,i)=>{
+    const l=document.createElement('div');
+    l.className='albl '+p.lt;l.textContent=p.label;
+    let lx=p.x*W+17,ly=p.y*H-18;
+    if(lx+185>W)lx=p.x*W-192;
+    if(ly<0)ly=p.y*H+16;
+    l.style.left=lx+'px';l.style.top=ly+'px';
+    cw.appendChild(l);
+    setTimeout(()=>l.classList.add('vis'),170+85*i);
+  });
 }
 
-function renderAnalysis() {
-  // Sync canvas dimensions then draw
-  const rect = uploadedImg.getBoundingClientRect();
-  const containerRect = canvasContainer.getBoundingClientRect();
-  overlayCanvas.width = containerRect.width;
-  overlayCanvas.height = containerRect.height;
-  redrawOverlays();
+function gcol(rank,tot){
+  const t=(rank-1)/Math.max(tot-1,1);
+  if(t<.35)return`hsl(${160-t*65},82%,62%)`;
+  if(t<.68)return`hsl(${43-(t-.35)*100},90%,58%)`;
+  return`hsl(${330+(t-.68)*40},72%,62%)`;
 }
 
-/* ── Redraw on resize ── */
-window.addEventListener('resize', () => {
-  if (state.analysisReady) {
-    clearOverlays();
-    requestAnimationFrame(redrawOverlays);
-  }
+/* ── Resize ── */
+let resT;
+window.addEventListener('resize',()=>{
+  clearTimeout(resT);resT=setTimeout(()=>{if(S.ready)redraw();},90);
 });
+
+/* ── Results panel ── */
+function showResults(){
+  const age=$('sa').value||'All ages',exp=$('se').value;
+  const goal=$('sgo').value,n=$('tn').value.trim(),mode=S.mode;
+  const sig=parseInt(sfill.style.width)||0;
+
+  const ml={hierarchy:'Visual Hierarchy',cta:'CTA Attention',scan:'Content Scan',firstuse:'First-Time User',trust:'Trust / Eval'};
+  rmode.textContent=ml[mode]||mode;
+  rbadge.textContent=sig+'% signal';
+
+  let pat='Z-pattern (mobile default)';
+  if(mode==='scan') pat='F-pattern (content scan)';
+  if(exp==='expert') pat='Selective / non-linear';
+  if(exp==='first-time'||exp==='novice') pat='Top-down linear (cautious)';
+  if(goal==='purchase') pat='Goal-directed (CTA-focused)';
+  if(mode==='firstuse') pat='Sequential top-down';
+  if(mode==='trust') pat='Evaluative / detail-scanning';
+
+  const tp=S.gaze[0],prim=tp?tp.label:'Top-center region';
+  const lp=S.gaze.find(p=>p.lt==='low');
+  const under=lp?lp.label:'Lower-corner areas (typical low-attention)';
+
+  const cs=S.stats.cs||0;
+  const qNote=cs>.62?'High-contrast — strong pixel-level detection':
+    cs>.32?'Moderate contrast — reliable region detection':
+    'Low contrast — position heuristics applied';
+
+  rgrid.innerHTML=[
+    {lbl:'Primary focal point',val:prim,cls:'ac'},
+    {lbl:'Likely scan pattern',val:pat,cls:'ac2'},
+    {lbl:'Under-attended area',val:under,cls:'w'},
+    {lbl:'Image signal quality',val:qNote,cls:''},
+  ].map(c=>`<div class="rcard"><div class="rclbl">${c.lbl}</div><div class="rcval ${c.cls}">${c.val}</div></div>`).join('');
+
+  rrbody.innerHTML=buildReason(mode,exp,goal,n,age);
+  rreason.style.display='block';
+}
+
+function buildReason(mode,exp,goal,n,age){
+  const nl=n.toLowerCase();
+  const modes={
+    hierarchy:'Visual hierarchy mode emphasizes top-of-screen weight, detected contrast peaks, and center-horizontal bias — reflecting typical first-look behavior on unfamiliar screens.',
+    cta:'CTA Attention mode down-weights passive content and amplifies mid-to-lower screen focal zones where actionable elements typically appear in mobile UI patterns.',
+    scan:'Content Scan applies an F-pattern heuristic: users consume the first two horizontal bands fully, then scan primarily down the left axis with decreasing depth.',
+    firstuse:'First-Time User mode heavily weights the top third of the screen, where onboarding patterns, value propositions, and entry points concentrate for new users.',
+    trust:'Trust / Evaluation mode focuses on mid-screen validation signals, social proof regions, and detail-dense information blocks that evaluative readers inspect carefully.'
+  };
+  let parts=[`<strong>Mode:</strong> ${modes[mode]||''}`];
+  if(exp==='first-time'||exp==='novice') parts.push('<strong>Experience:</strong> Novice users were modeled reading linearly from top to bottom, with reduced lateral scanning and greater emphasis on the primary headline zone.');
+  if(exp==='expert') parts.push('<strong>Experience:</strong> Expert users tend to scan non-linearly, jumping to familiar affordances. Lateral and peripheral regions received increased weighting.');
+  if(goal==='purchase') parts.push('<strong>Goal:</strong> Purchase intent shifts attention to product imagery, pricing cues, and CTA zones — these regions were amplified in the weighting model.');
+  if(goal==='trust') parts.push('<strong>Goal:</strong> Trust-building behavior elevates dwell on mid-screen credentials and reassurance signals.');
+  if(nl.includes('finance')||nl.includes('bank')) parts.push('<strong>Context:</strong> Finance keywords detected — conservative reading patterns applied with higher header authority weighting.');
+  if(nl.includes('health')||nl.includes('medical')) parts.push('<strong>Context:</strong> Health context noted — trust signals and accessibility-aware top-heavy distribution were weighted more strongly.');
+  if(nl.includes('older')||age==='55+') parts.push('<strong>Audience:</strong> Older demographic modeled — upper-screen content and high-contrast focal zones received stronger weighting.');
+  const cs=S.stats.cs||0;
+  if(cs>.62) parts.push('<strong>Image signal:</strong> Strong luminance gradients detected in this mockup — region clustering is grounded primarily in pixel-level contrast differences, producing a more image-specific result.');
+  else if(cs>.32) parts.push('<strong>Image signal:</strong> Moderate contrast detected. Saliency regions combine pixel-level luminance peaks with positional heuristics.');
+  else parts.push('<strong>Image signal:</strong> Low-contrast image — analysis relies more on position and reading-order heuristics. Higher-fidelity mockups produce sharper, more image-specific results.');
+  return parts.join('<br><br>');
+}
 
 /* ── Export ── */
-btnDownload.addEventListener('click', () => {
-  const exportCanvas = document.createElement('canvas');
-  const img = uploadedImg;
-  exportCanvas.width = img.naturalWidth;
-  exportCanvas.height = img.naturalHeight;
-  const ctx = exportCanvas.getContext('2d');
-  ctx.drawImage(img, 0, 0);
+btnDl.addEventListener('click',()=>{
+  const W=S.nw,H=S.nh;
+  const ec=document.createElement('canvas');
+  ec.width=W;ec.height=H+38;
+  const ctx=ec.getContext('2d');
+  ctx.drawImage(ui,0,0,W,H);
+  const inten=parseInt(si.value)/100;
 
-  // Scale heatmap to natural image dimensions
-  const rect = img.getBoundingClientRect();
-  const scaleX = img.naturalWidth / rect.width;
-  const scaleY = img.naturalHeight / rect.height;
-
-  const intensity = parseInt(sliderIntensity.value) / 100;
-
-  if (state.layers.heatmap) {
-    ctx.save();
-    ctx.globalAlpha = 0.72 * intensity;
-    state.heatmapRegions.forEach(r => {
-      const cx = r.cx * img.naturalWidth;
-      const cy = r.cy * img.naturalHeight;
-      const rx = r.rx * img.naturalWidth;
-      const ry = r.ry * img.naturalHeight;
-      const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, Math.max(rx, ry));
-      if (r.intensity > 0.75) {
-        grad.addColorStop(0,   `rgba(255, 30,  10, ${0.75 * r.intensity})`);
-        grad.addColorStop(0.35,`rgba(255, 100, 20, ${0.5  * r.intensity})`);
-        grad.addColorStop(0.7, `rgba(255, 200, 40, ${0.25 * r.intensity})`);
-        grad.addColorStop(1,   'rgba(0,0,0,0)');
-      } else if (r.intensity > 0.45) {
-        grad.addColorStop(0,   `rgba(255, 120, 20, ${0.55 * r.intensity})`);
-        grad.addColorStop(0.4, `rgba(255, 180, 40, ${0.3  * r.intensity})`);
-        grad.addColorStop(1,   'rgba(0,0,0,0)');
+  if(S.layers.heatmap){
+    ctx.save();ctx.globalAlpha=inten*.76;
+    S.regions.forEach(r=>{
+      const cx=r.cx*W,cy=r.cy*H,rx=r.rx*W,ry=r.ry*H;
+      const rad=Math.max(rx,ry);
+      const g=ctx.createRadialGradient(cx,cy,2,cx,cy,rad);
+      if(r.score>.72){
+        g.addColorStop(0,`rgba(255,22,5,${.84*r.score})`);
+        g.addColorStop(.3,`rgba(255,88,10,${.56*r.score})`);
+        g.addColorStop(.65,`rgba(255,175,30,${.3*r.score})`);
+        g.addColorStop(1,'rgba(0,0,0,0)');
+      } else if(r.score>.42){
+        g.addColorStop(0,`rgba(255,108,15,${.66*r.score})`);
+        g.addColorStop(.42,`rgba(255,172,32,${.38*r.score})`);
+        g.addColorStop(1,'rgba(0,0,0,0)');
       } else {
-        grad.addColorStop(0,   `rgba(56, 189, 248, ${0.3  * r.intensity})`);
-        grad.addColorStop(0.5, `rgba(56, 189, 248, ${0.1  * r.intensity})`);
-        grad.addColorStop(1,   'rgba(0,0,0,0)');
+        g.addColorStop(0,`rgba(48,182,244,${.38*r.score})`);
+        g.addColorStop(.5,`rgba(48,182,244,${.14*r.score})`);
+        g.addColorStop(1,'rgba(48,182,244,0)');
       }
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-      ctx.fillStyle = grad;
-      ctx.fill();
+      ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+      ctx.fillStyle=g;ctx.fill();
     });
     ctx.restore();
   }
 
-  // Gaze numbers on export
-  if (state.layers.gaze) {
+  if(S.layers.gaze){
+    const tot=S.gaze.length;
     ctx.save();
-    ctx.setLineDash([3, 5]);
-    ctx.strokeStyle = 'rgba(110, 231, 183, 0.35)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    state.gazePoints.forEach((pt, i) => {
-      const px = pt.x * img.naturalWidth;
-      const py = pt.y * img.naturalHeight;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
-    });
-    ctx.stroke();
-
-    state.gazePoints.forEach(pt => {
-      const px = pt.x * img.naturalWidth;
-      const py = pt.y * img.naturalHeight;
-      const r = 18;
+    if(S.gaze.length>1){
+      ctx.setLineDash([4,8]);ctx.strokeStyle='rgba(94,232,184,.3)';ctx.lineWidth=2;
       ctx.beginPath();
-      ctx.arc(px, py, r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(14,15,17,0.82)';
-      ctx.fill();
-      ctx.strokeStyle = getGazeColor(pt.rank, state.gazePoints.length);
-      ctx.lineWidth = 2;
-      ctx.setLineDash([]);
+      S.gaze.forEach((p,i)=>{if(i===0)ctx.moveTo(p.x*W,p.y*H);else ctx.lineTo(p.x*W,p.y*H);});
       ctx.stroke();
-      ctx.fillStyle = getGazeColor(pt.rank, state.gazePoints.length);
-      ctx.font = `bold ${14}px 'Syne', sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(pt.rank, px, py + 1);
+    }
+    S.gaze.forEach(p=>{
+      const px=p.x*W,py=p.y*H,r=Math.max(14,W*.02);
+      ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);
+      ctx.fillStyle='rgba(11,12,15,.88)';ctx.fill();
+      ctx.strokeStyle=gcol(p.rank,tot);ctx.lineWidth=2;ctx.setLineDash([]);ctx.stroke();
+      ctx.fillStyle=gcol(p.rank,tot);
+      ctx.font=`bold ${Math.max(11,r*.78)}px 'Syne',sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.rank,px,py+1);
     });
     ctx.restore();
   }
 
-  const a = document.createElement('a');
-  a.download = 'focal-analysis.png';
-  a.href = exportCanvas.toDataURL('image/png');
-  a.click();
+  // Footer
+  const fs=Math.max(10,W*.013);
+  ctx.fillStyle='rgba(11,12,15,.94)';ctx.fillRect(0,H,W,38);
+  ctx.fillStyle='#5ee8b8';ctx.font=`bold ${fs}px 'Syne',sans-serif`;
+  ctx.textBaseline='middle';ctx.textAlign='left';
+  ctx.fillText('Focal · Simulated Attention Analysis',12,H+19);
+  const ml={hierarchy:'Visual Hierarchy',cta:'CTA Attention',scan:'Content Scan',firstuse:'First-Time User',trust:'Trust / Eval'};
+  ctx.fillStyle='#3a3f50';ctx.font=`${Math.max(9,W*.011)}px 'DM Mono',monospace`;
+  ctx.textAlign='right';
+  ctx.fillText(`Mode: ${ml[S.mode]} · ${new Date().toLocaleDateString()}`,W-12,H+19);
+
+  const a=document.createElement('a');a.download='focal-analysis.png';
+  a.href=ec.toDataURL('image/png');a.click();
 });
 
-/* ── Initial state ── */
-updateConfidence();
+/* ── Init ── */
+calcSig();
 </script>
 </body>
 </html>

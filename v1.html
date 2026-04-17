@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Effects Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090e;--panel:#101017;--panel2:#17171f;--panel3:#1f1f29;--panel4:#282834;
+  --border:rgba(255,255,255,0.055);--border2:rgba(255,255,255,0.095);--border3:rgba(255,255,255,0.15);
+  --txt:#e0e0ef;--txt2:#72728c;--txt3:#3a3a50;
+  --accent:#6c63ff;--accent2:#8b84ff;--accent-dim:rgba(108,99,255,0.12);
+  --burst:#ff6b35;--burst2:#ff8c5a;--burst-dim:rgba(255,107,53,0.12);
+  --green:#1fd89a;--amber:#f5a623;--red:#ff4d6a;
+  --r:8px;--rsm:5px;--rxs:4px;
+  font-family:'DM Sans',system-ui,sans-serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt)}
+.app{display:grid;grid-template-rows:48px 1fr 34px;grid-template-columns:256px 1fr;width:100vw;height:100vh}
+
+/* TOPBAR */
+.topbar{grid-column:1/-1;grid-row:1;display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--border);z-index:20;overflow:hidden}
+.logo{display:flex;align-items:center;gap:9px;padding:0 16px;border-right:1px solid var(--border);flex-shrink:0;min-width:256px}
+.logo-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--burst));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.logo-name{font-size:13px;font-weight:600;letter-spacing:-0.02em;color:var(--txt)}
+.logo-tag{font-size:9px;color:var(--txt3);margin-top:1px;letter-spacing:0.04em}
+.mode-tabs{display:flex;align-items:stretch;border-right:1px solid var(--border)}
+.mode-tab{display:flex;align-items:center;gap:7px;padding:0 18px;border:none;background:transparent;color:var(--txt2);font-size:12px;font-weight:500;cursor:pointer;transition:all .13s;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit}
+.mode-tab:hover{color:var(--txt);background:var(--panel2)}
+.mode-tab[data-mode="confetti"].on{color:var(--accent2);border-bottom-color:var(--accent)}
+.mode-tab[data-mode="burst"].on{color:var(--burst2);border-bottom-color:var(--burst)}
+.type-tabs{display:flex;align-items:stretch;flex:1;overflow:hidden}
+.type-tab{display:flex;align-items:center;gap:5px;padding:0 11px;border:none;background:transparent;color:var(--txt3);font-size:11px;font-weight:500;cursor:pointer;transition:all .12s;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit}
+.type-tab:hover{color:var(--txt2);background:var(--panel2)}
+.type-tab.on{color:var(--accent2);border-bottom-color:var(--accent)}
+.burst-subtabs .type-tab.on{color:var(--burst2);border-bottom-color:var(--burst)}
+.topbar-right{display:flex;align-items:center;gap:7px;margin-left:auto;padding:0 14px;flex-shrink:0}
+.bg-segs{display:flex;background:var(--panel2);border:1px solid var(--border2);border-radius:20px;padding:2px;gap:1px}
+.bg-seg{padding:3px 10px;border-radius:16px;font-size:10.5px;font-weight:500;color:var(--txt2);cursor:pointer;border:none;background:transparent;transition:all .12s;font-family:inherit}
+.bg-seg.on{background:var(--panel3);color:var(--txt)}
+.tb-div{width:1px;height:18px;background:var(--border)}
+.tb-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:var(--rsm);font-size:11.5px;font-weight:500;cursor:pointer;transition:all .13s;border:1px solid var(--border2);background:var(--panel2);color:var(--txt2);white-space:nowrap;font-family:inherit}
+.tb-btn:hover{color:var(--txt);border-color:var(--border3);background:var(--panel3)}
+.tb-btn svg{width:11px;height:11px;flex-shrink:0}
+.play-btn{background:var(--accent);border-color:var(--accent);color:#fff}
+.play-btn:hover{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.play-btn.burst-play{background:var(--burst);border-color:var(--burst)}
+.play-btn.burst-play:hover{background:var(--burst2);border-color:var(--burst2)}
+.stop-btn{padding:5px 9px}
+.preview-btn{background:var(--panel2);border-color:var(--border2);color:var(--txt2)}
+.preview-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.preview-btn.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent2)}
+.preview-btn svg{width:12px;height:9px;flex-shrink:0}
+
+/* SIDEBAR */
+.sidebar{grid-column:1;grid-row:2;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-scroll{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sb-scroll::-webkit-scrollbar{width:3px}
+.sb-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* CANVAS */
+.canvas-wrap{grid-column:2;grid-row:2;position:relative;overflow:hidden}
+canvas{width:100%;height:100%;display:block;cursor:crosshair}
+
+/* STATUSBAR */
+.statusbar{grid-column:1/-1;grid-row:3;display:flex;align-items:center;background:var(--panel);border-top:1px solid var(--border);padding:0 16px;font-size:10px;color:var(--txt3)}
+.si{display:flex;align-items:center;gap:5px;padding:0 12px;border-right:1px solid var(--border)}
+.si:first-child{padding-left:0}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--txt3)}
+.sdot.live{background:var(--green);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.sval{font-weight:600;color:var(--txt2);font-family:'DM Mono',monospace}
+.shint{margin-left:auto;font-size:10px;color:var(--txt3)}
+
+/* SECTIONS */
+.sec{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sec-title{font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.1em;text-transform:uppercase}
+.sec-act{font-size:10px;color:var(--accent);cursor:pointer;font-weight:500;background:none;border:none;font-family:inherit;transition:color .12s}
+.sec-act:hover{color:var(--accent2)}
+
+/* PARAMS */
+.param{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;margin-bottom:6px}
+.param:last-child{margin-bottom:0}
+.plbl{font-size:11px;color:var(--txt2)}
+.pval{font-size:10px;font-weight:600;color:var(--txt);background:var(--panel3);border:1px solid var(--border2);border-radius:var(--rxs);padding:2px 6px;min-width:42px;text-align:right;font-family:'DM Mono',monospace}
+.srow{margin-bottom:9px}
+.srow:last-child{margin-bottom:0}
+input[type=range]{width:100%;-webkit-appearance:none;height:2px;border-radius:1px;background:var(--panel4);outline:none;cursor:pointer;margin-top:4px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);border:2px solid rgba(255,255,255,.1);transition:transform .1s;cursor:grab}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.22);box-shadow:0 0 0 4px rgba(108,99,255,.2)}
+input[type=range].bs::-webkit-slider-thumb{background:var(--burst)}
+input[type=range].bs::-webkit-slider-thumb:hover{box-shadow:0 0 0 4px rgba(255,107,53,.2)}
+
+/* TOGGLES */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
+.tog-lbl{font-size:11px;color:var(--txt2)}
+.tog{position:relative;width:32px;height:18px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-t{position:absolute;inset:0;border-radius:9px;background:var(--panel4);cursor:pointer;border:1px solid var(--border2);transition:all .18s}
+.tog input:checked+.tog-t{background:var(--accent);border-color:var(--accent)}
+.tog-t::before{content:'';position:absolute;width:12px;height:12px;left:2px;top:2px;border-radius:50%;background:rgba(255,255,255,.85);transition:transform .18s}
+.tog input:checked+.tog-t::before{transform:translateX(14px);background:#fff}
+.bt .tog input:checked+.tog-t{background:var(--burst);border-color:var(--burst)}
+
+/* SHAPES */
+.shapes-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.sh-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 3px 5px;border:1px solid var(--border);border-radius:var(--rsm);background:var(--panel2);cursor:pointer;font-size:9px;font-weight:500;color:var(--txt2);transition:all .12s;font-family:inherit}
+.sh-btn .si2{font-size:13px;line-height:1}
+.sh-btn:hover{border-color:var(--border3);color:var(--txt)}
+.sh-btn.on{border-color:rgba(245,166,35,.5);background:rgba(245,166,35,.08);color:var(--amber)}
+.sh-btn.bon{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.08);color:var(--burst)}
+
+/* Sparkle shape selector — two-button pill row */
+.spark-shape-row{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
+.ss-btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--rsm);background:var(--panel2);cursor:pointer;font-size:10px;font-weight:500;color:var(--txt2);transition:all .12s;font-family:inherit}
+.ss-btn:hover{border-color:var(--border3);color:var(--txt)}
+.ss-btn.on{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.08);color:var(--burst)}
+
+/* COLORS */
+.color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.sw{aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .13s}
+.sw.on{border-color:rgba(255,255,255,.6);transform:scale(1.1)}
+.sw:hover{transform:scale(1.13)}
+
+/* LAUNCHERS */
+.l-list{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.l-item{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:var(--rsm);border:1px solid transparent;cursor:pointer;transition:all .12s}
+.l-item:hover{background:var(--panel2)}
+.l-item.on{background:var(--panel2);border-color:var(--border3)}
+.l-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.l-name{font-size:11.5px;font-weight:500;color:var(--txt);flex:1}
+.l-meta{font-size:10px;color:var(--txt3);font-family:'DM Mono',monospace}
+.l-del{width:18px;height:18px;border-radius:var(--rxs);border:1px solid var(--border);background:transparent;color:var(--txt3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;font-family:inherit;line-height:1}
+.l-del:hover{background:rgba(255,77,106,.15);border-color:rgba(255,77,106,.4);color:var(--red)}
+.add-l{width:100%;padding:7px;border:1px dashed var(--border2);border-radius:var(--rsm);background:transparent;color:var(--txt3);font-size:11px;cursor:pointer;transition:all .13s;font-family:inherit}
+.add-l:hover{border-color:rgba(108,99,255,.4);color:var(--accent2);background:var(--accent-dim)}
+
+/* BURST ORIGIN */
+.origin-card{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:var(--rsm);margin-bottom:10px}
+.origin-dot{width:10px;height:10px;border-radius:50%;background:var(--burst);flex-shrink:0;box-shadow:0 0 6px rgba(255,107,53,.5)}
+.origin-txt{font-size:11px;color:var(--txt2);flex:1}
+.origin-pos{font-size:10px;color:var(--txt3);font-family:'DM Mono',monospace}
+
+/* BURST TYPE GRID */
+.bt-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.bt-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 6px 7px;border:1px solid var(--border);border-radius:var(--r);background:var(--panel2);cursor:pointer;font-size:10px;font-weight:500;color:var(--txt2);transition:all .13s;font-family:inherit}
+.bt-btn .bti{font-size:18px;line-height:1}
+.bt-btn:hover{border-color:var(--border3);color:var(--txt)}
+.bt-btn.on{border-color:rgba(255,107,53,.45);background:var(--burst-dim);color:var(--burst2)}
+
+/* EXPORT */
+.export-opts{display:flex;flex-direction:column;gap:5px}
+.exp-opt{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--r);border:1px solid var(--border);background:var(--panel2);cursor:pointer;transition:all .14s;position:relative;overflow:hidden}
+.exp-opt:hover{border-color:var(--border3);background:var(--panel3)}
+.exp-opt.rec{border-color:rgba(108,99,255,.28);background:rgba(108,99,255,.05)}
+.exp-opt.rec::after{content:'Figma';position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:600;color:var(--accent);background:var(--accent-dim);padding:2px 6px;border-radius:10px;border:1px solid rgba(108,99,255,.22)}
+.exp-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace}
+.exp-info{flex:1}
+.exp-name{font-size:11.5px;font-weight:600;color:var(--txt)}
+.exp-desc{font-size:10px;color:var(--txt2);margin-top:1px;line-height:1.4}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.stat-card{background:var(--panel2);border:1px solid var(--border);border-radius:var(--rsm);padding:8px 10px}
+.stat-v{font-size:19px;font-weight:600;color:var(--txt);font-family:'DM Mono',monospace;line-height:1}
+.stat-v.live{color:var(--green)}
+.stat-l{font-size:9px;color:var(--txt3);margin-top:3px;text-transform:uppercase;letter-spacing:.07em}
+
+/* CANVAS OVERLAYS */
+.canvas-info{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px;align-items:flex-end;pointer-events:none}
+.cbadge{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:3px 8px;font-size:10px;color:rgba(255,255,255,.35)}
+.rec-ind{position:absolute;top:10px;left:10px;display:none;align-items:center;gap:6px;background:rgba(255,77,106,.12);border:1px solid rgba(255,77,106,.28);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--red);font-weight:500}
+.rec-ind.show{display:flex}
+.rec-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 1s ease-in-out infinite}
+.exp-prog{position:absolute;inset:0;background:rgba(9,9,14,.82);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:30}
+.exp-prog.show{display:flex}
+.prog-wrap{width:220px;height:3px;background:var(--panel3);border-radius:2px;overflow:hidden}
+.prog-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .1s;width:0%}
+.prog-lbl{font-size:12px;color:var(--txt2)}
+
+/* MODE SWITCHING */
+.c-panel{display:block}
+.b-panel{display:none}
+.app.bmode .c-panel{display:none}
+.app.bmode .b-panel{display:block}
+.app.bmode .c-subtabs{display:none}
+.app.bmode .b-subtabs{display:flex}
+.c-subtabs{display:flex}
+.b-subtabs{display:none}
+</style>
+</head>
+<body>
+<div class="app" id="APP">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">✦</div>
+    <div>
+      <div class="logo-name">Effects Studio</div>
+      <div class="logo-tag">Figma-ready animation export</div>
+    </div>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab on" data-mode="confetti" onclick="setMode(this)">🎊 Confetti</button>
+    <button class="mode-tab" data-mode="burst" onclick="setMode(this)">✦ Burst FX</button>
+  </div>
+  <div class="type-tabs c-subtabs">
+    <button class="type-tab on" data-type="poppers" onclick="setCType(this)">🎉 Poppers</button>
+    <button class="type-tab" data-type="cannon" onclick="setCType(this)">💥 Cannon</button>
+    <button class="type-tab" data-type="blast" onclick="setCType(this)">⚡ Blast</button>
+    <button class="type-tab" data-type="freefall" onclick="setCType(this)">🌨 Fall</button>
+    <button class="type-tab" data-type="rain" onclick="setCType(this)">🎊 Cascade</button>
+    <button class="type-tab" data-type="fountain" onclick="setCType(this)">⛲ Fountain</button>
+    <button class="type-tab" data-type="fireworks" onclick="setCType(this)">✨ Fireworks</button>
+    <button class="type-tab" data-type="spiral" onclick="setCType(this)">🌀 Spiral</button>
+    <button class="type-tab" data-type="sides" onclick="setCType(this)">↔ Sides</button>
+    <button class="type-tab" data-type="overhead" onclick="setCType(this)">⬇ Overhead</button>
+  </div>
+  <div class="type-tabs b-subtabs burst-subtabs">
+    <button class="type-tab on" data-btype="starburst" onclick="setBType(this)">✦ Starburst</button>
+    <button class="type-tab" data-btype="lensflare" onclick="setBType(this)">☀ Lens Flare</button>
+    <button class="type-tab" data-btype="softglow" onclick="setBType(this)">◉ Soft Glow</button>
+    <button class="type-tab" data-btype="sparkfield" onclick="setBType(this)">✧ Spark Field</button>
+    <button class="type-tab" data-btype="orb" onclick="setBType(this)">● Orb</button>
+    <button class="type-tab" data-btype="corona" onclick="setBType(this)">⊙ Corona</button>
+    <button class="type-tab" data-btype="stardust" onclick="setBType(this)">✺ Stardust</button>
+  </div>
+  <div class="topbar-right">
+    <div class="bg-segs">
+      <button class="bg-seg on" onclick="setBg(this,'dark')">Dark</button>
+      <button class="bg-seg" onclick="setBg(this,'light')">Light</button>
+      <button class="bg-seg" onclick="setBg(this,'transparent')">Transparent</button>
+    </div>
+    <div class="tb-div"></div>
+    <button class="tb-btn stop-btn" onclick="stopAnim()"><svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1.5" fill="currentColor"/></svg></button>
+    <button class="tb-btn preview-btn" id="previewBtn" onclick="togglePreview(this)"><svg viewBox="0 0 12 9" fill="none"><path d="M1 4.5C2.5 1.5 5.5 0 6 0s3.5 1.5 5 4.5C9.5 7.5 6.5 9 6 9S2.5 7.5 1 4.5z" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.8" fill="currentColor"/></svg> Preview</button>
+    <div class="tb-div"></div>
+    <button class="tb-btn play-btn" id="playBtn" onclick="triggerPlay()"><svg viewBox="0 0 10 12" fill="white"><path d="M1 1l8 5-8 5V1z"/></svg> Play</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+<div class="sb-scroll">
+
+  <!-- CONFETTI PANELS -->
+  <div class="c-panel">
+
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Confetti style</div>
+      <div class="bt-grid">
+        <button class="bt-btn on" data-type="poppers" onclick="setCTypeSidebar(this)"><span class="bti">🎉</span>Poppers</button>
+        <button class="bt-btn" data-type="cannon" onclick="setCTypeSidebar(this)"><span class="bti">💥</span>Cannon</button>
+        <button class="bt-btn" data-type="blast" onclick="setCTypeSidebar(this)"><span class="bti">⚡</span>Blast</button>
+        <button class="bt-btn" data-type="freefall" onclick="setCTypeSidebar(this)"><span class="bti">🌨</span>Fall</button>
+        <button class="bt-btn" data-type="rain" onclick="setCTypeSidebar(this)"><span class="bti">🎊</span>Cascade</button>
+        <button class="bt-btn" data-type="fountain" onclick="setCTypeSidebar(this)"><span class="bti">⛲</span>Fountain</button>
+        <button class="bt-btn" data-type="fireworks" onclick="setCTypeSidebar(this)"><span class="bti">✨</span>Fireworks</button>
+        <button class="bt-btn" data-type="spiral" onclick="setCTypeSidebar(this)"><span class="bti">🌀</span>Spiral</button>
+        <button class="bt-btn" data-type="sides" onclick="setCTypeSidebar(this)"><span class="bti">↔</span>Sides</button>
+        <button class="bt-btn" data-type="overhead" onclick="setCTypeSidebar(this)"><span class="bti">⬇</span>Overhead</button>
+      </div>
+    </div>
+
+    <div class="sec" id="launcher-sec">
+      <div class="sec-hd"><span class="sec-title">Launchers</span><button class="sec-act" onclick="addLauncher()">+ Add</button></div>
+      <div class="l-list" id="launcherList"></div>
+      <button class="add-l" onclick="addLauncher()">+ Add launcher</button>
+      <div style="margin-top:11px">
+        <div class="param"><span class="plbl">Aim angle</span><span class="pval" id="v-angle">-90°</span></div>
+        <div class="srow"><input type="range" min="-180" max="0" value="-90" id="sl-angle" oninput="updateLAngle(this.value)"></div>
+        <div class="param"><span class="plbl">Cone spread</span><span class="pval" id="v-cone">60°</span></div>
+        <div class="srow"><input type="range" min="5" max="170" value="60" id="sl-cone" oninput="updateLCone(this.value)"></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Particles</div>
+      <div class="param"><span class="plbl">Amount</span><span class="pval" id="v-amt">80</span></div>
+      <div class="srow"><input type="range" min="10" max="300" value="80" step="5" oninput="cfg.amount=+this.value;sv('v-amt',this.value)"></div>
+      <div class="param"><span class="plbl">Size</span><span class="pval" id="v-sz">1.0x</span></div>
+      <div class="srow"><input type="range" min="1" max="50" value="10" oninput="cfg.size=this.value*.1;sv('v-sz',cfg.size.toFixed(1)+'x')"></div>
+      <div class="param"><span class="plbl">Chaos</span><span class="pval" id="v-rnd">70%</span></div>
+      <div class="srow"><input type="range" min="0" max="100" value="70" oninput="cfg.random=+this.value;sv('v-rnd',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Duration</span><span class="pval" id="v-dur">120</span></div>
+      <div class="srow"><input type="range" min="30" max="300" value="120" step="10" oninput="cfg.duration=+this.value;sv('v-dur',this.value)"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Physics</div>
+      <div class="param"><span class="plbl">Gravity</span><span class="pval" id="v-grav">0.15</span></div>
+      <div class="srow"><input type="range" min="0" max="100" value="15" oninput="cfg.gravity=this.value*.01;sv('v-grav',cfg.gravity.toFixed(2))"></div>
+      <div class="param"><span class="plbl">Velocity</span><span class="pval" id="v-vel">12</span></div>
+      <div class="srow"><input type="range" min="1" max="50" value="12" oninput="cfg.velocity=+this.value;sv('v-vel',this.value)"></div>
+      <div class="param"><span class="plbl">Wind</span><span class="pval" id="v-wind">0.0</span></div>
+      <div class="srow"><input type="range" min="-50" max="50" value="0" oninput="cfg.wind=this.value*.1;sv('v-wind',cfg.wind.toFixed(1))"></div>
+      <div class="param"><span class="plbl">Flutter</span><span class="pval" id="v-flu">80%</span></div>
+      <div class="srow"><input type="range" min="0" max="100" value="80" oninput="cfg.flutter=+this.value;sv('v-flu',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Drag</span><span class="pval" id="v-drg">2%</span></div>
+      <div class="srow"><input type="range" min="0" max="20" value="2" oninput="cfg.drag=+this.value;sv('v-drg',this.value+'%')"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Shapes</div>
+      <div class="shapes-grid">
+        <button class="sh-btn on" data-s="rect" onclick="toggleShape(this,'c')"><span class="si2">▬</span>Rect</button>
+        <button class="sh-btn on" data-s="square" onclick="toggleShape(this,'c')"><span class="si2">■</span>Sq</button>
+        <button class="sh-btn on" data-s="circle" onclick="toggleShape(this,'c')"><span class="si2">●</span>Circle</button>
+        <button class="sh-btn on" data-s="star" onclick="toggleShape(this,'c')"><span class="si2">★</span>Star</button>
+        <button class="sh-btn" data-s="line" onclick="toggleShape(this,'c')"><span class="si2">—</span>Line</button>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Colors</div>
+      <div class="color-grid" id="c-swatches"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:8px">Behavior</div>
+      <div class="tog-row"><span class="tog-lbl">Loop animation</span><label class="tog"><input type="checkbox" checked onchange="cfg.loop=this.checked"><span class="tog-t"></span></label></div>
+      <div class="tog-row"><span class="tog-lbl">Fade out</span><label class="tog"><input type="checkbox" checked onchange="cfg.fadeOut=this.checked"><span class="tog-t"></span></label></div>
+      <div class="tog-row"><span class="tog-lbl">Randomize rotation</span><label class="tog"><input type="checkbox" checked onchange="cfg.randomRotation=this.checked"><span class="tog-t"></span></label></div>
+      <div class="tog-row"><span class="tog-lbl">Randomize size</span><label class="tog"><input type="checkbox" onchange="cfg.randomSize=this.checked"><span class="tog-t"></span></label></div>
+      <div class="tog-row"><span class="tog-lbl">Motion blur</span><label class="tog"><input type="checkbox" checked onchange="cfg.motionBlur=this.checked"><span class="tog-t"></span></label></div>
+    </div>
+  </div>
+
+  <!-- BURST PANELS -->
+  <div class="b-panel">
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Origin point</div>
+      <div class="origin-card">
+        <div class="origin-dot"></div>
+        <span class="origin-txt">Drag canvas to reposition</span>
+        <span class="origin-pos" id="b-pos">50% · 50%</span>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Light burst style</div>
+      <div class="bt-grid">
+        <button class="bt-btn on" data-btype="starburst" onclick="setBTypeSidebar(this)"><span class="bti">✦</span>Starburst</button>
+        <button class="bt-btn" data-btype="lensflare" onclick="setBTypeSidebar(this)"><span class="bti">☀</span>Lens Flare</button>
+        <button class="bt-btn" data-btype="softglow" onclick="setBTypeSidebar(this)"><span class="bti">◉</span>Soft Glow</button>
+        <button class="bt-btn" data-btype="sparkfield" onclick="setBTypeSidebar(this)"><span class="bti">✧</span>Spark Field</button>
+        <button class="bt-btn" data-btype="orb" onclick="setBTypeSidebar(this)"><span class="bti">●</span>Orb</button>
+        <button class="bt-btn" data-btype="corona" onclick="setBTypeSidebar(this)"><span class="bti">⊙</span>Corona</button>
+        <button class="bt-btn" data-btype="stardust" onclick="setBTypeSidebar(this)"><span class="bti">✺</span>Stardust</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Rays</div>
+      <div class="param"><span class="plbl">Ray count</span><span class="pval" id="b-rays">12</span></div>
+      <div class="srow"><input type="range" class="bs" min="3" max="32" value="12" oninput="bc.rays=+this.value;sv('b-rays',this.value)"></div>
+      <div class="param"><span class="plbl">Ray length</span><span class="pval" id="b-rlen">70%</span></div>
+      <div class="srow"><input type="range" class="bs" min="10" max="100" value="70" oninput="bc.rayLen=+this.value;sv('b-rlen',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Ray width</span><span class="pval" id="b-rwid">40%</span></div>
+      <div class="srow"><input type="range" class="bs" min="1" max="100" value="40" oninput="bc.rayWidth=+this.value;sv('b-rwid',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Ray sharpness</span><span class="pval" id="b-rsharp">60%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="60" oninput="bc.raySharp=+this.value;sv('b-rsharp',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Alternate size</span><span class="pval" id="b-ralt">50%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="50" oninput="bc.rayAlt=+this.value;sv('b-ralt',this.value+'%')"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Core &amp; glow</div>
+      <div class="param"><span class="plbl">Core radius</span><span class="pval" id="b-corer">30%</span></div>
+      <div class="srow"><input type="range" class="bs" min="1" max="100" value="30" oninput="bc.coreR=+this.value;sv('b-corer',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Core brightness</span><span class="pval" id="b-corebr">90%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="90" oninput="bc.coreBright=+this.value;sv('b-corebr',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Glow radius</span><span class="pval" id="b-glowr">60%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="60" oninput="bc.glowR=+this.value;sv('b-glowr',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Glow intensity</span><span class="pval" id="b-glowi">70%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="70" oninput="bc.glowI=+this.value;sv('b-glowi',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Halo ring</span><span class="pval" id="b-halo">30%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="30" oninput="bc.halo=+this.value;sv('b-halo',this.value+'%')"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Sparkles</div>
+      <div class="param"><span class="plbl">Sparkle count</span><span class="pval" id="b-scount">24</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="80" value="24" oninput="bc.sparkCount=+this.value;sv('b-scount',this.value)"></div>
+      <div class="param"><span class="plbl">Sparkle scatter</span><span class="pval" id="b-sscat">80%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="80" oninput="bc.sparkScatter=+this.value;sv('b-sscat',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Sparkle size</span><span class="pval" id="b-ssize">50%</span></div>
+      <div class="srow"><input type="range" class="bs" min="10" max="100" value="50" oninput="bc.sparkSize=+this.value;sv('b-ssize',this.value+'%')"></div>
+      <div style="margin-top:6px">
+        <div class="plbl" style="margin-bottom:5px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em">Shape</div>
+        <div class="spark-shape-row">
+          <button class="ss-btn on" id="ss-dot" onclick="setSparkShape('dot',this)">● Dot</button>
+          <button class="ss-btn" id="ss-star" onclick="setSparkShape('star',this)">✦ Tiny star</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Animation</div>
+      <div class="param"><span class="plbl">Duration (frames)</span><span class="pval" id="b-dur">120</span></div>
+      <div class="srow"><input type="range" class="bs" min="20" max="360" value="120" step="10" oninput="bc.duration=+this.value;sv('b-dur',this.value)"></div>
+      <div class="param"><span class="plbl">Rotation speed</span><span class="pval" id="b-rotspd">0.0°</span></div>
+      <div class="srow"><input type="range" class="bs" min="-100" max="100" value="0" oninput="bc.rotSpeed=this.value*.02;sv('b-rotspd',(bc.rotSpeed).toFixed(2)+'°')"></div>
+      <div class="param"><span class="plbl">Pulse speed</span><span class="pval" id="b-pulse">30%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="30" oninput="bc.pulseSpeed=+this.value;sv('b-pulse',this.value+'%')"></div>
+      <div class="param"><span class="plbl">Flicker</span><span class="pval" id="b-flicker">20%</span></div>
+      <div class="srow"><input type="range" class="bs" min="0" max="100" value="20" oninput="bc.flicker=+this.value;sv('b-flicker',this.value+'%')"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:10px">Color</div>
+      <div class="color-grid" id="b-swatches"></div>
+      <div style="margin-top:10px">
+        <div class="param"><span class="plbl">Color temperature</span><span class="pval" id="b-temp">Warm</span></div>
+        <div class="srow"><input type="range" class="bs" min="0" max="100" value="70" oninput="setBurstTemp(this.value)"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title" style="margin-bottom:8px">Behavior</div>
+      <div class="tog-row"><span class="tog-lbl">Loop</span><label class="tog bt"><input type="checkbox" checked onchange="bc.loop=this.checked"><span class="tog-t"></span></label></div>
+      <div class="tog-row"><span class="tog-lbl">Hold &amp; rotate</span><label class="tog bt"><input type="checkbox" onchange="bc.holdRotate=this.checked"><span class="tog-t"></span></label></div>
+      <div class="tog-row"><span class="tog-lbl">Breathing pulse</span><label class="tog bt"><input type="checkbox" checked onchange="bc.breathe=this.checked"><span class="tog-t"></span></label></div>
+      <div class="tog-row"><span class="tog-lbl">Intro flash</span><label class="tog bt"><input type="checkbox" checked onchange="bc.introFlash=this.checked"><span class="tog-t"></span></label></div>
+      <div class="tog-row"><span class="tog-lbl">Fade out</span><label class="tog bt"><input type="checkbox" onchange="bc.fadeOut=this.checked"><span class="tog-t"></span></label></div>
+    </div>
+  </div>
+
+  <!-- EXPORT (shared) -->
+  <div class="sec">
+    <div class="sec-title" style="margin-bottom:10px">Export</div>
+    <div class="export-opts">
+      <div class="exp-opt rec" onclick="doExport('webm')">
+        <div class="exp-icon" style="background:rgba(108,99,255,.15);color:var(--accent)">VP9</div>
+        <div class="exp-info"><div class="exp-name">WebM — True transparent</div><div class="exp-desc">Real alpha · No bg · Figma-ready · Chrome</div></div>
+      </div>
+      <div class="exp-opt" onclick="doExport('gif')">
+        <div class="exp-icon" style="background:rgba(245,166,35,.1);color:var(--amber)">GIF</div>
+        <div class="exp-info"><div class="exp-name">Animated GIF</div><div class="exp-desc">Universal · Works everywhere</div></div>
+      </div>
+      <div class="exp-opt" onclick="doExport('mp4')">
+        <div class="exp-icon" style="background:rgba(31,216,154,.1);color:var(--green)">MP4</div>
+        <div class="exp-info"><div class="exp-name">MP4 / H.264</div><div class="exp-desc">Presentations & social · No alpha</div></div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:10px;color:var(--txt3);line-height:1.5"><strong style="color:var(--accent)">WebM</strong> exports with true alpha — drag into Figma as a video fill layer.</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="sec">
+    <div class="sec-title" style="margin-bottom:10px">Live stats</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-v" id="st-p">0</div><div class="stat-l">Particles</div></div>
+      <div class="stat-card"><div class="stat-v" id="st-l">2</div><div class="stat-l">Launchers</div></div>
+      <div class="stat-card"><div class="stat-v" id="st-f">0</div><div class="stat-l">Frame</div></div>
+      <div class="stat-card"><div class="stat-v live" id="st-s">—</div><div class="stat-l">Status</div></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- CANVAS -->
+<div class="canvas-wrap" id="CW">
+  <canvas id="CC"></canvas>
+  <div class="canvas-info">
+    <div class="cbadge" id="badge-mode">Confetti</div>
+    <div class="cbadge" id="badge-type">Poppers</div>
+    <div class="cbadge" id="badge-bg">Dark</div>
+  </div>
+  <div class="rec-ind" id="recInd"><div class="rec-dot"></div><span id="recLbl">Recording…</span></div>
+  <div class="exp-prog" id="expProg"><div class="prog-lbl" id="progLbl">Capturing…</div><div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div></div>
+</div>
+
+<!-- STATUSBAR -->
+<div class="statusbar">
+  <div class="si"><div class="sdot live"></div><span>Effects Studio</span></div>
+  <div class="si"><span>Mode</span><span class="sval" id="sb-mode">Confetti</span></div>
+  <div class="si"><span>Particles</span><span class="sval" id="sb-p">0</span></div>
+  <div class="si"><span>Frame</span><span class="sval" id="sb-f">0</span></div>
+  <div class="si"><span>BG</span><span class="sval" id="sb-bg">Dark</span></div>
+  <span class="shint" id="sb-hint">Drag launcher dots · Click canvas to place launcher</span>
+</div>
+
+</div>
+
+<script>
+const canvas=document.getElementById('CC');
+const ctx=canvas.getContext('2d',{alpha:true});
+let isExpTrans=false, currentMode='confetti';
+
+const CPAL=['#ff4757','#ff6348','#ffa502','#ffd32a','#7bed9f','#2ed573','#1e90ff','#a29bfe','#fd79a8','#74b9ff'];
+const BPAL=['#ff6b35','#ffd166','#fff07c','#ffffff','#a8edea','#6c63ff','#ff4d6a','#1fd89a'];
+const LCOLORS=['#6c63ff','#ff4d6a','#1fd89a','#f5a623','#a855f7','#06b6d4'];
+
+let cColors=[...CPAL], cShapes=['rect','square','circle','star'];
+
+const cfg={amount:80,size:1.0,random:70,gravity:.15,velocity:12,wind:0,flutter:80,drag:2,duration:120,randomRotation:true,randomSize:false,motionBlur:true,fadeOut:true,loop:true,type:'poppers'};
+let launchers=[{x:.3,y:.88,angle:-90,cone:60,color:LCOLORS[0]},{x:.7,y:.88,angle:-90,cone:60,color:LCOLORS[1]}];
+let selL=0,dragging=null;
+
+let bgMode='dark', particles=[], animId=null, gFrame=0, popFrame=0;
+
+const bc={
+  burstType:'starburst',
+  rays:12, rayLen:70, rayWidth:40, raySharp:60, rayAlt:50,
+  coreR:30, coreBright:90, glowR:60, glowI:70, halo:30,
+  sparkCount:24, sparkScatter:80, sparkSize:50,
+  sparkShape:'dot',  // 'dot' | 'star'
+  duration:120, rotSpeed:0, pulseSpeed:30, flicker:20,
+  loop:true, holdRotate:false, breathe:true, introFlash:true, fadeOut:false,
+  baseColor:'#fffbe0', color2:'#fff4a0'
+};
+let burstOrigin={x:.5,y:.5}, bDrag=false;
+let bFrame=0, bRotation=0;
+
+// Warm/cool color temperature presets
+const BPAL_WARM=['#fffbe0','#fff4a0','#ffd97d','#ffb347','#ff8c42','#ffffff'];
+const BPAL_COOL=['#e0f0ff','#b8d4ff','#a0c4ff','#7eb8ff','#ffffff','#cce0ff'];
+let bColors=[...BPAL_WARM];
+
+function setBurstTemp(v) {
+  const t=+v;
+  const label = t<30?'Cool': t<55?'Neutral':'Warm';
+  sv('b-temp',label);
+  if(t>=60) bColors=[...BPAL_WARM];
+  else if(t<=40) bColors=[...BPAL_COOL];
+  else bColors=['#ffffff','#fffbe0','#e0f4ff','#fff4a0','#b8d4ff','#ffd97d'];
+  bc.baseColor = bColors[0];
+  bc.color2 = bColors[1]||bColors[0];
+  initSw('b-swatches',bColors,bColors);
+}
+
+// Derive burst size from canvas
+function burstSize(){return Math.min(canvas.width,canvas.height)*0.38;}
+
+/* ── LIGHT BURST RENDERER ── Soft radiant glow engine ──
+   Philosophy: everything is layered radial gradients. No hard geometry.
+   Rays are implied through directional glow, not explicit triangles.
+   All expansion uses ease-out so the burst feels physically real.
+──────────────────────────────────────────────────────────────── */
+function drawLightBurst(ox, oy, t) {
+  const age = t;
+  const progress = age / bc.duration;
+
+  // Ease-out cubic: fast start, gentle deceleration — applied to all expansions
+  const eased = 1 - Math.pow(1 - Math.min(progress, 1), 3);
+
+  const size = burstSize();
+  const glowMult = bc.glowI / 100;
+  const coreMult = bc.coreBright / 100;
+
+  // ── Master alpha: intro ramp-in, optional fade-out, subtle noise flicker ──
+  let introAlpha = 1;
+  if (bc.introFlash && age < 14) {
+    // Ease in over first 14 frames — feels like an energy surge
+    introAlpha = 1 - Math.pow(1 - age / 14, 2);
+  }
+  // Subtle per-frame flicker: ±5% variation, never jarring
+  const flicker = bc.flicker > 0
+    ? (0.95 + Math.random() * 0.1) * (1 - (Math.random() * bc.flicker / 100) * 0.08)
+    : 1;
+  let masterAlpha = introAlpha * flicker;
+  if (bc.fadeOut && progress > 0.6) masterAlpha *= Math.max(0, 1 - (progress - 0.6) / 0.4);
+  if (masterAlpha <= 0) return;
+
+  // ── Breathing: very subtle ±6% scale pulse, feels like living energy ──
+  const breatheScale = (bc.breathe && bc.pulseSpeed > 0)
+    ? 1 + Math.sin(age * (bc.pulseSpeed / 100) * 0.07) * 0.06
+    : 1;
+
+  // Core radius pulses slightly more aggressively than outer glow
+  const baseSize = size * breatheScale;
+  const coreR    = baseSize * (bc.coreR   / 100) * 0.28;
+  // Glow radius expands with easing — feels like energy propagating outward
+  const glowR    = baseSize * (bc.glowR   / 100) * 0.85 * (0.4 + eased * 0.6);
+  const haloAmt  = bc.halo / 100;
+
+  // Per-type config: which visual layers to enable
+  const typeConfig = {
+    starburst:  { rays: true,  bloom: false, softBloom: false },
+    lensflare:  { rays: true,  bloom: true,  softBloom: true  },
+    softglow:   { rays: false, bloom: true,  softBloom: true  },
+    sparkfield: { rays: true,  bloom: false, softBloom: false },
+    orb:        { rays: false, bloom: true,  softBloom: true  },
+    corona:     { rays: true,  bloom: true,  softBloom: true  },
+    // Stardust: minimal rays, rich sparkle field, soft diffused core
+    stardust:   { rays: false, bloom: true,  softBloom: true  },
+  };
+  const tc = typeConfig[bc.burstType] || typeConfig.starburst;
+
+  ctx.save();
+  ctx.translate(ox, oy);
+
+  /* ════════════════════════════════════════════
+     LAYER 1 — Outer bloom (very soft, huge radius, low alpha)
+     This is the energy haze that bleeds far beyond the core.
+  ════════════════════════════════════════════ */
+  const outerR = glowR * 2.2;
+  const og = ctx.createRadialGradient(0, 0, glowR * 0.3, 0, 0, outerR);
+  og.addColorStop(0,   hexAlpha(bc.baseColor, 0.18 * glowMult * masterAlpha));
+  og.addColorStop(0.4, hexAlpha(bc.baseColor, 0.08 * glowMult * masterAlpha));
+  og.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(0, 0, outerR, 0, Math.PI * 2);
+  ctx.fillStyle = og; ctx.fill();
+
+  /* ════════════════════════════════════════════
+     LAYER 2 — Directional ray glow (soft, implied, not geometric)
+     Instead of triangles: we draw N elliptical soft gradients,
+     each stretched in one direction. The result looks like rays
+     but has no hard edges — just overlapping light pools.
+  ════════════════════════════════════════════ */
+  if (tc.rays) {
+    const rayCount = bc.rays;
+    const rayLen   = baseSize * (bc.rayLen / 100) * (0.5 + eased * 0.5);
+    const altRatio = bc.rayAlt / 100;
+    // Opacity is intentionally restrained — rays support the glow, don't dominate it
+    const rayAlpha = (bc.rayWidth / 100) * 0.28 * masterAlpha * glowMult;
+
+    ctx.save();
+    ctx.rotate(bRotation); // rotation applied to ray layer
+
+    for (let i = 0; i < rayCount; i++) {
+      const isAlt = i % 2 === 1;
+      const angle  = (i / rayCount) * Math.PI * 2;
+      // Alt rays are shorter, slightly randomised with seeded noise
+      const lenMod = isAlt ? (0.35 + altRatio * 0.45) : 1.0;
+      const jitter = seededRand(i * 31 + 7) * 0.18; // subtle length variance
+      const thisLen = rayLen * lenMod * (0.9 + jitter);
+      // Sharpness: higher = narrower ellipse = crisper implied ray
+      const sharpness = 0.05 + (bc.raySharp / 100) * 0.25;
+
+      ctx.save();
+      ctx.rotate(angle);
+      // Scale: stretch along ray axis (Y), compress perpendicular (X)
+      // This creates an elliptical soft glow that reads as a ray
+      ctx.scale(sharpness, 1);
+
+      const rg = ctx.createRadialGradient(0, coreR * 0.5, 0, 0, thisLen * 0.45, thisLen);
+      rg.addColorStop(0,    hexAlpha(bc.color2,    rayAlpha * (isAlt ? 0.5 : 0.9)));
+      rg.addColorStop(0.25, hexAlpha(bc.baseColor, rayAlpha * (isAlt ? 0.3 : 0.55)));
+      rg.addColorStop(0.7,  hexAlpha(bc.baseColor, rayAlpha * 0.12));
+      rg.addColorStop(1,    'rgba(0,0,0,0)');
+
+      ctx.beginPath(); ctx.arc(0, thisLen * 0.45, thisLen, 0, Math.PI * 2);
+      ctx.fillStyle = rg; ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  /* ════════════════════════════════════════════
+     LAYER 3 — Mid glow bloom (warm, medium radius)
+     Core of the visible light energy. Applies to all modes.
+  ════════════════════════════════════════════ */
+  const mg = ctx.createRadialGradient(0, 0, 0, 0, 0, glowR);
+  mg.addColorStop(0,   hexAlpha(bc.color2,    0.7 * glowMult * masterAlpha));
+  mg.addColorStop(0.2, hexAlpha(bc.baseColor, 0.45 * glowMult * masterAlpha));
+  mg.addColorStop(0.55,hexAlpha(bc.baseColor, 0.18 * glowMult * masterAlpha));
+  mg.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(0, 0, glowR, 0, Math.PI * 2);
+  ctx.fillStyle = mg; ctx.fill();
+
+  /* ════════════════════════════════════════════
+     LAYER 4 — Soft bloom (enabled for bloom-capable modes)
+     Extra saturation layer that adds richness without hard edges.
+  ════════════════════════════════════════════ */
+  if (tc.softBloom || tc.bloom) {
+    const sb = ctx.createRadialGradient(0, 0, 0, 0, 0, glowR * 0.7);
+    sb.addColorStop(0,   hexAlpha(bc.baseColor, 0.35 * glowMult * masterAlpha));
+    sb.addColorStop(0.4, hexAlpha(bc.color2,    0.2  * glowMult * masterAlpha));
+    sb.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(0, 0, glowR * 0.7, 0, Math.PI * 2);
+    ctx.fillStyle = sb; ctx.fill();
+  }
+
+  /* ════════════════════════════════════════════
+     LAYER 5 — Halo ring (optional, ultra-subtle)
+     A thin band of light at a distance — lens flare ring feel.
+  ════════════════════════════════════════════ */
+  if (haloAmt > 0.05) {
+    // Halo expands outward with easing — drifts away from core over time
+    const haloR = baseSize * (0.5 + haloAmt * 0.35) * (0.6 + eased * 0.4);
+    const hw = haloR * 0.12;
+    const hg = ctx.createRadialGradient(0, 0, haloR - hw, 0, 0, haloR + hw);
+    hg.addColorStop(0,   'rgba(0,0,0,0)');
+    hg.addColorStop(0.35, hexAlpha(bc.baseColor, 0.2  * haloAmt * masterAlpha));
+    hg.addColorStop(0.6,  hexAlpha(bc.baseColor, 0.14 * haloAmt * masterAlpha));
+    hg.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(0, 0, haloR + hw, 0, Math.PI * 2);
+    ctx.fillStyle = hg; ctx.fill();
+  }
+
+  /* ════════════════════════════════════════════
+     LAYER 6 — Inner core glow (bright, warm)
+     Pulsing core that breathes independently of the outer glow.
+  ════════════════════════════════════════════ */
+  // Core breathes with a slightly faster, larger amplitude than outer
+  const corePulse = (bc.breathe && bc.pulseSpeed > 0)
+    ? 1 + Math.sin(age * (bc.pulseSpeed / 100) * 0.09 + 0.8) * 0.1
+    : 1;
+  const coreDrawR = coreR * 2.8 * corePulse;
+
+  // shadowBlur on the core creates a natural soft halo without extra geometry
+  ctx.shadowBlur = coreR * 2.5;
+  ctx.shadowColor = hexAlpha(bc.color2, 0.6 * coreMult * masterAlpha);
+
+  const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, coreDrawR);
+  cg.addColorStop(0,    hexAlpha('#ffffff',   coreMult * masterAlpha));
+  cg.addColorStop(0.12, hexAlpha(bc.baseColor, 0.9 * coreMult * masterAlpha));
+  cg.addColorStop(0.35, hexAlpha(bc.color2,    0.55 * coreMult * masterAlpha));
+  cg.addColorStop(0.7,  hexAlpha(bc.baseColor, 0.15 * masterAlpha));
+  cg.addColorStop(1,    'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(0, 0, coreDrawR, 0, Math.PI * 2);
+  ctx.fillStyle = cg; ctx.fill();
+
+  /* ════════════════════════════════════════════
+     LAYER 7 — White-hot pinpoint center
+     The hottest point — tiny, very bright, no shadow needed.
+  ════════════════════════════════════════════ */
+  ctx.shadowBlur = 0; // reset before pinpoint so it stays crisp-bright
+  const pinR = coreR * 0.55 * corePulse;
+  const wc = ctx.createRadialGradient(0, 0, 0, 0, 0, pinR);
+  wc.addColorStop(0,   hexAlpha('#ffffff', coreMult * masterAlpha));
+  wc.addColorStop(0.5, hexAlpha('#fffef0', 0.85 * coreMult * masterAlpha));
+  wc.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(0, 0, pinR, 0, Math.PI * 2);
+  ctx.fillStyle = wc; ctx.fill();
+
+  ctx.restore();
+
+  /* ════════════════════════════════════════════
+     SPARKLES — drift outward, fade in/out, vary per frame bucket
+     Position drifts slightly over time so they feel alive.
+     Stardust gets wider spread and more sparkles by default.
+  ════════════════════════════════════════════ */
+  if (bc.sparkCount > 0) {
+    // Stardust uses wider spread (1.5x) and star shape by default
+    const isStardust = bc.burstType === 'stardust';
+    const spreadMul  = isStardust ? 1.5 : 1.0;
+    const maxSpread  = size * (bc.sparkScatter / 100) * spreadMul * (0.3 + eased * 0.7);
+    const sparkBaseR = size * (bc.sparkSize / 100) * 0.038;
+    const sparkShape = isStardust ? 'star' : bc.sparkShape;
+    // Bucket changes every 5 frames — sparkles twinkle without strobing
+    const bucket = Math.floor(age / 5);
+    const count  = isStardust ? Math.ceil(bc.sparkCount * 1.4) : bc.sparkCount;
+
+    for (let i = 0; i < count; i++) {
+      // Stable base position (seed off i), slow angular drift each bucket
+      const baseAngle  = seededRand(i * 13 + 3) * Math.PI * 2;
+      const driftAngle = baseAngle + seededRand(i * 7 + bucket * 5) * 0.4;
+      const baseDist   = seededRand(i * 11 + 1) * maxSpread;
+      // Slow outward drift: sparkles move away from center over time
+      const driftDist  = baseDist * (0.6 + eased * 0.5);
+
+      const sx = ox + Math.cos(driftAngle) * driftDist;
+      const sy = oy + Math.sin(driftAngle) * driftDist;
+
+      // Life oscillates: sparkles fade in and out smoothly
+      const lifeBase = seededRand(i * 5 + bucket * 11);
+      const lifeOsc  = 0.4 + Math.abs(Math.sin(age * 0.06 + i * 1.7)) * 0.6;
+      const sAlpha   = lifeBase * lifeOsc * 0.85 * masterAlpha;
+
+      // Size also breathes — bigger sparkles feel more energetic
+      const sr = sparkBaseR * (0.4 + lifeBase * 1.3) * (0.8 + lifeOsc * 0.2);
+
+      if (sAlpha > 0.02) drawSparkle(sx, sy, sr, sAlpha, sparkShape);
+    }
+  }
+}
+
+/* ── SPARKLE DISPATCHER ──
+   Routes to dot or star renderer based on shape arg.
+   shape defaults to bc.sparkShape if not passed explicitly
+   (stardust overrides this to 'star' regardless of setting). */
+function drawSparkle(x, y, r, alpha, shape) {
+  if (alpha <= 0 || r <= 0) return;
+  const s = shape || bc.sparkShape || 'dot';
+  if (s === 'star') drawSparkleStar(x, y, r, alpha);
+  else              drawSparkleDot(x, y, r, alpha);
+}
+
+/* ── DOT SPARKLE ──
+   Soft radial glow with a bright pinpoint center.
+   No hard geometry — reads as a light twinkle. */
+function drawSparkleDot(x, y, r, alpha) {
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, alpha);
+  ctx.shadowBlur  = r * 2.5;
+  ctx.shadowColor = hexAlpha(bc.baseColor, alpha * 0.7);
+
+  const sg = ctx.createRadialGradient(x, y, 0, x, y, r * 2);
+  sg.addColorStop(0,   hexAlpha('#ffffff',    alpha));
+  sg.addColorStop(0.3, hexAlpha(bc.baseColor, alpha * 0.8));
+  sg.addColorStop(0.7, hexAlpha(bc.color2,    alpha * 0.3));
+  sg.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(x, y, r * 2, 0, Math.PI*2);
+  ctx.fillStyle = sg; ctx.fill();
+
+  // Bright pinpoint — the "pop" of a real light sparkle
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = Math.min(1, alpha * 1.2);
+  ctx.beginPath(); ctx.arc(x, y, r * 0.3, 0, Math.PI*2);
+  ctx.fillStyle = hexAlpha('#ffffff', alpha);
+  ctx.fill();
+  ctx.restore();
+}
+
+/* ── STAR SPARKLE ──
+   Tiny 4-point star: very small, crisp, premium feel.
+   Not a chunky shape — more like a light shard or refraction point.
+   Rendered as a minimal path with a soft glow halo behind it. */
+function drawSparkleStar(x, y, r, alpha) {
+  ctx.save();
+  // Soft outer glow behind the star — blends it into the burst energy
+  ctx.globalAlpha = Math.min(1, alpha * 0.5);
+  ctx.shadowBlur  = r * 3;
+  ctx.shadowColor = hexAlpha(bc.baseColor, alpha * 0.6);
+  const hg = ctx.createRadialGradient(x, y, 0, x, y, r * 2.5);
+  hg.addColorStop(0,   hexAlpha(bc.baseColor, alpha * 0.4));
+  hg.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(x, y, r * 2.5, 0, Math.PI*2);
+  ctx.fillStyle = hg; ctx.fill();
+
+  // The actual star: 4 slim pointed arms
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = Math.min(1, alpha);
+  ctx.fillStyle = hexAlpha('#ffffff', alpha);
+  ctx.translate(x, y);
+
+  // Each arm is a very narrow diamond lozenge — elegant, not cartoonish
+  const long  = r * 2.2;   // arm reach from center
+  const wide  = r * 0.15;  // half-width at center — keep it razor-thin
+  for (let arm = 0; arm < 4; arm++) {
+    ctx.save();
+    ctx.rotate((arm / 4) * Math.PI * 2);
+    ctx.beginPath();
+    ctx.moveTo(0, -long);
+    ctx.lineTo(wide, 0);
+    ctx.lineTo(0, long);
+    ctx.lineTo(-wide, 0);
+    ctx.closePath();
+    // Gradient along arm: white core, fades to transparent tip
+    const ag = ctx.createLinearGradient(0, -long, 0, long);
+    ag.addColorStop(0,   'rgba(255,255,255,0)');
+    ag.addColorStop(0.35, hexAlpha('#ffffff', alpha * 0.9));
+    ag.addColorStop(0.5,  hexAlpha('#ffffff', alpha));
+    ag.addColorStop(0.65, hexAlpha('#ffffff', alpha * 0.9));
+    ag.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.fillStyle = ag;
+    ctx.fill();
+    ctx.restore();
+  }
+  // Hot center dot — the intersection of all 4 arms
+  ctx.beginPath(); ctx.arc(0, 0, wide * 1.8, 0, Math.PI*2);
+  ctx.fillStyle = hexAlpha('#ffffff', alpha);
+  ctx.fill();
+  ctx.restore();
+}
+
+// Seeded PRNG: deterministic per seed, fast sin-based hash
+// Used for stable sparkle positions that don't jump every frame
+function seededRand(seed) {
+  const s = Math.sin(seed * 9301 + 49297) * 233280;
+  return s - Math.floor(s);
+}
+
+function hexAlpha(hex,alpha){
+  if(alpha<=0)return 'rgba(0,0,0,0)';
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${Math.min(1,alpha)})`;
+}
+
+/* drawBurstOrigin: shows ONLY a faint dot while actively dragging.
+   Nothing is rendered during normal playback or idle — no crosshair,
+   no targeting reticle. Energy should feel implied, not marked. */
+function drawBurstOrigin(){
+  if(currentMode!=='burst') return;
+  if(!bDrag) return; // only visible while user is repositioning
+  const ox=burstOrigin.x*canvas.width, oy=burstOrigin.y*canvas.height;
+  ctx.save();
+  // Tiny soft pulse dot — just enough feedback that you know where you tapped
+  const dg = ctx.createRadialGradient(ox, oy, 0, ox, oy, 12);
+  dg.addColorStop(0, 'rgba(255,220,120,0.55)');
+  dg.addColorStop(0.5, 'rgba(255,200,80,0.2)');
+  dg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(ox, oy, 12, 0, Math.PI*2);
+  ctx.fillStyle = dg; ctx.fill();
+  ctx.restore();
+}
+
+function resizeCanvas(){const w=document.getElementById('CW');canvas.width=w.clientWidth;canvas.height=w.clientHeight;}
+function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function rand(a,b){return a+Math.random()*(b-a);}
+function rFrom(a){return a[Math.floor(Math.random()*a.length)];}
+function lpx(l){return{x:l.x*canvas.width,y:l.y*canvas.height};}
+// Types that use draggable launcher dots
+const isPopper=()=>['poppers','cannon','blast','fountain','sides'].includes(cfg.type);
+
+/* ── CONFETTI ── */
+function mkCP(l){
+  const cx=l.x*canvas.width,cy=l.y*canvas.height;
+  const aR=l.angle*Math.PI/180,hc=(l.cone/2)*Math.PI/180;
+  const a=rand(aR-hc,aR+hc),spd=rand(cfg.velocity*.65,cfg.velocity*1.35);
+  const sz=cfg.size*(cfg.randomSize?rand(.5,2):rand(.7,1.4))*rand(5,12);
+  return{x:cx,y:cy,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,color:rFrom(cColors),shape:rFrom(cShapes),size:sz,rot:rand(0,Math.PI*2),rotV:cfg.randomRotation?rand(-.16,.16)*(cfg.flutter/100+.06):0,life:1,born:gFrame,flutter:rand(.3,1.8)*(cfg.flutter/100),fp:rand(0,Math.PI*2),done:false};
+}
+function fireCBurst(){
+  const perL=Math.ceil(cfg.amount/launchers.length);
+  launchers.forEach(l=>{
+    for(let i=0;i<perL;i++){
+      const pt=mkCP(l);
+
+      if(cfg.type==='cannon'){
+        // Tighter cone, much higher velocity — feels like a party cannon blast
+        const aR=l.angle*Math.PI/180, hc=(l.cone/100)*Math.PI/6;
+        const a=rand(aR-hc,aR+hc);
+        const spd=rand(cfg.velocity*1.4,cfg.velocity*2.2);
+        pt.vx=Math.cos(a)*spd; pt.vy=Math.sin(a)*spd;
+        pt.size*=rand(1.0,1.6);
+
+      } else if(cfg.type==='blast'){
+        // Full 360° explosion from launcher point — instant radial burst
+        const a=rand(0,Math.PI*2);
+        const spd=rand(cfg.velocity*0.8,cfg.velocity*1.8);
+        pt.vx=Math.cos(a)*spd; pt.vy=Math.sin(a)*spd;
+        pt.size*=rand(0.7,1.4);
+
+      } else if(cfg.type==='sides'){
+        // Launcher angle already set by user — use as-is but boost speed slightly
+        const spd=rand(cfg.velocity*0.9,cfg.velocity*1.4);
+        const aR=l.angle*Math.PI/180, hc=(l.cone/2)*Math.PI/180;
+        const a=rand(aR-hc,aR+hc);
+        pt.vx=Math.cos(a)*spd; pt.vy=Math.sin(a)*spd;
+      }
+
+      particles.push(pt);
+    }
+  });
+}
+
+function spawnNP(){
+  particles=[];
+  const n=cfg.amount, cx=canvas.width/2, cy=canvas.height/2;
+  const W=canvas.width, H=canvas.height;
+
+  for(let i=0;i<n;i++){
+    let x,y,vx,vy;
+    const sz=cfg.size*rand(.7,1.4)*rand(5,12);
+    const t=cfg.type;
+
+    if(t==='freefall'){
+      // Gentle downward drift across full width — like confetti settling
+      x=rand(0,W); y=rand(-120,-10);
+      vx=rand(-1.5,1.5)+cfg.wind*.1;
+      vy=rand(.8,cfg.velocity*.4);
+
+    } else if(t==='rain'){
+      // Cascade: dense curtain falling from top — staggered entry
+      x=rand(-50,W+50); y=rand(-H*.5,-10);
+      vx=rand(-0.5,0.5)+cfg.wind*.1;
+      vy=rand(cfg.velocity*.3,cfg.velocity*.7);
+
+    } else if(t==='fireworks'){
+      // Multiple burst clusters at varying heights
+      const clusterX=rand(W*.15,W*.85);
+      const clusterY=rand(H*.1,H*.5);
+      x=clusterX; y=clusterY;
+      const a=rand(0,Math.PI*2),s=rand(2,cfg.velocity*.85);
+      vx=Math.cos(a)*s; vy=Math.sin(a)*s;
+
+    } else if(t==='spiral'){
+      // Particles placed on an unwinding Archimedean spiral
+      const tVal=(i/n)*Math.PI*8;
+      x=cx+Math.cos(tVal)*tVal*5;
+      y=cy+Math.sin(tVal)*tVal*5;
+      vx=Math.cos(tVal+Math.PI/2)*cfg.velocity*.4;
+      vy=Math.sin(tVal+Math.PI/2)*cfg.velocity*.4 - cfg.velocity*.25;
+
+    } else if(t==='overhead'){
+      // Drops straight down from many random points along the ceiling
+      x=rand(0,W); y=rand(-30,0);
+      vx=rand(-3,3)+cfg.wind*.1;
+      vy=rand(cfg.velocity*.4,cfg.velocity*.9);
+
+    } else {
+      // Fallback center burst
+      x=cx; y=cy;
+      const a=rand(0,Math.PI*2),s=rand(cfg.velocity*.5,cfg.velocity*1.2);
+      vx=Math.cos(a)*s; vy=Math.sin(a)*s;
+    }
+
+    particles.push({
+      x,y,vx,vy,color:rFrom(cColors),shape:rFrom(cShapes),size:sz,
+      rot:rand(0,Math.PI*2),
+      rotV:cfg.randomRotation?rand(-.16,.16)*(cfg.flutter/100+.06):0,
+      life:1, born:gFrame-(i*2),
+      flutter:rand(.3,1.8)*(cfg.flutter/100),
+      fp:rand(0,Math.PI*2), done:false
+    });
+  }
+}
+function drawStar(x,y,r){ctx.beginPath();for(let i=0;i<5;i++){const a=Math.PI/2+i*Math.PI*2/5,a2=a+Math.PI/5;i===0?ctx.moveTo(x+r*Math.cos(a),y-r*Math.sin(a)):ctx.lineTo(x+r*Math.cos(a),y-r*Math.sin(a));ctx.lineTo(x+r*.42*Math.cos(a2),y-r*.42*Math.sin(a2));}ctx.closePath();ctx.fill();}
+function drawCP(pt){
+  ctx.save();ctx.globalAlpha=Math.max(0,pt.life);ctx.translate(pt.x,pt.y);ctx.rotate(pt.rot);
+  if(cfg.motionBlur){const sp=Math.hypot(pt.vx,pt.vy);if(sp>2){ctx.shadowBlur=Math.min(sp*1.3,7);ctx.shadowColor=pt.color;}}
+  ctx.fillStyle=pt.color;const s=pt.size;
+  if(pt.shape==='rect')ctx.fillRect(-s*.9,-s*.22,s*1.8,s*.44);
+  else if(pt.shape==='square')ctx.fillRect(-s*.5,-s*.5,s,s);
+  else if(pt.shape==='circle'){ctx.beginPath();ctx.arc(0,0,s*.48,0,Math.PI*2);ctx.fill();}
+  else if(pt.shape==='star')drawStar(0,0,s*.72);
+  else ctx.fillRect(-s*1.3,-s*.09,s*2.6,s*.18);
+  ctx.restore();
+}
+function stepCP(pt){
+  if(pt.done)return;const age=gFrame-pt.born,drag=1-cfg.drag/100;
+  pt.vx+=cfg.wind*.01;pt.vy+=cfg.gravity;pt.vx*=drag;pt.vy*=drag;
+  pt.x+=pt.vx+Math.sin(age*.1+pt.fp)*pt.flutter*1.5;pt.y+=pt.vy;pt.rot+=pt.rotV;
+  if(cfg.fadeOut){const ls=cfg.duration*.52;if(age>ls)pt.life-=1/(cfg.duration*.48);}
+  if(pt.y>canvas.height+80||pt.x<-80||pt.x>canvas.width+80||pt.life<=0)pt.done=true;
+}
+function drawLaunchers(){
+  if(currentMode!=='confetti')return;
+  if(previewMode)return; // clean canvas preview — no launcher UI
+  launchers.forEach((l,i)=>{
+    const{x,y}=lpx(l);const aR=l.angle*Math.PI/180,hc=(l.cone/2)*Math.PI/180,cL=58;
+    ctx.save();ctx.globalAlpha=.85;
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(aR-hc)*cL,y+Math.sin(aR-hc)*cL);ctx.lineTo(x+Math.cos(aR+hc)*cL,y+Math.sin(aR+hc)*cL);ctx.closePath();ctx.fillStyle=l.color+'18';ctx.fill();
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(aR-hc)*cL,y+Math.sin(aR-hc)*cL);ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(aR+hc)*cL,y+Math.sin(aR+hc)*cL);ctx.strokeStyle=l.color+'55';ctx.lineWidth=1;ctx.setLineDash([3,4]);ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(aR)*cL,y+Math.sin(aR)*cL);ctx.strokeStyle=l.color+'aa';ctx.lineWidth=1.5;ctx.stroke();
+    const r=i===selL?11:8;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=i===selL?l.color:l.color+'99';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='white';ctx.font='bold 9px DM Sans,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,x,y);ctx.restore();
+  });
+}
+
+/* ── BACKGROUND ── */
+function drawBg(){
+  if(isExpTrans){ctx.clearRect(0,0,canvas.width,canvas.height);return;}
+  if(bgMode==='transparent'){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const cs=22;for(let x=0;x<canvas.width;x+=cs)for(let y=0;y<canvas.height;y+=cs){ctx.fillStyle=((x/cs+y/cs)%2===0)?'rgba(255,255,255,.055)':'rgba(0,0,0,0)';ctx.fillRect(x,y,cs,cs);}
+  } else if(bgMode==='light'){ctx.fillStyle='#f0f0f5';ctx.fillRect(0,0,canvas.width,canvas.height);}
+  else{ctx.fillStyle='#07070d';ctx.fillRect(0,0,canvas.width,canvas.height);}
+}
+// Burst idle: just the background — no crosshair, no marker.
+// The origin is only revealed via the faint glow during active drag.
+function idleFrame(){ctx.clearRect(0,0,canvas.width,canvas.height);drawBg();if(currentMode==='confetti')drawLaunchers();}
+
+/* ── ANIMATION LOOPS ── */
+function animConfetti(){
+  gFrame++;popFrame++;
+  ctx.clearRect(0,0,canvas.width,canvas.height);drawBg();
+
+  if(isPopper()){
+    // Launcher-based: burst on frame 1, loop after duration
+    if(popFrame===1){particles=[];fireCBurst();}
+    if(popFrame>cfg.duration){
+      if(cfg.loop)popFrame=0;
+      else{cancelAnimationFrame(animId);animId=null;drawLaunchers();sv('st-s','Done');return;}
+    }
+  } else {
+    // Non-launcher types that need continuous respawn while looping
+    if(cfg.loop){
+      if(cfg.type==='freefall'||cfg.type==='rain'||cfg.type==='overhead'){
+        particles.forEach(pt=>{
+          if(!pt.done) return;
+          pt.done=false; pt.life=1; pt.born=gFrame;
+          if(cfg.type==='freefall'||cfg.type==='rain'){
+            pt.x=rand(cfg.type==='rain'?-50:0,canvas.width+(cfg.type==='rain'?50:0));
+            pt.y=rand(-80,-10);
+            pt.vx=rand(-1.5,1.5)+cfg.wind*.1;
+            pt.vy=rand(cfg.type==='rain'?cfg.velocity*.3:.8,cfg.velocity*(cfg.type==='rain'?.7:.4));
+          } else { // overhead
+            pt.x=rand(0,canvas.width); pt.y=rand(-30,0);
+            pt.vx=rand(-3,3)+cfg.wind*.1;
+            pt.vy=rand(cfg.velocity*.4,cfg.velocity*.9);
+          }
+        });
+      }
+    }
+  }
+
+  let alive=0;
+  particles.forEach(pt=>{stepCP(pt);if(!pt.done){drawCP(pt);alive++;}});
+  drawLaunchers();
+  sv('st-p',alive);sv('sb-p',alive);sv('st-f',popFrame);sv('sb-f',popFrame);
+  animId=requestAnimationFrame(animConfetti);
+}
+
+function animBurst(){
+  bFrame++;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBg();
+
+  // Rotation: continuous if holdRotate, otherwise just rotSpeed drift
+  const rotIncrement = bc.rotSpeed;
+  if(bc.holdRotate){
+    bRotation += 0.008 + Math.abs(rotIncrement)*0.5;
+  } else {
+    bRotation += rotIncrement;
+  }
+
+  const ox=burstOrigin.x*canvas.width, oy=burstOrigin.y*canvas.height;
+  let t = bFrame;
+
+  // Loop handling
+  const dur = bc.duration;
+  if(t > dur){
+    if(bc.loop){ bFrame=0; t=0; bRotation=0; }
+    else{ cancelAnimationFrame(animId);animId=null;drawBurstOrigin();sv('st-s','Done');return; }
+  }
+
+  drawLightBurst(ox, oy, t);
+  // drawBurstOrigin only renders during drag — nothing to call here
+
+  sv('st-p','—');sv('sb-p','—');sv('st-f',bFrame);sv('sb-f',bFrame);
+  animId=requestAnimationFrame(animBurst);
+}
+
+/* ── CONTROLS ── */
+
+/* Preview mode: hides launcher UI, shows exactly what will export */
+let previewMode = false;
+
+function togglePreview(btn) {
+  previewMode = !previewMode;
+  btn.classList.toggle('on', previewMode);
+  btn.innerHTML = previewMode
+    ? '<svg viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1.5" fill="currentColor"/></svg> Exit Preview'
+    : '<svg viewBox="0 0 12 9" fill="none"><path d="M1 4.5C2.5 1.5 5.5 0 6 0s3.5 1.5 5 4.5C9.5 7.5 6.5 9 6 9S2.5 7.5 1 4.5z" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.8" fill="currentColor"/></svg> Preview';
+  triggerPlay();
+}
+
+function triggerPlay(){
+  cancelAnimationFrame(animId); animId=null; sv('st-s','Live');
+  if(currentMode==='confetti'){
+    gFrame=0; popFrame=0; particles=[];
+    if(!isPopper()) spawnNP();
+    animId=requestAnimationFrame(animConfetti);
+  } else {
+    bFrame=0; bRotation=0;
+    animId=requestAnimationFrame(animBurst);
+  }
+}
+function stopAnim(){
+  cancelAnimationFrame(animId); animId=null;
+  particles=[]; popFrame=0; bFrame=0; bRotation=0;
+  previewMode=false;
+  const ppb=document.getElementById('previewBtn');
+  if(ppb){ppb.classList.remove('on');ppb.innerHTML='<svg viewBox="0 0 12 9" fill="none"><path d="M1 4.5C2.5 1.5 5.5 0 6 0s3.5 1.5 5 4.5C9.5 7.5 6.5 9 6 9S2.5 7.5 1 4.5z" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.8" fill="currentColor"/></svg> Preview';}
+  idleFrame();
+  sv('st-p',0);sv('sb-p',0);sv('st-f',0);sv('sb-f',0);sv('st-s','—');
+}
+
+function setMode(btn){
+  document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  currentMode=btn.dataset.mode; previewMode=false;
+  const app=document.getElementById('APP'),pb=document.getElementById('playBtn'),ppb=document.getElementById('previewBtn');
+  if(ppb){ppb.classList.remove('on');ppb.innerHTML='<svg viewBox="0 0 12 9" fill="none"><path d="M1 4.5C2.5 1.5 5.5 0 6 0s3.5 1.5 5 4.5C9.5 7.5 6.5 9 6 9S2.5 7.5 1 4.5z" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="4.5" r="1.8" fill="currentColor"/></svg> Preview';}
+  if(currentMode==='burst'){app.classList.add('bmode');pb.classList.add('burst-play');sv('badge-mode','Burst FX');sv('sb-mode','Burst FX');sv('sb-hint','Drag canvas to reposition burst origin');}
+  else{app.classList.remove('bmode');pb.classList.remove('burst-play');sv('badge-mode','Confetti');sv('sb-mode','Confetti');sv('sb-hint','Drag launchers · Click canvas to add · Preview hides all UI');}
+  stopAnim(); triggerPlay();
+}
+
+function setCType(btn){
+  document.querySelectorAll('.c-subtabs .type-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); cfg.type=btn.dataset.type;
+  document.getElementById('launcher-sec').style.display=isPopper()?'':'none';
+  sv('badge-type',btn.textContent.trim().replace(/^\S+\s*/,'').trim());
+  document.querySelectorAll('.bt-btn[data-type]').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.bt-btn[data-type="'+cfg.type+'"]')?.classList.add('on');
+  applyTypePreset(cfg.type); triggerPlay();
+}
+
+function setCTypeSidebar(btn){
+  document.querySelectorAll('.bt-btn[data-type]').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); cfg.type=btn.dataset.type;
+  document.getElementById('launcher-sec').style.display=isPopper()?'':'none';
+  sv('badge-type',btn.textContent.trim().replace(/^\S+\s*/,'').trim());
+  document.querySelectorAll('.c-subtabs .type-tab').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.c-subtabs .type-tab[data-type="'+cfg.type+'"]')?.classList.add('on');
+  applyTypePreset(cfg.type); triggerPlay();
+}
+
+function applyTypePreset(type){
+  if(type==='poppers'){
+    launchers=[{x:.3,y:.88,angle:-90,cone:60,color:LCOLORS[0]},{x:.7,y:.88,angle:-90,cone:60,color:LCOLORS[1]}];
+  } else if(type==='cannon'){
+    launchers=[{x:.5,y:.92,angle:-90,cone:22,color:LCOLORS[0]}];
+  } else if(type==='blast'){
+    launchers=[{x:.35,y:.72,angle:-90,cone:180,color:LCOLORS[0]},{x:.65,y:.72,angle:-90,cone:180,color:LCOLORS[1]}];
+  } else if(type==='fountain'){
+    launchers=[{x:.2,y:.92,angle:-90,cone:30,color:LCOLORS[0]},{x:.5,y:.92,angle:-90,cone:30,color:LCOLORS[2]},{x:.8,y:.92,angle:-90,cone:30,color:LCOLORS[1]}];
+  } else if(type==='sides'){
+    /* Canvas angle: 0=right, -90=up, -180=left.
+       Left launcher fires rightward = 0°. Right launcher fires leftward = -180°. */
+    launchers=[{x:.01,y:.55,angle:0,cone:45,color:LCOLORS[0]},{x:.99,y:.55,angle:-180,cone:45,color:LCOLORS[1]}];
+  }
+  selL=0; renderLL(); syncLC(); sv('st-l',launchers.length);
+}
+
+function setBType(btn){
+  document.querySelectorAll('.b-subtabs .type-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); bc.burstType=btn.dataset.btype;
+  sv('badge-type',btn.textContent.trim().replace(/^\S+\s*/,'').trim());
+  document.querySelectorAll('.bt-btn[data-btype]').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.bt-btn[data-btype="'+bc.burstType+'"]')?.classList.add('on');
+}
+function setBTypeSidebar(btn){
+  document.querySelectorAll('.bt-btn[data-btype]').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); bc.burstType=btn.dataset.btype;
+  sv('badge-type',btn.textContent.trim().replace(/^\S+\s*/,'').trim());
+  document.querySelectorAll('.b-subtabs .type-tab').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.b-subtabs .type-tab[data-btype="'+bc.burstType+'"]')?.classList.add('on');
+}
+
+function setSparkShape(shape,btn){
+  bc.sparkShape=shape;
+  document.querySelectorAll('.ss-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+}
+function setBg(btn,m){
+  document.querySelectorAll('.bg-seg').forEach(b=>b.classList.remove('on'));btn.classList.add('on');bgMode=m;
+  const lbl={dark:'Dark',light:'Light',transparent:'Transparent'};sv('badge-bg',lbl[m]);sv('sb-bg',lbl[m]);
+  if(!animId)idleFrame();
+}
+function toggleShape(btn,mode){
+  const s=btn.dataset.s,arr=mode==='b'?bShapes:cShapes,i=arr.indexOf(s);
+  if(i>-1){if(arr.length>1){arr.splice(i,1);btn.classList.remove('on');btn.classList.remove('bon');}}
+  else{arr.push(s);btn.classList.add('on');if(mode==='b')btn.classList.add('bon');}
+}
+function addLauncher(){
+  if(launchers.length>=6)return;
+  launchers.push({x:rand(.2,.8),y:rand(.6,.9),angle:-90,cone:60,color:LCOLORS[launchers.length%LCOLORS.length]});
+  selL=launchers.length-1;renderLL();syncLC();sv('st-l',launchers.length);if(!animId)idleFrame();
+}
+function removeLauncher(i){
+  if(launchers.length<=1)return;
+  launchers.splice(i,1);selL=Math.min(selL,launchers.length-1);
+  renderLL();syncLC();sv('st-l',launchers.length);if(!animId)idleFrame();
+}
+function renderLL(){
+  const el=document.getElementById('launcherList');el.innerHTML='';
+  launchers.forEach((l,i)=>{
+    const d=document.createElement('div');d.className='l-item'+(i===selL?' on':'');
+    d.innerHTML='<div class="l-dot" style="background:'+l.color+'"></div><span class="l-name">Launcher '+(i+1)+'</span><span class="l-meta">'+Math.round(l.angle)+'° · '+Math.round(l.cone)+'°</span><button class="l-del" onclick="event.stopPropagation();removeLauncher('+i+')">×</button>';
+    d.onclick=()=>{selL=i;renderLL();syncLC();};el.appendChild(d);
+  });
+}
+function syncLC(){
+  const l=launchers[selL];
+  document.getElementById('sl-angle').value=l.angle;sv('v-angle',Math.round(l.angle)+'°');
+  document.getElementById('sl-cone').value=l.cone;sv('v-cone',Math.round(l.cone)+'°');
+}
+function updateLAngle(v){launchers[selL].angle=+v;sv('v-angle',Math.round(v)+'°');renderLL();if(!animId)idleFrame();}
+function updateLCone(v){launchers[selL].cone=+v;sv('v-cone',Math.round(v)+'°');renderLL();if(!animId)idleFrame();}
+
+canvas.addEventListener('mousedown',e=>{
+  const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  if(previewMode)return; // no interaction in preview mode
+  if(currentMode==='burst'){burstOrigin={x:mx/canvas.width,y:my/canvas.height};bDrag=true;sv('b-pos',Math.round(burstOrigin.x*100)+'% · '+Math.round(burstOrigin.y*100)+'%');if(!animId)idleFrame();return;}
+  for(let i=launchers.length-1;i>=0;i--){const{x,y}=lpx(launchers[i]);if(Math.hypot(mx-x,my-y)<16){dragging=i;selL=i;renderLL();syncLC();return;}}
+  if(isPopper()&&launchers.length<6){launchers.push({x:mx/canvas.width,y:my/canvas.height,angle:-90,cone:60,color:LCOLORS[launchers.length%LCOLORS.length]});selL=launchers.length-1;dragging=selL;renderLL();syncLC();sv('st-l',launchers.length);}
+  if(!animId)idleFrame();
+});
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  if(currentMode==='burst'&&bDrag){burstOrigin={x:Math.max(0,Math.min(1,mx/canvas.width)),y:Math.max(0,Math.min(1,my/canvas.height))};sv('b-pos',Math.round(burstOrigin.x*100)+'% · '+Math.round(burstOrigin.y*100)+'%');if(!animId)idleFrame();return;}
+  if(dragging===null)return;launchers[dragging].x=Math.max(0,Math.min(1,(e.clientX-r.left)/canvas.width));launchers[dragging].y=Math.max(0,Math.min(1,(e.clientY-r.top)/canvas.height));if(!animId)idleFrame();
+});
+canvas.addEventListener('mouseup',()=>{dragging=null;bDrag=false;});
+canvas.addEventListener('mouseleave',()=>{dragging=null;bDrag=false;});
+
+function initSw(id,pal,arr){
+  const el=document.getElementById(id);el.innerHTML='';
+  pal.forEach(c=>{const d=document.createElement('div');d.className='sw on';d.style.background=c;d.onclick=()=>{const i=arr.indexOf(c);if(i>-1){if(arr.length>1){arr.splice(i,1);d.classList.remove('on');}}else{arr.push(c);d.classList.add('on');}};el.appendChild(d);});
+}
+
+/* ── EXPORT ── */
+async function doExport(f){if(f==='webm')await expWebM();else if(f==='gif')expGIF();else await expMP4();}
+function showP(l){document.getElementById('expProg').classList.add('show');document.getElementById('progLbl').textContent=l;document.getElementById('progBar').style.width='0%';}
+function setP(p){document.getElementById('progBar').style.width=p+'%';}
+function hideP(){document.getElementById('expProg').classList.remove('show');}
+function showR(l){const r=document.getElementById('recInd');r.classList.add('show');document.getElementById('recLbl').textContent=l||'Recording…';}
+function hideR(){document.getElementById('recInd').classList.remove('show');}
+function getAF(){return currentMode==='burst'?animBurst:animConfetti;}
+function resetSt(){if(currentMode==='burst'){bFrame=0;bRotation=0;}else{gFrame=0;popFrame=0;particles=[];if(!isPopper())spawnNP();}}
+
+async function expWebM(){
+  if(!window.MediaRecorder){alert('Use Chrome for export.');return;}
+  const mt='video/webm;codecs=vp9';if(!MediaRecorder.isTypeSupported(mt)){alert('VP9 not supported. Use Chrome.');return;}
+  showR('Recording transparent WebM…');isExpTrans=true;
+  cancelAnimationFrame(animId);animId=null;resetSt();ctx.clearRect(0,0,canvas.width,canvas.height);
+  const stream=canvas.captureStream(30);const rec=new MediaRecorder(stream,{mimeType:mt});const chunks=[];
+  rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+  rec.onstop=()=>{isExpTrans=false;hideR();const blob=new Blob(chunks,{type:'video/webm'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='effect-transparent.webm';a.click();triggerPlay();};
+  rec.start();animId=requestAnimationFrame(getAF());
+  const dur=currentMode==='burst'?Math.max((bc.duration/30)*1000+1200,2500):Math.max((cfg.duration/30)*1000+1200,2500);
+  setTimeout(()=>{rec.stop();cancelAnimationFrame(animId);animId=null;},dur);
+}
+async function expMP4(){
+  if(!window.MediaRecorder){alert('MediaRecorder not supported.');return;}
+  showR('Recording MP4…');isExpTrans=false;
+  cancelAnimationFrame(animId);animId=null;resetSt();
+  const stream=canvas.captureStream(30);const mt=MediaRecorder.isTypeSupported('video/mp4')?'video/mp4':'video/webm';
+  const rec=new MediaRecorder(stream,{mimeType:mt});const chunks=[];
+  rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+  rec.onstop=()=>{hideR();const ext=mt.includes('mp4')?'mp4':'webm';const blob=new Blob(chunks,{type:mt});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`effect.${ext}`;a.click();triggerPlay();};
+  rec.start();animId=requestAnimationFrame(getAF());
+  const dur=currentMode==='burst'?Math.max((bc.duration/30)*1000+1000,2500):Math.max((cfg.duration/30)*1000+1000,2500);
+  setTimeout(()=>{rec.stop();cancelAnimationFrame(animId);animId=null;},dur);
+}
+function expGIF(){
+  alert('GIF encoding requires a server-side tool.\n\nTo convert your WebM to GIF:\n• ezgif.com/video-to-gif\n• ffmpeg -i effect-transparent.webm effect.gif\n\nExport WebM first, then convert.');
+}
+
+window.setMode=setMode;window.setCType=setCType;window.setCTypeSidebar=setCTypeSidebar;window.setBType=setBType;window.setBTypeSidebar=setBTypeSidebar;
+window.setBg=setBg;window.toggleShape=toggleShape;window.setBurstTemp=setBurstTemp;window.setSparkShape=setSparkShape;
+window.addLauncher=addLauncher;window.removeLauncher=removeLauncher;
+window.updateLAngle=updateLAngle;window.updateLCone=updateLCone;
+window.triggerPlay=triggerPlay;window.stopAnim=stopAnim;window.doExport=doExport;window.togglePreview=togglePreview;
+
+window.addEventListener('resize',()=>{resizeCanvas();if(!animId)idleFrame();});
+resizeCanvas();
+initSw('c-swatches',CPAL,cColors);
+initSw('b-swatches',BPAL_WARM,bColors);
+renderLL();syncLC();
+sv('st-l',launchers.length);
+triggerPlay();
+</script>
+</body>
+</html>

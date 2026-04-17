@@ -833,13 +833,19 @@ btnA.addEventListener('click',()=>{if(S.loaded)doAnalyze();});
    No Math.random(). Same inputs always produce same output.
 
    Pipeline:
-   1. Pixel sampling (offscreen canvas, GRID×GRID)
-   2. Per-cell: luminance, saturation, local contrast, edge score
-   3. Horizontal band analysis (text/UI band detection)
-   4. Rectangular cluster detection for button-like regions
-   5. Greedy region clustering (deterministic, sorted by score)
-   6. Mode-specific and context weighting
-   7. Labeling and gaze path generation
+   1.  Pixel sampling (offscreen canvas, GRID×GRID)
+   2.  Per-cell: luminance, saturation, local contrast, edge score
+   3.  Horizontal band analysis
+   4.  CTA / interactive element scoring
+   5.  Modal / popup detection heuristic
+       – If a large lighter centered panel sits over a darker
+         surround, switch to "modal analysis mode":
+         • suppress background cells outside the panel
+         • divide the panel into header / body / action / footer zones
+         • apply balanced within-panel sectional weighting
+   6.  Greedy region clustering (deterministic)
+   7.  Mode-specific + context weighting
+   8.  Labeling (modal-aware) and gaze path generation
 ══════════════════════════════════════════════════════════ */
 
 function doAnalyze(){
@@ -886,10 +892,100 @@ function showProc(cb){
   tick();
 }
 
+/* ══════════════════════════════════════════════════════════
+   MODAL / POPUP DETECTION HEURISTIC
+   ──────────────────────────────────────────────────────────
+   Strategy:
+   We compute the mean luminance of the periphery (outer ~20%
+   border ring) vs the central region (inner ~60% band).
+   If centre is significantly brighter than periphery AND the
+   central zone is compact enough, we declare a modal.
+
+   We also check horizontal luminance columns to verify the
+   panel is roughly centred and bounded.
+
+   Returns: null | { top, bottom, left, right }  (normalised 0–1)
+══════════════════════════════════════════════════════════ */
+function detectModal(cells, GRID){
+  /* ── Step 1: compute per-column and per-row mean luminance ── */
+  const colMeanLum = Array.from({length:GRID}, (_,col)=>{
+    const colCells = cells.filter(c=>c.col===col);
+    return colCells.reduce((s,c)=>s+c.lum,0)/colCells.length;
+  });
+  const rowMeanLum = Array.from({length:GRID}, (_,row)=>{
+    const rowCells = cells.filter(c=>c.row===row);
+    return rowCells.reduce((s,c)=>s+c.lum,0)/rowCells.length;
+  });
+
+  /* ── Step 2: find peripheral vs central luminance ── */
+  // Outer ring = first/last 20% of rows/cols
+  const RING = Math.floor(GRID * 0.20);
+  const peripheryRows = [...Array.from({length:RING},(_,i)=>i),
+                         ...Array.from({length:RING},(_,i)=>GRID-1-i)];
+  const peripheryCols = [...Array.from({length:RING},(_,i)=>i),
+                         ...Array.from({length:RING},(_,i)=>GRID-1-i)];
+
+  const peripheryLum = cells
+    .filter(c=>peripheryRows.includes(c.row)||peripheryCols.includes(c.col))
+    .reduce((s,c,_,a)=>s+c.lum/a.length, 0);
+
+  const centerLum = cells
+    .filter(c=>!peripheryRows.includes(c.row)&&!peripheryCols.includes(c.col))
+    .reduce((s,c,_,a)=>s+c.lum/a.length, 0);
+
+  // Not a modal if difference is small
+  const LUM_DIFF_THRESH = 0.10; // centre must be this much brighter than surround
+  if(centerLum - peripheryLum < LUM_DIFF_THRESH) return null;
+
+  /* ── Step 3: locate panel boundaries via luminance gradient ──
+     Walk inward from each edge until we hit a brightness jump.
+     "Jump" = luminance rises clearly above peripheral mean + half threshold */
+  const PANEL_THRESH = peripheryLum + LUM_DIFF_THRESH * 0.55;
+
+  let panelTop=0, panelBottom=GRID-1, panelLeft=0, panelRight=GRID-1;
+
+  // Top edge: walk down rows
+  for(let row=0;row<GRID;row++){
+    if(rowMeanLum[row]>=PANEL_THRESH){panelTop=row;break;}
+  }
+  // Bottom edge: walk up rows
+  for(let row=GRID-1;row>=0;row--){
+    if(rowMeanLum[row]>=PANEL_THRESH){panelBottom=row;break;}
+  }
+  // Left edge: walk right cols
+  for(let col=0;col<GRID;col++){
+    if(colMeanLum[col]>=PANEL_THRESH){panelLeft=col;break;}
+  }
+  // Right edge: walk left cols
+  for(let col=GRID-1;col>=0;col--){
+    if(colMeanLum[col]>=PANEL_THRESH){panelRight=col;break;}
+  }
+
+  const panelH = panelBottom - panelTop;
+  const panelW = panelRight - panelLeft;
+
+  // Panel must be at least 30% of screen in each dimension, and not full screen
+  if(panelH < GRID*0.28 || panelW < GRID*0.28) return null;
+  if(panelH > GRID*0.95 && panelW > GRID*0.92) return null; // full screen sheet, not a modal
+
+  // Panel should be roughly centred horizontally (within 20% of centre)
+  const panelCX = (panelLeft+panelRight)/2 / (GRID-1);
+  if(Math.abs(panelCX - 0.5) > 0.20) return null;
+
+  return {
+    top:    panelTop    / (GRID-1),
+    bottom: panelBottom / (GRID-1),
+    left:   panelLeft   / (GRID-1),
+    right:  panelRight  / (GRID-1),
+    centerLum,
+    peripheryLum
+  };
+}
+
 /* ── Core image analysis ── */
 async function analyzeImage(){
   return new Promise(resolve=>{
-    const GRID=32; // higher resolution for better detection
+    const GRID=32;
     const off=document.createElement('canvas');
     off.width=GRID;off.height=GRID;
     const octx=off.getContext('2d');
@@ -906,72 +1002,236 @@ async function analyzeImage(){
         const mx=Math.max(rv,gv,bv),mn=Math.min(rv,gv,bv);
         const delta=mx-mn;
         const sat=mx>0.001?delta/mx:0;
-        // Chromatic energy (how far from grey)
-        const chromatic=delta;
-        cells.push({
-          row,col,lum,sat,chromatic,
-          nx:col/(GRID-1),ny:row/(GRID-1),
-          r:rv,g:gv,b:bv
-        });
+        cells.push({row,col,lum,sat,chromatic:delta,nx:col/(GRID-1),ny:row/(GRID-1),r:rv,g:gv,b:bv});
       }
     }
 
-    /* ── Local contrast and edge activity ── */
-    const DIRS=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
+    /* ── Local contrast + edge + saturation boost ── */
+    const DIRS4=[[-1,0],[1,0],[0,-1],[0,1]];
+    const DIRS8=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,1],[-1,1],[1,-1]];
     cells.forEach(c=>{
-      const nbs=DIRS.map(([dr,dc])=>{
+      const nbs8=DIRS8.map(([dr,dc])=>{
         const nr=c.row+dr,nc=c.col+dc;
         return(nr>=0&&nr<GRID&&nc>=0&&nc<GRID)?cells[nr*GRID+nc]:null;
       }).filter(Boolean);
-      const lumNbs=nbs.map(n=>n.lum);
+      const lumNbs=nbs8.map(n=>n.lum);
       const avgLum=lumNbs.reduce((a,b)=>a+b,0)/lumNbs.length;
       c.contrast=Math.abs(c.lum-avgLum);
       c.edge=Math.max(...lumNbs.map(n=>Math.abs(c.lum-n)));
-      // Colorfulness relative to neighbors
-      const satNbs=nbs.map(n=>n.sat);
+      const satNbs=nbs8.map(n=>n.sat);
       const avgSat=satNbs.reduce((a,b)=>a+b,0)/satNbs.length;
       c.satBoost=Math.max(0,c.sat-avgSat);
-      c.complexity=c.contrast*0.5+c.edge*0.32+c.satBoost*0.18;
+      // Complexity: visual noise level — deliberately kept moderate so
+      // it cannot completely dominate flat interactive controls.
+      c.complexity=c.contrast*0.45+c.edge*0.30+c.satBoost*0.15;
+
+      /* ── fillConsistency ──────────────────────────────────────
+         Measures how uniform the local neighbourhood is in colour.
+         A flat filled button has HIGH fill consistency (low variance).
+         A noisy grid/image has LOW fill consistency.
+         Computed as 1 - normalised luminance variance across 8 neighbours. */
+      const lumVar=lumNbs.reduce((s,n)=>{const d=n-avgLum;return s+d*d;},0)/lumNbs.length;
+      c.fillConsistency=Math.max(0,1-lumVar*18); // scale: variance of 0.055 → 0
+
+      /* ── Same for colour channels (R,G,B variance) ── */
+      const nbsR=nbs8.map(n=>n.r),nbsG=nbs8.map(n=>n.g),nbsB=nbs8.map(n=>n.b);
+      const avgR=nbsR.reduce((a,b)=>a+b,0)/nbsR.length;
+      const avgG=nbsG.reduce((a,b)=>a+b,0)/nbsG.length;
+      const avgB=nbsB.reduce((a,b)=>a+b,0)/nbsB.length;
+      const colorVar=(nbsR.reduce((s,v)=>s+(v-avgR)**2,0)+
+                      nbsG.reduce((s,v)=>s+(v-avgG)**2,0)+
+                      nbsB.reduce((s,v)=>s+(v-avgB)**2,0))/(3*nbsR.length);
+      c.colorConsistency=Math.max(0,1-colorVar*24);
     });
 
     /* ── Global stats ── */
     const lums=cells.map(c=>c.lum);
     const meanLum=lums.reduce((a,b)=>a+b,0)/lums.length;
     const maxContrast=Math.max(...cells.map(c=>c.contrast));
-    const sats=cells.map(c=>c.sat);
-    const meanSat=sats.reduce((a,b)=>a+b,0)/sats.length;
+    const meanSat=cells.map(c=>c.sat).reduce((a,b)=>a+b,0)/cells.length;
     S.stats={meanLum,maxContrast,meanSat,cs:Math.min(maxContrast/0.42,1)};
 
-    /* ── Horizontal band analysis ──
-       Detect rows with high complexity variance → likely UI bands (nav/button/text) */
-    const rowComplexity=[];
-    for(let row=0;row<GRID;row++){
-      const rowCells=cells.filter(c=>c.row===row);
-      const avgC=rowCells.reduce((s,c)=>s+c.complexity,0)/rowCells.length;
-      const avgSat=rowCells.reduce((s,c)=>s+c.sat,0)/rowCells.length;
-      rowComplexity.push({row,avgC,avgSat,ny:row/(GRID-1)});
-    }
-    // Mark cells in high-complexity bands
-    const sortedRows=[...rowComplexity].sort((a,b)=>b.avgC-a.avgC);
-    const hotRows=new Set(sortedRows.slice(0,Math.ceil(GRID*0.25)).map(r=>r.row));
-    cells.forEach(c=>{if(hotRows.has(c.row))c.bandBoost=0.25;else c.bandBoost=0;});
+    /* ── Horizontal band detection ── */
+    const rowComplexity=Array.from({length:GRID},(_,row)=>{
+      const rc=cells.filter(c=>c.row===row);
+      return{row,avgC:rc.reduce((s,c)=>s+c.complexity,0)/rc.length};
+    });
+    const hotRows=new Set(
+      [...rowComplexity].sort((a,b)=>b.avgC-a.avgC)
+        .slice(0,Math.ceil(GRID*0.22)).map(r=>r.row)
+    );
+    cells.forEach(c=>{c.bandBoost=hotRows.has(c.row)?0.18:0;}); // reduced to not over-power buttons
 
-    /* ── Rectangular cluster detection ──
-       Find compact rectangular zones with high saturation + high contrast
-       These are likely buttons or interactive cards */
-    cells.forEach(c=>{
-      // High saturation + high local contrast = likely interactive element
-      const ctaLikely=c.sat>0.25&&c.contrast>0.1;
-      c.ctaScore=ctaLikely?(c.sat*0.5+c.contrast*0.5)*1.4:0;
+    /* ════════════════════════════════════════════════════
+       GRID REPETITION PENALTY
+       Detect rows with suspiciously uniform row-to-row
+       complexity (repeated list / grid tiles).
+       These rows get a repetitionPenalty that reduces their
+       raw visual weight so they cannot overpower clear CTAs.
+    ════════════════════════════════════════════════════ */
+    const rowAvgLum=Array.from({length:GRID},(_,row)=>{
+      const rc=cells.filter(c=>c.row===row);
+      return rc.reduce((s,c)=>s+c.lum,0)/rc.length;
+    });
+    const rowAvgSat=Array.from({length:GRID},(_,row)=>{
+      const rc=cells.filter(c=>c.row===row);
+      return rc.reduce((s,c)=>s+c.sat,0)/rc.length;
     });
 
-    /* ── Final saliency score (deterministic) ── */
+    // Find runs of rows with similar luminance AND similar saturation (repeating tiles)
+    const REPEAT_WINDOW=3; // compare each row to its neighbours
+    const repScore=Array.from({length:GRID},(_,row)=>{
+      let sim=0,cnt=0;
+      for(let dr=-REPEAT_WINDOW;dr<=REPEAT_WINDOW;dr++){
+        const r2=row+dr;
+        if(r2<0||r2>=GRID||r2===row)continue;
+        const lumSim=1-Math.abs(rowAvgLum[row]-rowAvgLum[r2])*5;
+        const satSim=1-Math.abs(rowAvgSat[row]-rowAvgSat[r2])*5;
+        sim+=Math.max(0,lumSim)*Math.max(0,satSim);cnt++;
+      }
+      return cnt>0?sim/cnt:0;
+    });
+    // Rows with repScore > 0.7 are in a repetitive region → apply penalty
     cells.forEach(c=>{
-      const topBias=1-c.ny*0.6;
-      const cxBias=1-Math.abs(c.nx-0.5)*1.05;
+      const rs=repScore[c.row];
+      c.gridRepetitionPenalty=rs>0.7?Math.max(0.45,1-rs*0.7):1.0;
+    });
+
+    /* ════════════════════════════════════════════════════
+       BUTTON / CONTROL DETECTION
+       A "button-like" region has:
+       1. High fill consistency (flat, uniform colour)
+       2. Moderate-to-high contrast against its surroundings
+          (the boundary between button and background is clear)
+       3. Visual isolation (low complexity immediately outside)
+       4. Centre or lower placement (typical CTA positioning)
+
+       We compute a buttonScore per cell.
+       This score is intentionally INDEPENDENT of complexity
+       so that flat buttons are not penalised for being simple.
+    ════════════════════════════════════════════════════ */
+    cells.forEach(c=>{
+      /* ── Criterion 1: fill consistency ──
+         The cell itself and its 4-neighbours should share colour. */
+      const nbs4=DIRS4.map(([dr,dc])=>{
+        const nr=c.row+dr,nc=c.col+dc;
+        return(nr>=0&&nr<GRID&&nc>=0&&nc<GRID)?cells[nr*GRID+nc]:null;
+      }).filter(Boolean);
+
+      const innerLums=nbs4.map(n=>n.lum);
+      const innerAvg=innerLums.reduce((a,b)=>a+b,0)/(innerLums.length||1);
+      const innerVar=innerLums.reduce((s,n)=>{const d=n-innerAvg;return s+d*d;},0)/(innerLums.length||1);
+      const localFill=Math.max(0,1-innerVar*22); // high when neighbours are same colour
+
+      /* ── Criterion 2: boundary contrast ──
+         Check contrast between inner cluster and cells 2 steps out.
+         A button edge should have a clear luminance jump. */
+      const outer=[];
+      for(let dr=-2;dr<=2;dr++){
+        for(let dc=-2;dc<=2;dc++){
+          if(Math.abs(dr)<=1&&Math.abs(dc)<=1)continue; // skip inner
+          const nr=c.row+dr,nc=c.col+dc;
+          if(nr>=0&&nr<GRID&&nc>=0&&nc<GRID)outer.push(cells[nr*GRID+nc].lum);
+        }
+      }
+      const outerAvg=outer.length>0?outer.reduce((a,b)=>a+b,0)/outer.length:innerAvg;
+      const boundaryContrast=Math.abs(innerAvg-outerAvg);
+
+      /* ── Criterion 3: isolation ──
+         The region around the cell should have lower saturation
+         (whitespace, neutral background) = the control is isolated. */
+      const outerSats=outer.map((_,i)=>{
+        // recompute using actual cell objects
+        return 0; // placeholder — we use outer lum variance instead
+      });
+      const outerVar=outer.length>1?outer.reduce((s,n,_,a)=>{const d=n-(a.reduce((x,y)=>x+y,0)/a.length);return s+d*d;},0)/outer.length:0;
+      const isolation=Math.max(0,1-outerVar*12); // outer region is uniform (likely whitespace/bg)
+
+      /* ── Combined buttonScore ──
+         Weights: fill dominates, boundary contrast essential,
+         isolation helps but is secondary. */
+      const btnRaw=localFill*0.45 + boundaryContrast*2.5 + isolation*0.20;
+      // Must have SOME saturation or luminance deviation to not be pure white bg
+      const notBg=(c.sat>0.08||Math.abs(c.lum-meanLum)>0.06)?1:0;
+      c.buttonScore=btnRaw*notBg;
+
+      /* ── ctaScore (legacy, kept for compatibility) ── */
+      // Revised: use buttonScore as a supplement, not sat*contrast alone
+      const legacyCta=(c.sat>0.22&&c.contrast>0.08)?(c.sat*0.5+c.contrast*0.5)*1.2:0;
+      c.ctaScore=Math.max(legacyCta, c.buttonScore*0.8);
+    });
+
+    /* ── Normalise buttonScore 0–1 ── */
+    const maxBtn=Math.max(...cells.map(c=>c.buttonScore))||1;
+    cells.forEach(c=>c.buttonScore/=maxBtn);
+
+    /* ════════════════════════════════════════════════════
+       MODAL DETECTION & SUPPRESSION
+    ════════════════════════════════════════════════════ */
+    const modal = detectModal(cells, GRID);
+    S.stats.modal = modal;
+
+    if(modal){
+      const{top:mT,bottom:mB,left:mL,right:mR}=modal;
+      const mH=mB-mT;
+
+      cells.forEach(c=>{
+        const inModal = c.ny>=mT && c.ny<=mB && c.nx>=mL && c.nx<=mR;
+        if(!inModal){
+          c.bgPenalty=0.10;
+          c.modalZone='bg';
+          c.modalZoneBoost=1.0;
+        } else {
+          c.bgPenalty=1.0;
+          /* Within-modal structural zones:
+             header  0–20%   initial attention, NOT dominant
+             body    20–60%  content scan — penalise repetition here
+             action  60–82%  STRONGEST — this is where the CTA lives
+             footer  82–100% secondary actions */
+          const relY=mH>0?(c.ny-mT)/mH:0;
+          if(relY<0.20){
+            c.modalZone='header';
+            c.modalZoneBoost=1.15; // reduced from 1.25 — header shouldn't dominate
+          } else if(relY<0.60){
+            c.modalZone='body';
+            // Apply repetition penalty inside body — grids shouldn't overpower buttons
+            c.modalZoneBoost=1.05*c.gridRepetitionPenalty;
+          } else if(relY<0.82){
+            c.modalZone='action';
+            // Strongest zone — button-like cells here get an extra direct boost
+            const btnExtraBoost=c.buttonScore>0.3?1.4:1.0;
+            c.modalZoneBoost=1.80*btnExtraBoost; // action zone is king
+          } else {
+            c.modalZone='footer';
+            const btnFooterBoost=c.buttonScore>0.25?1.25:1.0;
+            c.modalZoneBoost=1.30*btnFooterBoost;
+          }
+        }
+      });
+    } else {
+      cells.forEach(c=>{c.bgPenalty=1.0;c.modalZone='none';c.modalZoneBoost=1.0;});
+    }
+
+    /* ── Final saliency score ── */
+    cells.forEach(c=>{
+      const topBias=modal?(1-c.ny*0.15):(1-c.ny*0.55);
+      const cxBias=1-Math.abs(c.nx-0.5)*1.0;
       const lumDev=Math.abs(c.lum-meanLum);
-      const visualWeight=c.complexity*2.0+lumDev*0.85+c.ctaScore*0.8+c.bandBoost*0.6;
-      c.score=visualWeight*topBias*(cxBias*0.42+0.58);
+      const zoneBoost=c.modalZoneBoost||1.0;
+
+      /* The key change: buttonScore is now a FIRST-CLASS signal,
+         not hidden inside ctaScore which depended on sat+contrast.
+         A flat coloured button with high buttonScore can fully
+         compete with (and beat) a noisy complex content region. */
+      const visualWeight=(
+        c.complexity  * 1.4 +   // reduced weight
+        lumDev        * 0.75 +  // luminance deviation
+        c.ctaScore    * 0.70 +  // legacy cta signal
+        c.buttonScore * 2.20 +  // ★ NEW primary interactive signal
+        c.bandBoost   * 0.45    // UI band boost
+      ) * zoneBoost * c.gridRepetitionPenalty; // repetition penalty applied here too
+
+      c.score = visualWeight * topBias * (cxBias*0.40+0.60) * c.bgPenalty;
     });
 
     /* ── Normalize ── */
@@ -979,17 +1239,14 @@ async function analyzeImage(){
     cells.forEach(c=>c.score/=maxS);
 
     S._cells=cells;S._GRID=GRID;
-
-    /* ── Cluster regions (deterministic greedy) ── */
-    clusterRegions(cells,GRID);
+    clusterRegions(cells,GRID,modal);
     resolve();
   });
 }
 
 /* ── Deterministic greedy clustering ── */
-function clusterRegions(cells,GRID){
-  const THRESH=0.10,MERGE=5.2;
-  // Sort strictly: score desc, then row asc, then col asc — fully deterministic
+function clusterRegions(cells,GRID,modal){
+  const THRESH=0.08, MERGE=5.2;
   const sorted=[...cells]
     .filter(c=>c.score>THRESH)
     .sort((a,b)=>b.score-a.score||a.row-b.row||a.col-b.col);
@@ -1000,14 +1257,11 @@ function clusterRegions(cells,GRID){
   for(const seed of sorted){
     const key=seed.row*GRID+seed.col;
     if(assigned.has(key))continue;
-
     const members=[];
     for(const c of sorted){
       const k=c.row*GRID+c.col;
       if(assigned.has(k))continue;
-      if(Math.hypot(c.row-seed.row,c.col-seed.col)<=MERGE){
-        members.push(c);
-      }
+      if(Math.hypot(c.row-seed.row,c.col-seed.col)<=MERGE) members.push(c);
     }
     if(!members.length)continue;
     members.forEach(m=>assigned.add(m.row*GRID+m.col));
@@ -1016,104 +1270,179 @@ function clusterRegions(cells,GRID){
     const cx=members.reduce((s,m)=>s+m.nx*m.score,0)/tw;
     const cy=members.reduce((s,m)=>s+m.ny*m.score,0)/tw;
     const topScore=Math.max(...members.map(m=>m.score));
+
+    // Carry button signal through to region
     const avgCta=members.reduce((s,m)=>s+m.ctaScore,0)/members.length;
+    const avgBtn=members.reduce((s,m)=>s+(m.buttonScore||0),0)/members.length;
+    const maxBtn=Math.max(...members.map(m=>m.buttonScore||0));
+    const avgRep=members.reduce((s,m)=>s+(m.gridRepetitionPenalty||1),0)/members.length;
+
     const spX=Math.max(...members.map(m=>Math.abs(m.nx-cx)))+0.04;
     const spY=Math.max(...members.map(m=>Math.abs(m.ny-cy)))+0.04;
+
+    // Dominant modal zone for this cluster
+    const zoneCounts={};
+    members.forEach(m=>{zoneCounts[m.modalZone]=(zoneCounts[m.modalZone]||0)+1;});
+    const dominantZone=Object.entries(zoneCounts).sort((a,b)=>b[1]-a[1])[0][0];
+
     raw.push({
       cx,cy,
       rx:Math.min(spX+0.08,0.28),ry:Math.min(spY+0.05,0.16),
-      score:topScore,n:members.length,avgCta
+      score:topScore,n:members.length,
+      avgCta,avgBtn,maxBtn,avgRep,
+      modalZone:dominantZone
     });
   }
 
   let top=raw.sort((a,b)=>b.score-a.score||a.cy-b.cy).slice(0,12);
 
-  // Fallback coverage zones (deterministic, only inserted if gap exists)
-  const FALLBACKS=[
-    {cx:.5,cy:.09,rx:.22,ry:.07,score:.82,n:1,avgCta:0},
-    {cx:.5,cy:.28,rx:.26,ry:.1,score:.72,n:1,avgCta:0},
-    {cx:.5,cy:.56,rx:.24,ry:.09,score:.56,n:1,avgCta:.2},
-    {cx:.5,cy:.8,rx:.21,ry:.07,score:.42,n:1,avgCta:.1},
-  ];
-  FALLBACKS.forEach(fb=>{
-    if(!top.some(r=>Math.abs(r.cy-fb.cy)<0.12))top.push(fb);
-  });
+  // Fallback coverage — modal-relative positions if modal detected
+  if(modal){
+    const{top:mT,bottom:mB,left:mL,right:mR}=modal;
+    const mCX=(mL+mR)/2, mH=mB-mT;
+    const FB_MODAL=[
+      {cy:mT+mH*0.10, zone:'header', score:.78, avgCta:0,   avgBtn:0.05, maxBtn:0.05, avgRep:1},
+      {cy:mT+mH*0.40, zone:'body',   score:.65, avgCta:0,   avgBtn:0.08, maxBtn:0.10, avgRep:0.7},
+      {cy:mT+mH*0.71, zone:'action', score:.85, avgCta:.18, avgBtn:0.55, maxBtn:0.75, avgRep:1},
+      {cy:mT+mH*0.89, zone:'footer', score:.52, avgCta:.08, avgBtn:0.30, maxBtn:0.45, avgRep:1},
+    ];
+    FB_MODAL.forEach(fb=>{
+      if(!top.some(r=>Math.abs(r.cy-fb.cy)<0.10&&r.modalZone===fb.zone)){
+        top.push({cx:mCX,cy:fb.cy,rx:.18,ry:.06,score:fb.score,n:1,
+                  avgCta:fb.avgCta,avgBtn:fb.avgBtn,maxBtn:fb.maxBtn,
+                  avgRep:fb.avgRep,modalZone:fb.zone});
+      }
+    });
+  } else {
+    const FALLBACKS=[
+      {cx:.5,cy:.09,rx:.22,ry:.07,score:.80,n:1,avgCta:0,  avgBtn:0.05,maxBtn:0.05,avgRep:1,modalZone:'none'},
+      {cx:.5,cy:.28,rx:.26,ry:.10,score:.70,n:1,avgCta:0,  avgBtn:0.08,maxBtn:0.10,avgRep:1,modalZone:'none'},
+      {cx:.5,cy:.56,rx:.24,ry:.09,score:.55,n:1,avgCta:.18,avgBtn:0.30,maxBtn:0.40,avgRep:1,modalZone:'none'},
+      {cx:.5,cy:.80,rx:.21,ry:.07,score:.42,n:1,avgCta:.10,avgBtn:0.25,maxBtn:0.35,avgRep:1,modalZone:'none'},
+    ];
+    FALLBACKS.forEach(fb=>{
+      if(!top.some(r=>Math.abs(r.cy-fb.cy)<0.12)) top.push(fb);
+    });
+  }
 
   const ms=Math.max(...top.map(r=>r.score))||1;
   top.forEach(r=>r.score/=ms);
   S.regions=top;
 }
 
-/* ── Mode + context weighting ── */
+/* ══════════════════════════════════════════════════════════
+   MODE + CONTEXT WEIGHTING
+   Modal-aware; button-score aware.
+   Background regions stay suppressed.
+   Action zone / footer CTAs receive strong boosts.
+══════════════════════════════════════════════════════════ */
 function applyModeAndContext(){
   const age=$('sa').value,exp=$('se').value;
   const goal=$('sgo').value,notes=$('tn').value.toLowerCase();
   const mode=S.mode;
+  const modal=S.stats.modal;
 
   S.regions.forEach(r=>{
-    const{cy:ny,cx:nx}=r;
+    const{cy:ny,cx:nx,modalZone:mz='none'}=r;
+    const btn=r.maxBtn||0;   // max buttonScore within this cluster
+    const rep=r.avgRep||1;   // repetition penalty (1 = no penalty)
     let m=1;
 
-    /* ── Mode-specific weights ── */
-    if(mode==='hierarchy'){
-      m*=(1+(1-ny)*0.58);
-    } else if(mode==='cta'){
-      // Amplify mid-lower screen
-      const ctaBand=1-Math.abs(ny-.62)*1.3;
-      m*=(.6+Math.max(0,ctaBand)*.95);
-      if(r.avgCta>0.1)m*=1.25;
-    } else if(mode==='action'){
-      /* ── ACTION HIERARCHY: focus on interactive element zones ──
-         Prioritize:
-         - High saturation (bright buttons)
-         - Mid-lower placement (CTAs)
-         - Isolated high-contrast regions (pill buttons)
-         - avgCta score (detected from saturation+contrast) */
-      const actionBand=1-Math.abs(ny-.58)*1.1;
-      m*=(.55+Math.max(0,actionBand)*.9);
-      if(r.avgCta>0.15)m*=1.5; // strong boost for likely interactive
-      if(r.avgCta>0.08)m*=1.25;
-      // Top nav gets modest boost (nav actions)
-      if(ny<.12)m*=1.2;
-      // Pure decorative regions (large image areas) get reduced
-      if(r.avgCta<0.03&&ny>0.05&&ny<0.55)m*=0.7;
-    } else if(mode==='scan'){
-      m*=(1-Math.abs(nx-.22)*.48); // F-pattern left bias
-    } else if(mode==='firstuse'){
-      m*=(1+(1-ny)*.78);
-    } else if(mode==='trust'){
-      const trustBand=1-Math.abs(ny-.52)*.75;
-      m*=(.58+trustBand*.82);
+    /* ── Background: always stay near zero ── */
+    if(mz==='bg'){
+      m*=0.08;
+
+    } else if(modal && mz!=='none'){
+      /* ── Within-modal, mode-specific zone weights ──
+         NOTE: action zone has the highest base multiplier (2.0+).
+         Button-detected regions in action/footer zones get
+         an additional strong boost on top. */
+
+      if(mode==='hierarchy'){
+        if(mz==='header') m*=1.15;
+        if(mz==='body')   m*=1.10*rep;        // repetition penalty here
+        if(mz==='action') m*=1.60+(btn>0.4?0.50:btn>0.2?0.25:0);
+        if(mz==='footer') m*=1.25+(btn>0.3?0.30:0);
+      } else if(mode==='cta'||mode==='action'){
+        // CTA and Action Hierarchy: action/footer buttons dominate
+        if(mz==='header') m*=0.85;
+        if(mz==='body')   m*=0.90*rep;        // body grids get penalised
+        if(mz==='action') m*=2.20+(btn>0.5?0.70:btn>0.3?0.40:btn>0.15?0.20:0);
+        if(mz==='footer') m*=1.60+(btn>0.35?0.50:btn>0.2?0.25:0);
+        // Extra boost for any in-modal cluster with strong button signal
+        if(btn>0.4&&(mz==='action'||mz==='footer'))m*=1.30;
+      } else if(mode==='scan'){
+        if(mz==='header') m*=1.20;
+        if(mz==='body')   m*=1.25*rep;
+        if(mz==='action') m*=1.20;
+        if(mz==='footer') m*=1.10;
+      } else if(mode==='firstuse'){
+        if(mz==='header') m*=1.35;
+        if(mz==='body')   m*=1.15*rep;
+        if(mz==='action') m*=1.50+(btn>0.3?0.25:0);
+        if(mz==='footer') m*=1.20;
+      } else if(mode==='trust'){
+        if(mz==='header') m*=1.10;
+        if(mz==='body')   m*=1.30*rep;
+        if(mz==='action') m*=1.20+(btn>0.3?0.20:0);
+        if(mz==='footer') m*=1.10;
+      }
+
+    } else {
+      /* ── Standard full-screen mode weights ── */
+      if(mode==='hierarchy'){
+        m*=(1+(1-ny)*0.55);
+        if(btn>0.35&&ny>0.5)m*=1.30; // late-screen buttons get boosted
+      } else if(mode==='cta'){
+        const ctaBand=1-Math.abs(ny-.60)*1.2;
+        m*=(.58+Math.max(0,ctaBand)*.92);
+        if(btn>0.3)m*=1.45;    // button-detected regions: strong boost
+        if(btn>0.5)m*=1.25;    // extra for very high button confidence
+        if(r.avgCta>0.1)m*=1.15;
+        if(rep<0.8)m*=rep;     // penalise repeated grids
+      } else if(mode==='action'){
+        // Action Hierarchy: fully button-score driven
+        // Suppress noisy content unless it has high buttonScore
+        const bBase=btn>0.5?2.0:btn>0.3?1.55:btn>0.15?1.20:0.65;
+        m*=bBase;
+        if(ny>0.45&&ny<0.90)m*=1.25; // lower-screen placement bonus
+        if(ny<0.12)m*=1.15;           // top nav actions
+        if(rep<0.8)m*=rep*0.8;        // strong repetition penalty in this mode
+      } else if(mode==='scan'){
+        m*=(1-Math.abs(nx-.22)*.45);
+        if(rep<0.8)m*=Math.max(0.6,rep);
+      } else if(mode==='firstuse'){
+        m*=(1+(1-ny)*.72);
+        if(btn>0.3&&ny>0.4)m*=1.20;
+      } else if(mode==='trust'){
+        const trustBand=1-Math.abs(ny-.50)*.70;
+        m*=(.56+trustBand*.80);
+      }
     }
 
-    /* ── Age ── */
-    if(age==='55+'||age==='45-54')m*=(1+(1-ny)*.32);
-    if(age==='18-24')m*=(.82+ny*.32);
-
-    /* ── Experience ── */
-    if(exp==='first-time'||exp==='novice')m*=(1+(1-ny)*.42);
-    if(exp==='expert')m*=(1-Math.abs(nx-.5)*.22)*1.08;
-
-    /* ── Goal ── */
-    if(goal==='purchase'&&ny>.38&&ny<.82)m*=1.28;
-    if(goal==='browse'&&ny>.2)m*=(1+.2*ny);
-    if(goal==='signin'&&ny>.28&&ny<.72)m*=1.22;
-    if(goal==='task'&&ny>.45&&ny<.85)m*=1.18;
-
-    /* ── Notes keywords ── */
-    const ec=notes.includes('ecommerce')||notes.includes('e-commerce')||notes.includes('shop');
-    const fin=notes.includes('finance')||notes.includes('bank');
-    const hth=notes.includes('health')||notes.includes('medical');
-    if(ec&&ny>.38)m*=1.18;
-    if(fin&&ny<.38)m*=1.16;
-    if(hth&&ny<.32)m*=1.18;
-    if(notes.includes('older')&&ny<.48)m*=1.22;
-    if(notes.includes('onboard')&&ny<.28)m*=1.28;
+    /* ── Audience / persona weights ── */
+    if(mz!=='bg'){
+      if(age==='55+'||age==='45-54') m*=(1+(1-ny)*.25);
+      if(age==='18-24') m*=(.85+ny*.25);
+      if(exp==='first-time'||exp==='novice') m*=(1+(1-ny)*.35);
+      if(exp==='expert') m*=(1-Math.abs(nx-.5)*.18)*1.05;
+      if(goal==='purchase'&&ny>.38&&ny<.82) m*=1.20;
+      if(goal==='browse'&&ny>.2) m*=(1+.16*ny);
+      if(goal==='signin'&&ny>.28&&ny<.72) m*=1.15;
+      if(goal==='task'&&ny>.45&&ny<.85) m*=1.15;
+      const ec=notes.includes('ecommerce')||notes.includes('e-commerce')||notes.includes('shop');
+      const fin=notes.includes('finance')||notes.includes('bank');
+      const hth=notes.includes('health')||notes.includes('medical');
+      if(ec&&ny>.38)m*=1.14;
+      if(fin&&ny<.38)m*=1.12;
+      if(hth&&ny<.32)m*=1.12;
+      if(notes.includes('older')&&ny<.48)m*=1.15;
+      if(notes.includes('onboard')&&ny<.28)m*=1.18;
+    }
 
     r.score=Math.min(r.score*m,1);
   });
 
-  // Re-sort deterministically after weighting
   S.regions.sort((a,b)=>b.score-a.score||a.cy-b.cy);
   labelRegions();
 }
@@ -1123,86 +1452,150 @@ function labelRegions(){
   const ec=notes.includes('ecommerce')||notes.includes('e-commerce')||goal==='purchase';
   const ob=notes.includes('onboard')||goal==='signin';
   const fin=notes.includes('finance')||notes.includes('bank');
+  const modal=S.stats.modal;
 
   S.regions.forEach((r,i)=>{
-    const{cy:ny,avgCta:ac=0}=r;
+    const{cy:ny,avgCta:ac=0,modalZone:mz='none'}=r;
+    const btn=r.maxBtn||0;
+    const isRepeated=(r.avgRep||1)<0.7;
 
+    /* ══ MODAL-AWARE LABELS ══ */
+    if(modal && mz!=='bg' && mz!=='none'){
+      switch(mz){
+        case 'header':
+          r.label = i===0 ? 'Active modal header' : 'Modal title area';
+          r.lt='primary';
+          break;
+        case 'body':
+          if(isRepeated){r.label='Dense content block';r.lt='low';}
+          else if(mode==='cta'||mode==='action'){r.label='Primary content region';r.lt='cta';}
+          else{r.label='Primary content region';r.lt='cta';}
+          break;
+        case 'action':
+          if(btn>0.45){
+            r.label=mode==='action'||mode==='cta'?'Primary CTA':'Confirm action';
+            r.lt='action';
+          } else {
+            // Check for sibling action region (side-by-side buttons)
+            const sib=S.regions.find((rr,ii)=>ii!==i&&rr.modalZone==='action'&&Math.abs(rr.cy-ny)<0.08&&Math.abs(rr.cx-r.cx)>0.12);
+            r.label=sib?'Primary action area — button pair':'Primary action area';
+            r.lt='action';
+          }
+          break;
+        case 'footer':
+          if(btn>0.35){r.label='Footer action';r.lt='action';}
+          else{r.label='Supporting share action';r.lt='action';}
+          break;
+        default:
+          r.label='Modal content';r.lt='cta';
+      }
+      return;
+    }
+
+    /* Background in a modal context */
+    if(modal && mz==='bg'){r.label='Background de-emphasised';r.lt='low';return;}
+
+    /* ══ ACTION HIERARCHY MODE LABELS (non-modal) ══ */
     if(mode==='action'){
-      /* ── Action Hierarchy labels ── */
       if(i===0){
-        r.label=ac>0.15?'Primary CTA':'Primary action zone';r.lt='action';
+        r.label=btn>0.45?'Primary CTA':btn>0.25?'Primary action zone':'Primary interaction target';
+        r.lt='action';
       } else if(i===1){
-        r.label=ac>0.1?'Secondary action':'Supporting action area';r.lt='action';
+        const isConflict=S.regions[0]&&Math.abs(r.cy-S.regions[0].cy)<0.12&&btn>0.2;
+        r.label=isConflict?'Competing action':btn>0.3?'Secondary action':'Supporting action area';
+        r.lt=isConflict?'compete':'action';
       } else if(i===2){
-        const conflict=S.regions[0]&&Math.abs(r.cy-S.regions[0].cy)<0.18&&ac>0.08;
-        r.label=conflict?'Competing action':'Action cluster';
-        r.lt=conflict?'compete':'action';
+        r.label=btn>0.3?'Action cluster':ny>0.75?'Footer action':'Secondary element';
+        r.lt=btn>0.3?'action':'low';
       } else if(i===3){
-        r.label=ac>0.05?'Low-emphasis action':'Missable control';
-        r.lt=ac>0.05?'low':'warn';
+        r.label=btn>0.2?'Low-emphasis action':isRepeated?'Repeated content region':'Missable control';
+        r.lt=btn>0.2?'low':isRepeated?'low':'warn';
       } else if(i===4){
-        r.label=ny>.78?'Navigation / tab bar':'Action cluster';r.lt='low';
+        r.label=ny>.78?'Navigation / tab bar':isRepeated?'Dense content block':'Action cluster';
+        r.lt=isRepeated?'low':'low';
       } else {
-        r.label='Secondary element';r.lt='low';
+        r.label=isRepeated?'Repeated content region':'Secondary element';
+        r.lt='low';
       }
+      return;
+    }
+
+    /* ══ STANDARD LABELS ══ */
+    if(i===0){
+      if(ny<.16)r.label='Strong visual anchor — header';
+      else if(ny<.42&&ec)r.label='Product hero — primary focus';
+      else if(ny<.42&&ob)r.label='Onboarding hero — primary';
+      else if(btn>0.4)r.label='Primary CTA';
+      else r.label='Primary focal point';
+      r.lt='primary';
+    } else if(i===1){
+      if(btn>0.35&&ny>0.4){r.label=ec?'Primary CTA — Buy / Add':'Confirm action';r.lt='cta';}
+      else if(mode==='cta'||(ny>.42&&ny<.82)){
+        r.label=ec?'Primary CTA — Buy / Add to Cart':'Likely first actionable';r.lt='cta';
+      } else if(ny<.28){r.label='Strong visual anchor';r.lt='primary';}
+      else if(isRepeated){r.label='Dense content block';r.lt='low';}
+      else{r.label='Content-dense scan zone';r.lt='cta';}
+    } else if(i===2){
+      if(fin&&ny>.48){r.label='Trust / reassurance area';r.lt='warn';}
+      else if(ny>.7&&btn>0.3){r.label='Footer action';r.lt='action';}
+      else if(ny>.7){r.label='Secondary supporting content';r.lt='low';}
+      else if(isRepeated){r.label='Dense content block';r.lt='low';}
+      else{r.label='Content-dense scan zone';r.lt='cta';}
+    } else if(i===3){
+      if(btn>0.3&&ny>0.6){r.label='Footer action';r.lt='action';}
+      else r.label=ny>.74?'Navigation / footer area':'Secondary content block';r.lt='low';
+    } else if(i===4){
+      if(btn>0.25){r.label='Low-emphasis action';r.lt='low';}
+      else if(isRepeated){r.label='Repeated content region';r.lt='low';}
+      else{r.label=r.score<.32?'Low-emphasis region':'Possible distraction area';r.lt=r.score<.32?'low':'warn';}
     } else {
-      /* ── Standard labels ── */
-      if(i===0){
-        if(ny<.16)r.label='Strong visual anchor — header';
-        else if(ny<.42&&ec)r.label='Product hero — primary focus';
-        else if(ny<.42&&ob)r.label='Onboarding hero — primary';
-        else r.label='Primary focal point';
-        r.lt='primary';
-      } else if(i===1){
-        if(mode==='cta'||(ny>.42&&ny<.82)){
-          r.label=ec?'Primary CTA — Buy / Add to Cart':'Likely first actionable';r.lt='cta';
-        } else if(ny<.28){
-          r.label='Strong visual anchor';r.lt='primary';
-        } else {
-          r.label='Content-dense scan zone';r.lt='cta';
-        }
-      } else if(i===2){
-        if(fin&&ny>.48){r.label='Trust / reassurance area';r.lt='warn';}
-        else if(ny>.7){r.label='Secondary supporting content';r.lt='low';}
-        else{r.label='Content-dense scan zone';r.lt='cta';}
-      } else if(i===3){
-        r.label=ny>.74?'Navigation / footer area':'Secondary content block';r.lt='low';
-      } else if(i===4){
-        r.label=r.score<.32?'Low-emphasis region':'Possible distraction area';
-        r.lt=r.score<.32?'low':'warn';
-      } else {
-        r.label=r.score<.28?'Low-attention region':'Secondary element';r.lt='low';
-      }
+      r.label=isRepeated?'Repeated content region':r.score<.28?'Low-attention region':'Secondary element';
+      r.lt='low';
     }
   });
 }
 
-/* ── Gaze path (deterministic) ── */
+/* ── Gaze path (deterministic, modal-aware) ── */
 function buildGaze(){
   const cnt=parseInt(sg2.value),mode=S.mode,exp=$('se').value;
+  const modal=S.stats.modal;
   const pool=S.regions.slice(0,Math.min(cnt+4,S.regions.length));
-  let ord=[...pool];
 
-  if(mode==='scan'){
-    // F-pattern: strict top-down, left-first within bands
+  // Always exclude background regions from gaze path
+  let ord=pool.filter(r=>r.modalZone!=='bg');
+  const bgRegions=pool.filter(r=>r.modalZone==='bg');
+
+  if(modal){
+    /* In modal mode: follow structural reading order within popup
+       header → body → action → footer
+       regardless of mode (we want to trace the popup structure) */
+    const zoneOrder={header:0,body:1,action:2,footer:3,none:4};
+    if(mode==='cta'||mode==='action'){
+      // For action modes: action zone first, then header, body, footer
+      const zOrder={action:0,header:1,body:2,footer:3,none:4};
+      ord.sort((a,b)=>(zOrder[a.modalZone]||4)-(zOrder[b.modalZone]||4)||b.score-a.score);
+    } else if(mode==='scan'){
+      // Pure top-down within popup
+      ord.sort((a,b)=>a.cy-b.cy||b.score-a.score);
+    } else {
+      // Default modal reading: header → body → action → footer, by score within zone
+      ord.sort((a,b)=>(zoneOrder[a.modalZone]||4)-(zoneOrder[b.modalZone]||4)||b.score-a.score);
+    }
+  } else if(mode==='scan'){
     ord.sort((a,b)=>{
       if(Math.abs(a.cy-b.cy)<.10)return a.cx-b.cx;
       return a.cy-b.cy;
     });
   } else if(mode==='cta'||mode==='action'){
-    // Score-directed: highest-scoring regions visited first
-    // but top-of-screen always gets at least position 1
-    const top=ord.filter(r=>r.cy<.2);
+    const topR=ord.filter(r=>r.cy<.2);
     const rest=ord.filter(r=>r.cy>=.2).sort((a,b)=>b.score-a.score||a.cy-b.cy);
-    ord=[...top.sort((a,b)=>a.cy-b.cy),...rest];
+    ord=[...topR.sort((a,b)=>a.cy-b.cy),...rest];
   } else {
-    // Reading-order weighted by saliency (deterministic)
     ord=ord.map(r=>({...r,ro:r.cy+(1-r.score)*0.18}));
     ord.sort((a,b)=>a.ro-b.ro||b.score-a.score);
   }
 
-  // Expert: slightly non-linear but still deterministic (sort by inverted mid-score)
-  if(exp==='expert'&&ord.length>4){
+  if(exp==='expert'&&ord.length>4&&!modal){
     const head=ord.slice(0,1);
     const mid=ord.slice(1,ord.length-1).sort((a,b)=>b.score-a.score);
     const tail=ord.slice(-1);
@@ -1210,7 +1603,7 @@ function buildGaze(){
   }
 
   S.gaze=ord.slice(0,cnt).map((r,i)=>({
-    x:r.cx,y:r.cy,rank:i+1,label:r.label,lt:r.lt,score:r.score
+    x:r.cx,y:r.cy,rank:i+1,label:r.label,lt:r.lt,score:r.score,modalZone:r.modalZone
   }));
 }
 
@@ -1253,7 +1646,10 @@ function drawHeatmap(ctx,W,H,inten){
     const rad=Math.max(rx,ry)*1.05;
     const g=ctx.createRadialGradient(cx,cy,1,cx,cy,rad);
 
-    if(isAction&&r.avgCta>0.1){
+    // Action mode: use buttonScore (maxBtn) for color distinction
+    const isInteractive=(r.maxBtn||0)>0.25||(r.avgCta||0)>0.12;
+
+    if(isAction&&isInteractive){
       // Action mode: violet/blue tones for interactive regions
       if(r.score>.7){
         g.addColorStop(0,`rgba(157,124,248,${.82*r.score})`);
@@ -1376,41 +1772,71 @@ function showResults(){
   const age=$('sa').value||'All ages',exp=$('se').value;
   const goal=$('sgo').value,notes=$('tn').value.trim(),mode=S.mode;
   const sig=parseInt(sfill.style.width)||0;
+  const modal=S.stats.modal;
 
-  rModeTag.textContent=MODE_LABELS[mode]||mode;
+  rModeTag.textContent=modal
+    ? (MODE_LABELS[mode]||mode)+' · Modal'
+    : MODE_LABELS[mode]||mode;
   rSigTag.textContent=sig+'% signal';
 
   if(mode==='action'){
-    showActionResults(sig);
+    showActionResults(sig,modal);
+  } else if(modal){
+    showModalResults(mode,exp,goal,sig);
   } else {
-    showStandardResults(mode,exp,goal,notes,age,sig);
+    showStandardResults(mode,exp,goal,notes,sig);
   }
 
-  rRbody.innerHTML=buildReasoning(mode,exp,goal,notes,age);
+  rRbody.innerHTML=buildReasoning(mode,exp,goal,notes,age,modal);
   rReason.style.display='block';
 }
 
-function showActionResults(sig){
+function showActionResults(sig,modal){
   const g0=S.gaze[0],g1=S.gaze[1],g2=S.gaze[2];
   const dominant=g0?g0.label:'No dominant action detected';
   const secondary=g1?g1.label:'—';
-  const conflict=g2&&S.gaze.some(g=>g.lt==='compete')?
-    'Competing action detected — risk of split attention':'No significant action conflict';
-  const cs=S.stats.cs||0;
-  const clarity=
-    (sig>60&&cs>0.5)?'High — strong visual contrast and clear context':
-    (sig>35||cs>0.35)?'Moderate — some interactive signals detected':
-    'Low — insufficient image contrast or context to isolate actions';
+  const conflict=S.gaze.some(g=>g.lt==='compete')
+    ?'Competing action detected — risk of split attention'
+    :'No significant action conflict';
+
+  // Footer action visibility
+  const footerGaze=S.gaze.find(g=>g.modalZone==='footer'||(g.lt==='action'&&g.y>0.72));
+  const footerVis=footerGaze?'Footer action visible — '+footerGaze.label:'Footer actions below detection threshold';
 
   rGrid.innerHTML=[
     {lbl:'Most dominant action',val:dominant,cls:'v'},
     {lbl:'Secondary action',val:secondary,cls:'b'},
     {lbl:'Action conflict',val:conflict,cls:conflict.includes('detected')?'a':''},
-    {lbl:'Action clarity',val:clarity,cls:clarity.startsWith('High')?'g':''},
+    {lbl:'Footer action visibility',val:footerVis,cls:footerGaze?'g':''},
   ].map(c=>`<div class="r-card"><div class="r-card-lbl">${c.lbl}</div><div class="r-card-val ${c.cls}">${c.val}</div></div>`).join('');
 }
 
-function showStandardResults(mode,exp,goal,notes,age,sig){
+function showModalResults(mode,exp,goal,sig){
+  const byZone={};
+  S.gaze.forEach(g=>{if(g.modalZone&&g.modalZone!=='bg'&&g.modalZone!=='none')byZone[g.modalZone]=byZone[g.modalZone]||g;});
+
+  const headerFocus=byZone.header?byZone.header.label:'Active modal header';
+  const actionFocus=byZone.action?byZone.action.label:'Primary action area';
+  const bodyFocus  =byZone.body  ?byZone.body.label  :'Primary content region';
+
+  // Assess whether the action zone outranks the body
+  const actionRegion=S.regions.find(r=>r.modalZone==='action');
+  const bodyRegion  =S.regions.find(r=>r.modalZone==='body');
+  const ctaStrength=actionRegion&&bodyRegion
+    ?actionRegion.score>bodyRegion.score
+      ?'CTA outranks body content ✓ — good hierarchy'
+      :'Body density may be competing with CTA — review layout'
+    :'—';
+
+  rGrid.innerHTML=[
+    {lbl:'Primary modal focus',val:headerFocus,cls:'g'},
+    {lbl:'Primary action area',val:actionFocus,cls:'v'},
+    {lbl:'Content region',val:bodyFocus,cls:'b'},
+    {lbl:'Action vs body ranking',val:ctaStrength,cls:ctaStrength.includes('✓')?'g':'a'},
+  ].map(c=>`<div class="r-card"><div class="r-card-lbl">${c.lbl}</div><div class="r-card-val ${c.cls}">${c.val}</div></div>`).join('');
+}
+
+function showStandardResults(mode,exp,goal,notes,sig){
   let pat='Z-pattern (mobile default)';
   if(mode==='scan')pat='F-pattern (content scan)';
   else if(exp==='expert')pat='Selective / non-linear';
@@ -1422,7 +1848,6 @@ function showStandardResults(mode,exp,goal,notes,age,sig){
   const tp=S.gaze[0],prim=tp?tp.label:'Top-center region';
   const lp=S.gaze.find(p=>p.lt==='low');
   const under=lp?lp.label:'Lower-corner areas';
-
   const cs=S.stats.cs||0;
   const qNote=
     cs>.62?'High-contrast — strong pixel-level detection':
@@ -1437,28 +1862,51 @@ function showStandardResults(mode,exp,goal,notes,age,sig){
   ].map(c=>`<div class="r-card"><div class="r-card-lbl">${c.lbl}</div><div class="r-card-val ${c.cls}">${c.val}</div></div>`).join('');
 }
 
-function buildReasoning(mode,exp,goal,notes,age){
+function buildReasoning(mode,exp,goal,notes,age,modal){
   const n=notes.toLowerCase();
   const MODES={
     hierarchy:'Visual Hierarchy emphasizes top-of-screen weight, detected contrast peaks, and center-horizontal bias — reflecting typical first-look behavior on unfamiliar screens.',
-    cta:'CTA Attention down-weights passive content regions and amplifies mid-to-lower screen zones where actionable elements appear in mobile UI patterns.',
-    action:'Action Hierarchy evaluates the visibility and dominance of interactive elements — buttons, CTAs, navigation, and tap targets. High-saturation, high-contrast regions receive strong weighting. Decorative imagery is reduced. The goal is to model which action a user is most likely to notice and take, not simply what draws visual attention.',
+    cta:'CTA Attention down-weights passive content regions and amplifies mid-to-lower screen zones where actionable elements appear in mobile UI patterns. Button-detected regions receive a strong priority boost above raw visual complexity.',
+    action:'Action Hierarchy is driven primarily by button detection scoring (fillConsistency, boundary contrast, control isolation) rather than raw visual complexity. Dense repeated grids are penalised. Flat, bounded, isolated controls rank highly regardless of visual noise — modeling which actions users are most likely to take, not just what draws the eye.',
     scan:'Content Scan applies an F-pattern heuristic: users consume the first two horizontal bands, then scan down the left axis with decreasing depth.',
     firstuse:'First-Time User heavily weights the top third, where onboarding patterns, value propositions, and entry points concentrate for new users.',
     trust:'Trust / Eval focuses on mid-screen validation signals, social proof, and detail-dense information that evaluative readers inspect carefully.'
   };
   let parts=[`<strong>Mode:</strong> ${MODES[mode]||''}`];
-  if(exp==='first-time'||exp==='novice')parts.push('<strong>Experience:</strong> Novice users modeled reading linearly from top to bottom, with reduced lateral scanning and stronger emphasis on the primary headline zone.');
+
+  if(modal){
+    const lumDiff=((modal.centerLum-modal.peripheryLum)*100).toFixed(0);
+    const ar=S.regions.find(r=>r.modalZone==='action');
+    const br=S.regions.find(r=>r.modalZone==='body');
+    const ctaWon=ar&&br&&ar.score>br.score;
+    parts.push(`<strong>Modal / popup detected:</strong> A large centred panel was identified (luminance Δ ≈ ${lumDiff}% vs surround). Modal analysis mode: background cells suppressed 92%. The panel was split into header / body / action / footer zones. ${ctaWon?'The action zone outranked the body content — the CTA is correctly prioritised above body density.':'The body content is competing with the action zone. A flatter, more isolated CTA button would score more decisively.'}`);
+    if(mode==='cta'||mode==='action'){
+      parts.push('<strong>Action zone handling (modal):</strong> Action zone received 2.2× base weighting plus buttonScore multiplier (up to 3.0× for high-confidence button regions). Body grids received a grid repetition penalty (0.45–1.0×) reducing their competition with clear CTAs. Footer received 1.6× base + button boost. The model specifically rewards low-complexity isolated fills — consistent with flat coloured buttons like "Save".');
+    } else if(mode==='hierarchy'){
+      parts.push('<strong>Hierarchy within popup:</strong> Header 1.15×, body 1.10× (with grid penalty), action 1.60×+button bonus, footer 1.25×+button bonus. Attention is distributed across the full modal — not over-biased to the title.');
+    } else if(mode==='scan'){
+      parts.push('<strong>Content scan within popup:</strong> Full popup scanned top→footer. Body receives highest scan weight (1.25×), action and footer also significant.');
+    }
+  }
+
+  const topBtn=S.regions.length>0?Math.max(...S.regions.map(r=>r.maxBtn||0)):0;
+  if(topBtn>0.4)parts.push('<strong>Button detection:</strong> High-confidence interactive controls detected. Flat, bounded, consistently-filled regions with clear boundary contrast scored strongly on buttonScore, allowing them to compete with and outrank visually complex content regions.');
+  else if(topBtn>0.2)parts.push('<strong>Button detection:</strong> Moderate button confidence. Some regions showed button-like characteristics. Consider stronger fill contrast or more distinct button boundaries for higher-confidence detection.');
+  else parts.push('<strong>Button detection:</strong> Low button confidence. Results rely more on position and complexity heuristics. Clearer button boundaries and higher saturation fills improve detection accuracy.');
+
+  if(exp==='first-time'||exp==='novice')parts.push('<strong>Experience:</strong> Novice users modeled reading linearly from top to bottom, with reduced lateral scanning and emphasis on the primary headline zone.');
   if(exp==='expert')parts.push('<strong>Experience:</strong> Expert users tend to scan non-linearly, jumping to familiar affordances. Peripheral regions received increased weighting.');
-  if(goal==='purchase')parts.push('<strong>Goal:</strong> Purchase intent shifts attention to product imagery, pricing cues, and CTA zones — amplified in the weighting model.');
-  if(goal==='task')parts.push('<strong>Goal:</strong> Task-completion intent focuses attention on form fields, confirmation actions, and progress indicators.');
-  if(n.includes('finance')||n.includes('bank'))parts.push('<strong>Context:</strong> Finance keywords detected — conservative reading patterns applied with stronger header authority weighting.');
-  if(n.includes('health')||n.includes('medical'))parts.push('<strong>Context:</strong> Health context noted — trust signals and accessibility-aware top-heavy distribution weighted more strongly.');
-  if(n.includes('older')||age==='55+')parts.push('<strong>Audience:</strong> Older demographic modeled — upper-screen content and high-contrast focal zones received stronger weighting.');
-  const cs=S.stats.cs||0;
-  if(cs>.62)parts.push('<strong>Image signal:</strong> Strong luminance gradients detected — region clustering is grounded primarily in pixel-level contrast differences, producing an image-specific result.');
-  else if(cs>.32)parts.push('<strong>Image signal:</strong> Moderate contrast detected. Saliency regions combine pixel-level peaks with positional heuristics.');
-  else parts.push('<strong>Image signal:</strong> Low-contrast image detected. Analysis relies more heavily on position and reading-order heuristics. Higher-fidelity mockups produce sharper results.');
+  if(goal==='purchase')parts.push('<strong>Goal:</strong> Purchase intent amplifies CTA zones, product imagery, and pricing areas in the weighting model.');
+  if(goal==='task')parts.push('<strong>Goal:</strong> Task-completion intent focuses on form fields, confirmation actions, and progress indicators.');
+  if(n.includes('finance')||n.includes('bank'))parts.push('<strong>Context:</strong> Finance context — conservative reading patterns, stronger header authority weighting.');
+  if(n.includes('health')||n.includes('medical'))parts.push('<strong>Context:</strong> Health context — trust signals and accessibility-aware distribution weighted more strongly.');
+  if(n.includes('older')||age==='55+')parts.push('<strong>Audience:</strong> Older demographic — upper-screen content and high-contrast focal zones weighted more strongly.');
+  if(!modal){
+    const cs=S.stats.cs||0;
+    if(cs>.62)parts.push('<strong>Image signal:</strong> Strong luminance gradients — pixel-level contrast drives region clustering.');
+    else if(cs>.32)parts.push('<strong>Image signal:</strong> Moderate contrast — pixel peaks combined with positional heuristics.');
+    else parts.push('<strong>Image signal:</strong> Low contrast — positional and reading-order heuristics dominant. Higher-fidelity mockups improve specificity.');
+  }
   return parts.join('<br><br>');
 }
 
@@ -1488,7 +1936,7 @@ btnDl.addEventListener('click',()=>{
       const cx=r.cx*W,cy=r.cy*H,rx=r.rx*W,ry=r.ry*H;
       const rad=Math.max(rx,ry)*1.05;
       const g=ctx.createRadialGradient(cx,cy,1,cx,cy,rad);
-      if(isAction&&r.avgCta>0.1){
+      if(isAction&&((r.maxBtn||0)>0.25||(r.avgCta||0)>0.12)){
         if(r.score>.7){
           g.addColorStop(0,`rgba(157,124,248,${.82*r.score})`);
           g.addColorStop(.35,`rgba(100,80,220,${.5*r.score})`);
@@ -1568,7 +2016,8 @@ btnDl.addEventListener('click',()=>{
 
   ctx.textAlign='right';
   ctx.fillStyle='#454c5e';
-  ctx.fillText(`${MODE_LABELS[S.mode]} · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`,W-12,H+FOOTER/2);
+  const modalTag=S.stats.modal?' · Modal':'';
+  ctx.fillText(`${MODE_LABELS[S.mode]}${modalTag} · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`,W-12,H+FOOTER/2);
 
   const a=document.createElement('a');
   a.download='focal-analysis.png';

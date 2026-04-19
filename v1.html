@@ -1,0 +1,2480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Roladex — Portfolio ATS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{--paper:oklch(0.985 0.006 85);--paper-2:oklch(0.965 0.008 80);--paper-3:oklch(0.93 0.01 78);--paper-4:oklch(0.89 0.012 78);--rule:oklch(0.88 0.012 75);--rule-soft:oklch(0.92 0.01 75);--ink:oklch(0.18 0.012 60);--ink-2:oklch(0.40 0.012 60);--ink-3:oklch(0.56 0.012 60);--ink-4:oklch(0.72 0.012 60);--accent:oklch(0.56 0.16 35);--accent-2:oklch(0.48 0.17 35);--accent-soft:oklch(0.95 0.04 35);--accent-ink:oklch(0.36 0.13 35);--ok:oklch(0.6 0.12 155);--warn:oklch(0.7 0.14 70);--radius:6px;--radius-lg:10px;--sans:"Inter",ui-sans-serif,system-ui,-apple-system,sans-serif;--mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;--serif:"Instrument Serif","Iowan Old Style",Georgia,ui-serif,serif;--shadow-sm:0 1px 0 oklch(0.88 0.012 75);--shadow-md:0 1px 2px oklch(0 0 0/.04),0 8px 24px oklch(0 0 0/.08);--shadow-lg:0 2px 4px oklch(0 0 0/.04),0 20px 48px oklch(0 0 0/.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
+input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+
+/* HOME */
+.home{min-height:100vh;display:grid;grid-template-rows:64px 1fr;background:var(--paper)}
+.home-nav{display:flex;align-items:center;padding:0 40px;border-bottom:1px solid var(--rule);gap:32px}
+.home-nav .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:24px;letter-spacing:-0.015em}
+.home-nav .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 0 3px var(--accent-soft)}
+.home-nav .brand .mono{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);padding:2px 6px;border:1px solid var(--rule);border-radius:3px}
+.home-nav .spacer{flex:1}
+.home-nav .nav-links{display:flex;gap:8px;align-items:center}
+.home-body{display:grid;grid-template-columns:1fr 480px;min-height:calc(100vh - 64px)}
+.hero-section{padding:80px 80px 60px;display:flex;flex-direction:column;justify-content:center;gap:36px;border-right:1px solid var(--rule);background:linear-gradient(135deg,var(--paper) 0%,var(--paper-2) 100%);position:relative;overflow:hidden}
+.hero-section::before{content:"";position:absolute;top:-80px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,var(--accent-soft) 0%,transparent 70%);opacity:.6;pointer-events:none}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:var(--accent);display:flex;align-items:center;gap:10px}
+.hero-eyebrow::before{content:"";width:20px;height:1px;background:var(--accent)}
+.hero-title{font-family:var(--serif);font-size:clamp(42px,5vw,72px);line-height:1.0;letter-spacing:-0.03em;color:var(--ink)}
+.hero-title em{font-style:italic;color:var(--accent)}
+.hero-body{font-size:18px;line-height:1.6;color:var(--ink-2);max-width:50ch}
+.hero-stats{display:flex;gap:32px;padding-top:32px;border-top:1px solid var(--rule-soft)}
+.hero-stat .n{font-family:var(--serif);font-size:36px;color:var(--ink);letter-spacing:-0.02em}
+.hero-stat .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);margin-top:2px}
+.feature-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.feature-chip{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--rule);border-radius:var(--radius-lg);background:var(--paper);font-size:13px;color:var(--ink-2)}
+.feature-chip .ic{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;flex-shrink:0;color:var(--accent)}
+.demo-cred{background:var(--paper-2);border:1px solid var(--rule);border-radius:var(--radius);padding:12px 16px;margin-bottom:20px}
+.demo-cred .dc-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:var(--accent);margin-bottom:8px}
+.demo-cred .dc-row{display:flex;gap:16px;font-size:12px;color:var(--ink-2)}
+.demo-cred .dc-field{display:flex;gap:6px;align-items:center}
+.demo-cred .dc-key{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.demo-cred .dc-val{font-weight:500;color:var(--ink);font-family:var(--mono);font-size:11px}
+.login-panel{display:flex;flex-direction:column;justify-content:center;align-items:stretch;padding:60px 52px;background:var(--paper)}
+.login-panel-inner{max-width:380px;width:100%;margin:0 auto}
+.login-heading{font-family:var(--serif);font-size:34px;letter-spacing:-0.02em;color:var(--ink);margin-bottom:6px}
+.login-sub{font-size:14px;color:var(--ink-3);margin-bottom:32px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);margin-bottom:7px}
+.form-input{width:100%;border:1px solid var(--rule);border-radius:var(--radius);padding:10px 13px;background:var(--paper-2);font-size:14px;color:var(--ink);outline:none;transition:all .12s}
+.form-input:focus{border-color:var(--ink);background:var(--paper);box-shadow:0 0 0 3px oklch(0 0 0/.04)}
+.form-input.error{border-color:oklch(0.55 0.16 15)}
+.login-error{font-size:12px;color:oklch(0.55 0.16 15);margin-bottom:14px;padding:8px 12px;border:1px solid oklch(0.85 0.08 15);border-radius:var(--radius);background:oklch(0.97 0.02 15)}
+.login-divider{display:flex;align-items:center;gap:14px;margin:22px 0;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-4)}
+.login-divider::before,.login-divider::after{content:"";flex:1;height:1px;background:var(--rule)}
+.login-footer{margin-top:28px;padding-top:22px;border-top:1px solid var(--rule-soft);font-size:12px;color:var(--ink-3);text-align:center}
+.login-footer a{color:var(--accent);cursor:pointer}
+
+/* APP */
+.app{display:grid;grid-template-columns:232px 1fr;grid-template-rows:52px 1fr;grid-template-areas:"topbar topbar" "sidebar main";height:100vh;width:100vw;overflow:hidden}
+.topbar{grid-area:topbar;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid var(--rule);background:var(--paper);position:relative;z-index:10}
+.topbar .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:22px;letter-spacing:-0.015em;cursor:pointer}
+.topbar .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 0 3px var(--accent-soft)}
+.topbar .brand .mono{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-left:4px;padding:2px 6px;border:1px solid var(--rule);border-radius:3px}
+.topbar .search{flex:1;max-width:560px;display:flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--rule);border-radius:var(--radius);background:var(--paper-2);transition:all .12s}
+.topbar .search:focus-within{border-color:var(--ink);background:var(--paper);box-shadow:0 0 0 3px oklch(0 0 0/.04)}
+.topbar .search input{flex:1;border:none;background:none;outline:none;font-size:13px}
+.topbar .search .kbd{font-family:var(--mono);font-size:10px;color:var(--ink-3);border:1px solid var(--rule);padding:1px 5px;border-radius:3px;background:var(--paper)}
+.topbar .spacer{flex:1}
+.topbar .topbar-actions{display:flex;gap:6px;align-items:center}
+.topbar .avatar{width:30px;height:30px;border-radius:50%;background:oklch(0.68 0.08 50);color:white;display:grid;place-items:center;font-size:11px;font-weight:600;letter-spacing:.02em;cursor:pointer;position:relative}
+.avatar-menu{position:absolute;top:38px;right:0;background:var(--paper);border:1px solid var(--rule);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);padding:6px;width:200px;z-index:100}
+.avatar-menu .menu-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius);font-size:13px;color:var(--ink-2);cursor:pointer;width:100%;text-align:left;transition:background .1s}
+.avatar-menu .menu-item:hover{background:var(--paper-2);color:var(--ink)}
+.avatar-menu .menu-item.danger{color:oklch(0.55 0.16 15)}
+.avatar-menu hr{border:none;border-top:1px solid var(--rule-soft);margin:4px 0}
+.sidebar{grid-area:sidebar;border-right:1px solid var(--rule);background:var(--paper);padding:14px 10px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sidebar .nav-section{margin-top:16px}
+.sidebar .nav-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);padding:6px 10px 8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--radius);cursor:pointer;color:var(--ink-2);font-size:13px;width:100%;text-align:left;transition:background .1s,color .1s}
+.nav-item:hover{background:var(--paper-2);color:var(--ink)}
+.nav-item.active{background:var(--ink);color:var(--paper)}
+.nav-item.active .count{color:var(--paper);opacity:.7}
+.nav-item .count{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.nav-item .dot-small{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.4;flex-shrink:0}
+.main{grid-area:main;overflow-y:auto;background:var(--paper);position:relative}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:32px 28px 20px;border-bottom:1px solid var(--rule);flex-wrap:wrap;background:linear-gradient(to bottom,var(--paper) 0%,var(--paper) 70%,var(--paper-2) 100%)}
+.page-eyebrow{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.page-eyebrow::before{content:"";width:16px;height:1px;background:var(--accent)}
+.page-title{font-family:var(--serif);font-size:42px;line-height:1.02;letter-spacing:-0.02em;margin:0;color:var(--ink)}
+.page-sub{color:var(--ink-2);font-size:14px;margin-top:8px;max-width:60ch}
+.page-meta{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;padding:12px 28px;border-bottom:1px solid var(--rule);background:var(--paper);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.filter-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid var(--rule);border-radius:100px;font-size:12px;color:var(--ink-2);background:var(--paper);cursor:pointer;transition:all .1s;white-space:nowrap}
+.filter-pill:hover{background:var(--paper-2);border-color:var(--ink-4);color:var(--ink)}
+.filter-pill.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.toolbar .divider{width:1px;height:22px;background:var(--rule);margin:0 4px}
+.toolbar .seg{display:flex;border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;background:var(--paper)}
+.toolbar .seg button{padding:5px 10px;font-size:12px;color:var(--ink-2);border-right:1px solid var(--rule);display:inline-flex;align-items:center;gap:6px;transition:all .1s}
+.toolbar .seg button:last-child{border-right:none}
+.toolbar .seg button.active{background:var(--ink);color:var(--paper)}
+.toolbar .seg button:hover:not(.active){background:var(--paper-2)}
+.filter-bar{display:flex;gap:8px;padding:12px 28px;border-bottom:1px solid var(--rule-soft);flex-wrap:wrap;align-items:center;background:var(--paper-2)}
+.filter-bar .label-tiny{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);margin-right:4px}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1px;background:var(--rule-soft);padding:1px}
+.card{background:var(--paper);padding:16px;cursor:pointer;position:relative;display:flex;flex-direction:column;gap:12px;transition:background .12s ease}
+.card:hover{background:var(--paper-2)}
+.card-thumbs{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;height:150px;border-radius:5px;overflow:hidden;background:var(--rule-soft);position:relative}
+.card-thumbs .t{position:relative;overflow:hidden;transition:transform .25s ease}
+.card-thumbs .t.big{grid-row:1/span 2}
+.card-thumbs .t img{width:100%;height:100%;object-fit:cover}
+.card-thumbs .t .t-bg{width:100%;height:100%;position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent 0,transparent 8px,oklch(0 0 0/.05) 8px,oklch(0 0 0/.05) 9px)}
+.card-thumbs .count-overlay{position:absolute;bottom:6px;right:6px;background:oklch(1 0 0/.94);font-family:var(--mono);font-size:10px;padding:3px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);z-index:2}
+.card:hover .card-thumbs .t{transform:scale(1.03)}
+.card-thumbs .card-preview{position:absolute;inset:0;padding:12px;background:linear-gradient(to bottom,oklch(0 0 0/0) 0%,oklch(0 0 0/.5) 55%,oklch(0 0 0/.82) 100%);opacity:0;transition:opacity .18s;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;color:oklch(1 0 0);pointer-events:none;border-radius:5px}
+.card:hover .card-thumbs .card-preview{opacity:1}
+.card-preview .title{font-family:var(--serif);font-size:15px;line-height:1.15;margin-bottom:3px;letter-spacing:-0.005em}
+.card-preview .meta{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;opacity:.85}
+.card-head{display:flex;align-items:flex-start;gap:12px}
+.card-avatar-wrap{position:relative;flex-shrink:0}
+.card-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-size:18px;color:oklch(0.25 0.02 60);letter-spacing:-0.01em;overflow:hidden}
+.card-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.card-name{font-family:var(--serif);font-size:20px;line-height:1.05;letter-spacing:-0.015em;color:var(--ink)}
+.card-role{font-size:11px;color:var(--ink-3);margin-top:3px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em}
+.card-summary{font-size:12.5px;color:var(--ink-2);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:10px;padding:2px 7px;border:1px solid var(--rule);border-radius:3px;color:var(--ink-2);background:var(--paper);letter-spacing:.02em}
+.tag.solid{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.card-meta{display:flex;gap:10px;align-items:center;margin-top:auto;font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:10px;border-top:1px dashed var(--rule-soft)}
+.avail{display:inline-flex;align-items:center;gap:5px}
+.avail .d{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px color-mix(in oklch,var(--ok) 22%,transparent)}
+.avail.passive .d{background:var(--warn);box-shadow:0 0 0 2px color-mix(in oklch,var(--warn) 22%,transparent)}
+.avail.closed .d{background:var(--ink-3);box-shadow:none}
+.card .star-btn{position:absolute;top:12px;right:12px;width:28px;height:28px;display:grid;place-items:center;border-radius:4px;color:var(--ink-3);background:oklch(1 0 0/.6);backdrop-filter:blur(4px);transition:all .12s;z-index:3}
+.card .star-btn:hover{background:var(--paper);color:var(--ink)}
+.card .star-btn.active{color:var(--accent);background:var(--accent-soft)}
+
+/* LIST TABLE */
+.list-table{width:100%;border-collapse:collapse}
+.list-table thead th{text-align:left;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);padding:12px 18px;border-bottom:1px solid var(--rule);background:var(--paper);position:sticky;top:48px;z-index:2}
+.list-table tbody tr{border-bottom:1px solid var(--rule-soft);cursor:pointer;transition:background .1s}
+.list-table tbody tr:hover{background:var(--paper-2)}
+.list-table td{padding:14px 18px;font-size:13px;vertical-align:middle}
+.list-table .name-cell{display:flex;align-items:center;gap:12px}
+.list-table .name-cell .name{font-family:var(--serif);font-size:19px;letter-spacing:-0.01em;color:var(--ink)}
+.list-table .sub{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.stars{display:inline-flex;gap:1px;color:var(--ink-4)}
+.stars .s{color:var(--accent)}
+.stars.small{font-size:11px}
+
+/* DETAIL */
+.detail{display:grid;grid-template-columns:1fr 440px;height:100%}
+.detail .left{overflow-y:auto;border-right:1px solid var(--rule)}
+.detail .right{overflow-y:auto;background:var(--paper)}
+.detail-nav{padding:12px 28px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:8px;position:sticky;top:0;background:var(--paper);z-index:4}
+.detail-hero{padding:36px 36px 28px;border-bottom:1px solid var(--rule-soft);display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start;background:linear-gradient(to bottom right,var(--paper) 0%,var(--paper-2) 100%);position:relative}
+.detail-hero .avatar-lg{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-size:44px;color:oklch(0.22 0.02 60);flex-shrink:0;letter-spacing:-0.02em;box-shadow:0 0 0 4px var(--paper),0 0 0 5px var(--rule);overflow:hidden;position:relative;cursor:pointer}
+.detail-hero .avatar-lg img{width:100%;height:100%;object-fit:cover}
+.avatar-upload-overlay{position:absolute;inset:0;background:oklch(0 0 0/.45);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;opacity:0;transition:opacity .15s;border-radius:50%;cursor:pointer}
+.avatar-lg:hover .avatar-upload-overlay{opacity:1}
+.avatar-upload-overlay span{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:white}
+.detail-hero h1{font-family:var(--serif);font-size:52px;line-height:1.0;letter-spacing:-0.025em;margin:0 0 8px;color:var(--ink)}
+.edit-mode .detail-hero h1{display:none}
+.detail-hero .role-line{font-family:var(--mono);font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.14em;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.detail-hero .role-line .sep{color:var(--ink-4)}
+.detail-hero .summary{margin-top:16px;max-width:60ch;color:var(--ink);font-size:16px;line-height:1.55}
+.detail-hero .hero-actions{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}
+.key-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule-soft);border-bottom:1px solid var(--rule)}
+.key-stats .stat{background:var(--paper);padding:16px 20px}
+.key-stats .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);margin-bottom:4px}
+.key-stats .v{font-family:var(--serif);font-size:22px;color:var(--ink);letter-spacing:-0.01em}
+.key-stats .vsmall{font-size:13px;font-family:var(--sans)}
+.section{padding:28px 36px;border-bottom:1px solid var(--rule-soft)}
+.section-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);margin:0 0 18px;display:flex;align-items:center;justify-content:space-between}
+.section-title .link-out{color:var(--ink-3);display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em}
+.section-title .link-out:hover{color:var(--accent)}
+
+/* PORTFOLIO GRID */
+.portfolio-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;grid-auto-rows:78px}
+.portfolio-piece{border-radius:5px;background:var(--paper-3);position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:flex-end;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s}
+.portfolio-piece:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);z-index:2}
+.portfolio-piece img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.portfolio-piece::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent 0,transparent 10px,oklch(0 0 0/.05) 10px,oklch(0 0 0/.05) 11px);transition:opacity .2s;z-index:1}
+.portfolio-piece:hover::before{opacity:.5}
+.portfolio-piece .piece-label{position:relative;z-index:2;font-family:var(--mono);font-size:10px;padding:7px 10px;background:oklch(1 0 0/.92);backdrop-filter:blur(6px);width:100%;border-top:1px solid var(--rule-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);transition:opacity .2s}
+.portfolio-piece:hover .piece-label{opacity:0}
+.portfolio-piece .type-badge{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.14em;padding:3px 6px;background:oklch(1 0 0/.9);border-radius:3px;z-index:2;color:var(--ink-2)}
+.piece-preview{position:absolute;inset:0;padding:14px;background:linear-gradient(to bottom,oklch(0 0 0/0) 0%,oklch(0 0 0/.55) 55%,oklch(0 0 0/.82) 100%);opacity:0;transform:translateY(8px);transition:opacity .2s ease,transform .25s cubic-bezier(.2,.8,.2,1);z-index:3;display:flex;flex-direction:column;justify-content:flex-end;color:oklch(1 0 0);pointer-events:none}
+.portfolio-piece:hover .piece-preview{opacity:1;transform:translateY(0)}
+.piece-preview .preview-meta{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.8;display:flex;gap:8px;margin-bottom:6px}
+.piece-preview .preview-title{font-family:var(--serif);font-size:20px;line-height:1.1;letter-spacing:-0.01em;margin-bottom:6px}
+.piece-preview .preview-desc{font-size:12px;line-height:1.4;opacity:.9;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.piece-preview .preview-cta{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;margin-top:10px;padding-top:8px;border-top:1px solid oklch(1 0 0/.3);display:inline-flex;align-items:center;gap:6px;opacity:.9}
+/* edit mode piece overlay */
+.portfolio-piece .piece-edit-btn{position:absolute;top:6px;right:6px;z-index:4;background:oklch(1 0 0/.9);border-radius:4px;padding:4px;display:none;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-2);border:1px solid var(--rule)}
+.edit-mode .portfolio-piece .piece-edit-btn{display:flex}
+.edit-mode .portfolio-piece{cursor:default}
+.edit-mode .portfolio-piece:hover{transform:none;box-shadow:none}
+.edit-mode .portfolio-piece:hover .piece-preview{opacity:0}
+
+/* ADD PIECE zone */
+.piece-add-zone{border-radius:5px;border:2px dashed var(--rule);background:var(--paper-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .15s;grid-column:span 6;grid-row:span 2}
+.piece-add-zone:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+
+/* experience */
+.experience-row{display:grid;grid-template-columns:160px 1fr auto;gap:18px;padding:14px 0;border-bottom:1px dashed var(--rule-soft);align-items:baseline}
+.experience-row:last-child{border-bottom:none}
+.experience-row .period{font-family:var(--mono);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em}
+.experience-row .co{font-weight:500;font-size:15px;color:var(--ink)}
+.experience-row .role{color:var(--ink-2);font-size:13px;margin-top:2px}
+.experience-row .badge-current{font-family:var(--mono);font-size:9px;color:var(--accent);background:var(--accent-soft);padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.14em}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.meta-grid .cell{padding:16px 22px;border-right:1px solid var(--rule-soft);border-bottom:1px solid var(--rule-soft)}
+.meta-grid .cell:nth-child(2n){border-right:none}
+.meta-grid .cell:nth-last-child(-n+2){border-bottom:none}
+.meta-grid .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);margin-bottom:5px}
+.meta-grid .v{font-size:14px;color:var(--ink)}
+.pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;background:var(--rule-soft);padding:2px;border-radius:var(--radius);overflow:hidden}
+.pipeline .stage-cell{background:var(--paper-2);padding:11px 6px;text-align:center;cursor:pointer;font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);transition:all .12s}
+.pipeline .stage-cell:hover{background:var(--paper-3);color:var(--ink-2)}
+.pipeline .stage-cell.active{background:var(--accent);color:white;font-weight:500}
+.pipeline .stage-cell.past{background:var(--ink);color:var(--paper);opacity:.85}
+.note{padding:14px 0;border-bottom:1px dashed var(--rule-soft)}
+.note:last-child{border-bottom:none}
+.note .meta{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-bottom:6px;display:flex;justify-content:space-between;letter-spacing:.08em}
+.note .text{font-size:13.5px;line-height:1.55;color:var(--ink)}
+.note-input{width:100%;border:1px solid var(--rule);border-radius:var(--radius);padding:11px;background:var(--paper-2);resize:vertical;min-height:68px;font-size:13px;transition:all .12s}
+.note-input:focus{outline:none;border-color:var(--ink);background:var(--paper);box-shadow:0 0 0 3px oklch(0 0 0/.04)}
+
+/* EDIT MODE */
+.edit-banner{background:oklch(0.56 0.16 35);color:white;padding:10px 28px;display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.12em;position:sticky;top:0;z-index:10}
+.edit-banner .spacer{flex:1}
+.edit-field{width:100%;border:1px dashed var(--rule);border-radius:4px;padding:6px 9px;background:oklch(1 0 0/.6);font-size:inherit;color:inherit;outline:none;transition:all .12s;font-family:inherit}
+.edit-field:focus{border-color:var(--accent);background:white;box-shadow:0 0 0 2px var(--accent-soft)}
+.edit-field.lg{font-family:var(--serif);font-size:52px;line-height:1;letter-spacing:-0.025em;padding:4px 8px}
+.edit-field.summary{font-size:16px;line-height:1.55;min-height:80px;resize:vertical}
+.edit-row-actions{display:flex;gap:4px;align-items:center;margin-top:4px}
+.edit-section-add{display:flex;align-items:center;gap:6px;padding:10px 0;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);cursor:pointer;border:none;background:none;transition:opacity .1s}
+.edit-section-add:hover{opacity:.7}
+.inline-edit-group{display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--paper-2);border-radius:var(--radius);border:1px solid var(--rule);margin-bottom:8px}
+.inline-edit-group .irow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.inline-edit-group .irow.triple{grid-template-columns:1fr 1fr 1fr}
+.inline-edit-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);margin-bottom:3px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:var(--radius);border:1px solid var(--rule);background:var(--paper);font-size:13px;color:var(--ink);cursor:pointer;transition:all .12s ease;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--paper-2);border-color:var(--ink-4)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);box-shadow:0 1px 2px oklch(0 0 0/.08)}
+.btn.primary:hover{background:oklch(0.1 0.012 60)}
+.btn.accent{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 1px 2px oklch(0 0 0/.1)}
+.btn.accent:hover{background:var(--accent-2)}
+.btn.ghost{border-color:transparent}
+.btn.ghost:hover{background:var(--paper-2)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.lg{padding:10px 18px;font-size:14px}
+.btn.icon{padding:6px;width:32px;height:32px;justify-content:center}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.full{width:100%;justify-content:center}
+.btn.danger{color:oklch(0.55 0.16 15);border-color:oklch(0.85 0.08 15)}
+.btn.danger:hover{background:oklch(0.97 0.02 15)}
+
+/* LISTS */
+.lists-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1px;background:var(--rule-soft);padding:1px}
+.list-card{background:var(--paper);padding:22px;cursor:pointer;display:flex;flex-direction:column;gap:16px;min-height:200px;transition:background .12s}
+.list-card:hover{background:var(--paper-2)}
+.list-card .name{font-family:var(--serif);font-size:24px;letter-spacing:-0.015em;color:var(--ink);line-height:1.1}
+.list-card .mini-thumbs{display:flex;margin-top:auto}
+.list-card .mini-thumbs .m{width:38px;height:38px;border-radius:50%;border:2.5px solid var(--paper);display:grid;place-items:center;font-family:var(--serif);font-size:15px;color:oklch(0.22 0.02 60);margin-left:-10px;box-shadow:0 1px 2px oklch(0 0 0/.04);overflow:hidden}
+.list-card .mini-thumbs .m:first-child{margin-left:0}
+.list-card .meta-row{font-family:var(--mono);font-size:11px;color:var(--ink-3);display:flex;justify-content:space-between;letter-spacing:.06em}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:oklch(0.1 0.01 60/.65);display:grid;place-items:center;z-index:100;padding:32px;backdrop-filter:blur(6px);animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-inner{background:var(--paper);border-radius:10px;max-width:1100px;width:100%;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);animation:slideUp .2s cubic-bezier(.2,.8,.2,1)}
+@keyframes slideUp{from{transform:translateY(8px);opacity:.9}to{transform:translateY(0);opacity:1}}
+.modal-inner.sm{max-width:520px}
+.modal-inner.md{max-width:680px}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 24px;border-bottom:1px solid var(--rule);gap:16px}
+.modal-body{flex:1;overflow:auto;padding:28px}
+.modal-img{aspect-ratio:16/10;background:var(--paper-3);border-radius:6px;position:relative;overflow:hidden;width:100%}
+.modal-img img{width:100%;height:100%;object-fit:cover}
+.modal-img::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent 0,transparent 14px,oklch(0 0 0/.05) 14px,oklch(0 0 0/.05) 15px);z-index:1}
+.modal-meta-row{display:flex;gap:32px;margin-top:20px;flex-wrap:wrap}
+.modal-meta-row .m-item .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);margin-bottom:3px}
+.modal-meta-row .m-item .v{font-size:14px;color:var(--ink)}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 24px;border-top:1px solid var(--rule)}
+
+/* ADD CANDIDATE */
+.add-form-section{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--rule-soft)}
+.add-form-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.add-form-section-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--ink-3);margin-bottom:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.triple{grid-template-columns:1fr 1fr 1fr}
+.parse-result{background:var(--paper-2);border:1px solid var(--ok);border-radius:var(--radius-lg);padding:16px;margin-top:14px}
+.parse-result .parse-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--ok);margin-bottom:8px}
+.parse-result .parse-preview{display:flex;flex-direction:column;gap:6px}
+.parse-result .parse-field{display:flex;gap:10px;font-size:12px}
+.parse-result .parse-field .fk{color:var(--ink-3);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;width:80px;flex-shrink:0;margin-top:2px}
+.parse-result .parse-field .fv{color:var(--ink)}
+.parse-spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--rule);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.url-input-row{display:flex;gap:8px;align-items:flex-end}
+.url-input-row .form-input{flex:1}
+
+/* IMAGE UPLOAD */
+.upload-zone{border:2px dashed var(--rule);border-radius:var(--radius-lg);padding:28px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-soft)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-zone .uz-icon{color:var(--ink-3);margin-bottom:10px}
+.upload-zone .uz-label{font-size:13px;color:var(--ink-2);margin-bottom:4px}
+.upload-zone .uz-hint{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-4)}
+
+/* DISCIPLINES */
+.discipline-list{display:flex;flex-direction:column;gap:2px;margin-bottom:16px}
+.discipline-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--rule);border-radius:var(--radius);background:var(--paper);font-size:13px}
+.discipline-item .dname{flex:1;font-size:13px;color:var(--ink)}
+.discipline-item .dcnt{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+
+/* EMPTY */
+.empty{padding:80px 24px;text-align:center;color:var(--ink-3);font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.menu-btn{display:none}
+
+/* TWEAKS */
+.tweaks-panel{position:fixed;bottom:20px;right:20px;width:320px;background:var(--paper);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow-md);padding:18px;z-index:50;display:none}
+.tweaks-panel.open{display:block}
+.tweaks-panel h3{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.14em;margin:0 0 14px;color:var(--ink-3)}
+.tweaks-panel .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px}
+.tweaks-panel .row label{font-size:12px;color:var(--ink-2)}
+.tweaks-panel .swatches{display:flex;gap:6px}
+.tweaks-panel .swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .1s}
+.tweaks-panel .swatch:hover{transform:scale(1.1)}
+.tweaks-panel .swatch.active{border-color:var(--ink)}
+.toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:100px;font-size:13px;font-weight:500;box-shadow:var(--shadow-md);animation:toastIn .2s ease;pointer-events:none}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.icon{width:16px;height:16px;stroke-width:1.6;flex-shrink:0}
+.icon-sm{width:13px;height:13px;stroke-width:1.7}
+.icon-lg{width:20px;height:20px;stroke-width:1.5}
+
+/* RESPONSIVE */
+@media(max-width:1024px){.home-body{grid-template-columns:1fr}.hero-section{display:none}.login-panel{padding:48px 32px;min-height:calc(100vh - 64px)}}
+@media(max-width:960px){.app{grid-template-columns:1fr;grid-template-areas:"topbar" "main"}.sidebar{position:fixed;top:52px;left:0;bottom:0;width:260px;z-index:30;transform:translateX(-100%);transition:transform .22s ease;box-shadow:var(--shadow-md)}.sidebar.open{transform:translateX(0)}.menu-btn{display:inline-flex}.detail{grid-template-columns:1fr;display:block;height:auto}.detail .left,.detail .right{overflow:visible;height:auto}.detail .left{border-right:none}.detail .right{border-top:1px solid var(--rule)}.detail-nav{position:static}.detail-hero{grid-template-columns:1fr;padding:24px;gap:16px}.detail-hero h1{font-size:36px}.page-header{padding:20px}.page-title{font-size:30px}.toolbar{padding:10px 20px}.filter-bar{padding:10px 20px}.section{padding:22px 24px}.key-stats{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.form-row.triple{grid-template-columns:1fr}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.topbar .search{display:none}.topbar .brand .mono{display:none}.portfolio-grid{grid-template-columns:repeat(6,1fr);grid-auto-rows:92px}.meta-grid{grid-template-columns:1fr}.meta-grid .cell{border-right:none !important}.pipeline{grid-template-columns:repeat(3,1fr)}.experience-row{grid-template-columns:1fr;gap:2px}.experience-row .period{margin-bottom:4px}.detail-hero .avatar-lg{width:80px;height:80px;font-size:34px}.detail-hero h1{font-size:30px}}
+.main::-webkit-scrollbar,.sidebar::-webkit-scrollbar,.detail .left::-webkit-scrollbar,.detail .right::-webkit-scrollbar{width:10px}
+.main::-webkit-scrollbar-thumb,.sidebar::-webkit-scrollbar-thumb,.detail .left::-webkit-scrollbar-thumb,.detail .right::-webkit-scrollbar-thumb{background:var(--rule);border-radius:5px;border:2px solid var(--paper)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+/* ── ICONS ── */
+const Icon = ({ name, className="icon", style }) => {
+  const p = {
+    search:<><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></>,
+    star:<path d="M12 3l2.8 6.1 6.7.6-5 4.5 1.5 6.5L12 17.8 5.9 20.7l1.5-6.5-5-4.5 6.7-.6z"/>,
+    starFill:<path d="M12 3l2.8 6.1 6.7.6-5 4.5 1.5 6.5L12 17.8 5.9 20.7l1.5-6.5-5-4.5 6.7-.6z" fill="currentColor"/>,
+    grid:<><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></>,
+    list:<><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></>,
+    users:<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+    folder:<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>,
+    inbox:<><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></>,
+    archive:<><rect x="3" y="4" width="18" height="4"/><path d="M5 8v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></>,
+    plus:<><path d="M12 5v14"/><path d="M5 12h14"/></>,
+    x:<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>,
+    menu:<><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></>,
+    arrowLeft:<path d="m15 18-6-6 6-6"/>,
+    arrowRight:<path d="m9 18 6-6-6-6"/>,
+    arrowUpRight:<><path d="M7 17L17 7"/><path d="M7 7h10v10"/></>,
+    download:<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></>,
+    mail:<><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="m22 6-10 7L2 6"/></>,
+    calendar:<><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></>,
+    link:<><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></>,
+    clock:<><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></>,
+    settings:<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></>,
+    share:<><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98"/><path d="M15.41 6.51l-6.82 3.98"/></>,
+    edit:<><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></>,
+    more:<><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></>,
+    fileText:<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></>,
+    check:<path d="M20 6L9 17l-5-5"/>,
+    bell:<><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></>,
+    sparkles:<path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>,
+    eye:<><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></>,
+    logout:<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>,
+    home:<><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
+    trash:<><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></>,
+    image:<><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></>,
+    upload:<><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></>,
+    copy:<><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>,
+    send:<><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
+    user:<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+    tag:<><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></>,
+    briefcase:<><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></>,
+    globe:<><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
+    linkedin:<><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></>,
+    sort:<><path d="M3 6h13"/><path d="M3 12h9"/><path d="M3 18h5"/><path d="M17 4v16l4-4"/></>,
+    chevronDown:<path d="m6 9 6 6 6-6"/>,
+  };
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>{p[name]}</svg>;
+};
+
+const Stars = ({ n, max=5, small, onClick }) => (
+  <span className={"stars"+(small?" small":"")} style={onClick?{cursor:"pointer"}:{}}>
+    {Array.from({length:max}).map((_,i)=>(
+      <span key={i} className={i<n?"s":""} onClick={onClick?()=>onClick(i+1):undefined}>★</span>
+    ))}
+  </span>
+);
+const Initials = n => (n||"?").split(" ").map(p=>p[0]).slice(0,2).join("");
+const Availability = ({state}) => {
+  const label={open:"Open to work",passive:"Passive",closed:"Not looking"}[state]||state;
+  return <span className={"avail "+state}><span className="d"/>{label}</span>;
+};
+
+/* ── HELPERS ── */
+const COLORS = ["oklch(0.72 0.09 55)","oklch(0.68 0.12 30)","oklch(0.70 0.11 280)","oklch(0.68 0.08 160)","oklch(0.74 0.12 75)","oklch(0.66 0.10 240)","oklch(0.66 0.13 310)","oklch(0.62 0.11 260)","oklch(0.70 0.09 120)","oklch(0.72 0.10 20)","oklch(0.65 0.14 200)","oklch(0.71 0.09 340)"];
+const randomColor = () => COLORS[Math.floor(Math.random()*COLORS.length)];
+const uid = () => "c"+Date.now()+Math.random().toString(36).slice(2,5);
+
+/* ── DEMO ACCOUNT + REAL PORTFOLIOS ── */
+const DEMO_USER = {
+  name:"Riley Monroe",
+  email:"riley@roladex.app",
+  password:"roladex2025",
+  title:"Creative Talent Lead · Pentagram",
+  avatar:null
+};
+
+// Rich realistic candidates referencing real studios, real clients, real tools
+const DEMO_CANDIDATES = [
+  {
+    id:"r001",name:"Jessica Walsh",discipline:"Brand & Identity",subdisciplines:["Advertising","Art Direction"],
+    location:"New York, NY",timezone:"EST",yrs:18,availability:"passive",rate:"$350/hr",salary:"—",salaryMin:0,
+    shortlist:true,stage:"Sourced",lastActive:"3d",stars:5,
+    tags:["Advertising","Art Direction","Social Justice"],tools:["Figma","Illustrator","Photoshop"],
+    summary:"Managing partner at &Walsh, the brand agency she founded after leaving Sagmeister & Walsh. Known for emotional, narrative-driven identities that push cultural conversations — clients include Apple, The New York Times, and Urban Decay.",
+    pronouns:"she/her",color:"oklch(0.68 0.14 330)",
+    photo:"https://images.unsplash.com/photo-1598550874175-4d0ef436c909?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"&Walsh · Agency identity",type:"brand",year:2021,client:"&Walsh",desc:"Full identity system for her own agency — type-forward, punk sensibility.",image:"https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=500&fit=crop"},
+      {w:3,h:3,label:"Urban Decay rebrand",type:"brand",year:2022,client:"Urban Decay",desc:"Campaign identity pushing beauty industry conventions.",image:"https://images.unsplash.com/photo-1545063328-c8e3faffa16f?w=400&h=400&fit=crop"},
+      {w:4,h:4,label:"NYT Opinion visual system",type:"brand",year:2023,client:"The New York Times",desc:"Editorial visual language for Opinion section launch.",image:"https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=500&fit=crop"},
+      {w:5,h:3,label:"Young Thug album art",type:"brand",year:2023,client:"Young Stoner Life",desc:"Cover art and visual system for major label release.",image:"https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600&h=400&fit=crop"},
+      {w:4,h:3,label:"Repro documentary identity",type:"brand",year:2022,client:"HBO",desc:"Title treatment and identity for documentary series.",image:"https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&h=400&fit=crop"},
+    ],
+    experience:[
+      {co:"&Walsh",role:"Managing Partner, Creative Director",period:"2019 — Present"},
+      {co:"Sagmeister & Walsh",role:"Partner, Art Director",period:"2012 — 2019"},
+      {co:"MTV Networks",role:"Senior Designer",period:"2008 — 2012"},
+    ],
+    education:[{school:"School of Visual Arts",degree:"BFA Graphic Design",year:"2008"}],
+    links:{portfolio:"andwalsh.com",instagram:"@jessicawalsh",linkedin:"/in/jessicawalsh"},
+    notes:[{by:"Riley Monroe",at:"Apr 2",text:"Reached out via IG. She's open to advisory roles and select campaigns — not full-time."}]
+  },
+  {
+    id:"r002",name:"Tobias van Schneider",discipline:"Product Design",subdisciplines:["Visual Design","Brand"],
+    location:"New York, NY",timezone:"EST",yrs:20,availability:"passive",rate:"$280/hr",salary:"—",salaryMin:0,
+    shortlist:true,stage:"Screening",lastActive:"1d",stars:5,
+    tags:["Visual Design","Design Leadership","Side Projects"],tools:["Figma","Sketch","Webflow"],
+    summary:"Former Design Lead at Spotify (built the 2013–2016 visual language), founder of DESK magazine. Self-taught Austrian designer who has shipped products used by hundreds of millions. Known for his newsletter and writing on creative process.",
+    pronouns:"he/him",color:"oklch(0.62 0.10 240)",
+    photo:"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"Spotify visual language 2013–16",type:"web",year:2016,client:"Spotify",desc:"Defined the visual identity and design language during Spotify's global growth era.",image:"https://images.unsplash.com/photo-1611339555312-e607c8352fd7?w=800&h=500&fit=crop"},
+      {w:4,h:4,label:"DESK Magazine",type:"web",year:2022,client:"Self-initiated",desc:"Premium design publication — editorial system, typography, brand.",image:"https://images.unsplash.com/photo-1586339949916-3e9457bef6d3?w=500&h=500&fit=crop"},
+      {w:5,h:3,label:"Semplice portfolio platform",type:"web",year:2020,client:"Semplice",desc:"Designed and shipped the Semplice website builder for creatives.",image:"https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop"},
+      {w:3,h:3,label:"Van Schneider newsletter visual system",type:"brand",year:2023,client:"Self",desc:"Newsletter brand serving 120k+ subscribers.",image:"https://images.unsplash.com/photo-1512626120412-faf41adb4874?w=400&h=400&fit=crop"},
+    ],
+    experience:[
+      {co:"Vanschneider Studio",role:"Founder",period:"2016 — Present"},
+      {co:"Spotify",role:"Lead Product Designer",period:"2013 — 2016"},
+      {co:"Red Bull Media",role:"Art Director",period:"2009 — 2013"},
+    ],
+    education:[{school:"Self-taught",degree:"—",year:"2003"}],
+    links:{portfolio:"vanschneider.com",twitter:"@vanschneider",linkedin:"/in/vanschneider"},
+    notes:[{by:"Riley Monroe",at:"Mar 28",text:"Spoke at our offsite. Very interested in advisory + occasional brand work."}]
+  },
+  {
+    id:"r003",name:"Diana Mounter",discipline:"Design Engineering",subdisciplines:["Design Systems","Engineering"],
+    location:"San Francisco, CA",timezone:"PST",yrs:14,availability:"open",rate:"$240/hr",salary:"$280k",salaryMin:280,
+    shortlist:false,stage:"Interview",lastActive:"5h",stars:5,
+    tags:["Design Systems","GitHub","Engineering"],tools:["Figma","React","Storybook"],
+    summary:"Former Design Infrastructure lead at GitHub, where she built and shipped Primer — one of the most widely-adopted open-source design systems in the industry. Rare hybrid who writes production code and sets design strategy.",
+    pronouns:"she/her",color:"oklch(0.62 0.08 160)",
+    photo:"https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"GitHub Primer Design System",type:"web",year:2023,client:"GitHub",desc:"Led Primer from internal tool to fully open-source system used by 1000+ contributors.",image:"https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=800&h=500&fit=crop"},
+      {w:4,h:4,label:"Primer component library",type:"web",year:2022,client:"GitHub",desc:"50+ components, theming engine, motion system, accessibility-first.",image:"https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&h=500&fit=crop"},
+      {w:5,h:3,label:"GitHub.com nav redesign",type:"web",year:2021,client:"GitHub",desc:"Led end-to-end redesign of global navigation for 90M users.",image:"https://images.unsplash.com/photo-1628258334105-2a0b3d6efee1?w=600&h=400&fit=crop"},
+      {w:3,h:4,label:"Design tokens architecture",type:"doc",year:2023,client:"GitHub",desc:"Multi-brand, multi-theme token system powering GitHub's dark/light/colorblind modes.",image:"https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop"},
+    ],
+    experience:[
+      {co:"GitHub",role:"Design Infrastructure Lead",period:"2018 — 2024"},
+      {co:"Envato",role:"Senior Product Designer",period:"2014 — 2018"},
+    ],
+    education:[{school:"RMIT University",degree:"BA Communication Design",year:"2010"}],
+    links:{portfolio:"broccolini.com.au",github:"broccolini",linkedin:"/in/dianamounter"},
+    notes:[{by:"Riley Monroe",at:"Apr 8",text:"Strong engineering depth — rare. Primer's adoption numbers are extraordinary. Move fast."}]
+  },
+  {
+    id:"r004",name:"Malika Favre",discipline:"Illustration",subdisciplines:["Editorial","Motion"],
+    location:"London, UK",timezone:"GMT",yrs:16,availability:"passive",rate:"$180/hr",salary:"—",salaryMin:0,
+    shortlist:true,stage:"Sourced",lastActive:"2d",stars:5,
+    tags:["Vogue","Op-Art","BAFTA"],tools:["Illustrator","After Effects","Cinema 4D"],
+    summary:"French illustrator based in London. Known for her geometric, boldly sexual Op-Art style. Regular contributor to The New Yorker, Vogue, and BAFTA. Her work blurs the line between fine art and commercial illustration.",
+    pronouns:"she/her",color:"oklch(0.70 0.14 20)",
+    photo:"https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"The New Yorker cover series",type:"image",year:2024,client:"The New Yorker",desc:"5 cover illustrations across 2023–24. All in her signature Op-Art geometric style.",image:"https://images.unsplash.com/photo-1547570010-7f76e74c48e9?w=800&h=500&fit=crop"},
+      {w:3,h:4,label:"Vogue Paris editorial",type:"image",year:2023,client:"Condé Nast",desc:"Fashion editorial — body positive narrative.",image:"https://images.unsplash.com/photo-1543286386-713bdd548da4?w=400&h=500&fit=crop"},
+      {w:5,h:3,label:"BAFTA 2023 identity illustration",type:"image",year:2023,client:"BAFTA",desc:"Official ceremony artwork and identity illustration.",image:"https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=600&h=400&fit=crop"},
+      {w:4,h:4,label:"Kamasutra book illustration",type:"image",year:2020,client:"Taschen",desc:"Full illustration for Taschen's Kamasutra — bestselling art book.",image:"https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=500&h=500&fit=crop"},
+    ],
+    experience:[
+      {co:"Studio Malika Favre",role:"Principal",period:"2010 — Present"},
+      {co:"NB Studio",role:"Designer",period:"2006 — 2010"},
+    ],
+    education:[{school:"École Boulle",degree:"BA Applied Arts",year:"2005"}],
+    links:{portfolio:"malikafavre.com",instagram:"@malikafavre"},
+    notes:[]
+  },
+  {
+    id:"r005",name:"Rauno Freiberg",discipline:"Design Engineering",subdisciplines:["UI","Animation"],
+    location:"Tallinn, EE",timezone:"EET",yrs:8,availability:"open",rate:"$190/hr",salary:"$210k",salaryMin:210,
+    shortlist:false,stage:"Screening",lastActive:"12h",stars:5,
+    tags:["Radix","Framer","Animation"],tools:["React","Framer Motion","Radix UI"],
+    summary:"Staff designer-engineer at Vercel. Previously led design system work at Linear. Creator of Radix UI (30k GitHub stars), the accessible component primitives used by Vercel, Loom, and thousands of teams worldwide.",
+    pronouns:"he/him",color:"oklch(0.62 0.13 270)",
+    photo:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"Radix UI component system",type:"web",year:2023,client:"WorkOS / OSS",desc:"30k stars on GitHub. Accessible, unstyled primitives used across the React ecosystem.",image:"https://images.unsplash.com/photo-1555099962-4199c345e5dd?w=800&h=500&fit=crop"},
+      {w:4,h:4,label:"Vercel dashboard redesign",type:"web",year:2024,client:"Vercel",desc:"Led end-to-end redesign of the Vercel deployment dashboard.",image:"https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=500&fit=crop"},
+      {w:5,h:3,label:"Linear interface details",type:"web",year:2022,client:"Linear",desc:"Microinteractions, keyboard shortcuts, and motion design across Linear's interface.",image:"https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&h=400&fit=crop"},
+      {w:3,h:3,label:"Themes system",type:"web",year:2023,client:"WorkOS",desc:"Multi-brand theming architecture for Radix Themes.",image:"https://images.unsplash.com/photo-1505685296765-3a2736de412f?w=400&h=400&fit=crop"},
+    ],
+    experience:[
+      {co:"Vercel",role:"Staff Design Engineer",period:"2023 — Present"},
+      {co:"Linear",role:"Design Engineer",period:"2021 — 2023"},
+      {co:"WorkOS",role:"Design Engineer",period:"2019 — 2021"},
+    ],
+    education:[{school:"Tallinn University of Technology",degree:"BSc Computer Science",year:"2016"}],
+    links:{portfolio:"raunofreiberg.com",github:"raunofreiberg",twitter:"@raunofreiberg"},
+    notes:[{by:"Riley Monroe",at:"Apr 1",text:"Built Radix solo. Engineering depth + design taste is a 10/10 combo."}]
+  },
+  {
+    id:"r006",name:"Lotta Nieminen",discipline:"Illustration",subdisciplines:["Editorial","Surface Design"],
+    location:"New York, NY",timezone:"EST",yrs:14,availability:"open",rate:"$160/hr",salary:"$185k",salaryMin:185,
+    shortlist:false,stage:"Sourced",lastActive:"4d",stars:4,
+    tags:["Surface Design","Pattern","Finnish"],tools:["Illustrator","Photoshop","Procreate"],
+    summary:"Helsinki-born illustrator and graphic designer, now based in NYC. Consistent contributor to WSJ, TIME, and WIRED. Her joyful, layered style has appeared on packaging, fashion collaborations, and children's books.",
+    pronouns:"she/her",color:"oklch(0.74 0.12 75)",
+    photo:"https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"WSJ Magazine illustration",type:"image",year:2024,client:"Wall Street Journal",desc:"Monthly illustration commissions — tech, finance, culture topics.",image:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=500&fit=crop"},
+      {w:4,h:3,label:"Marimekko collaboration",type:"image",year:2022,client:"Marimekko",desc:"Surface design pattern collection — 4 prints, sold globally.",image:"https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=500&h=400&fit=crop"},
+      {w:3,h:4,label:"Airbnb experience illustrations",type:"image",year:2023,client:"Airbnb",desc:"In-app spot illustrations for Experiences onboarding.",image:"https://images.unsplash.com/photo-1535868463750-c78d9543614f?w=400&h=500&fit=crop"},
+      {w:5,h:3,label:"Little Bee Picture Book",type:"image",year:2021,client:"Phaidon Press",desc:"Children's picture book — full illustration, 32 pages.",image:"https://images.unsplash.com/photo-1532012197267-da84d127e765?w=600&h=400&fit=crop"},
+    ],
+    experience:[
+      {co:"Studio Lotta Nieminen",role:"Principal",period:"2012 — Present"},
+      {co:"RoAndCo Studio",role:"Designer",period:"2010 — 2012"},
+    ],
+    education:[{school:"Rhode Island School of Design",degree:"BFA Graphic Design",year:"2010"}],
+    links:{portfolio:"lottanieminen.com",instagram:"@lottanieminen"},
+    notes:[]
+  },
+  {
+    id:"r007",name:"Emil Kowalski",discipline:"Motion Design",subdisciplines:["Title Sequences","3D"],
+    location:"Berlin, DE",timezone:"CET",yrs:11,availability:"open",rate:"$200/hr",salary:"$195k",salaryMin:195,
+    shortlist:true,stage:"Interview",lastActive:"8h",stars:5,
+    tags:["Netflix","3D","Title Design"],tools:["Cinema 4D","Houdini","After Effects"],
+    summary:"Berlin-based motion director and title designer. Three Netflix title sequences in 2022–2024 including Mindhunter S2. FWA site of the year winner. His Houdini simulations have defined a new aesthetic for prestige TV title sequences.",
+    pronouns:"he/him",color:"oklch(0.62 0.11 200)",
+    photo:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"Netflix · 'Dark Matter' titles",type:"video",year:2024,client:"Netflix",desc:"Main title sequence — particle physics sim in Houdini. 4M YouTube views.",image:"https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&h=500&fit=crop"},
+      {w:4,h:4,label:"Mindhunter S2 opener",type:"video",year:2022,client:"Netflix",desc:"Psychological horror aesthetic — morphing typography in Cinema 4D.",image:"https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=500&h=500&fit=crop"},
+      {w:5,h:3,label:"FWA SOTD · Porsche campaign",type:"web",year:2023,client:"Porsche",desc:"Interactive 3D campaign microsite. FWA Site of the Year 2023.",image:"https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600&h=400&fit=crop"},
+      {w:3,h:4,label:"Houdini fluid sim study",type:"3d",year:2024,client:"Personal",desc:"600-frame fluid simulation — photorealistic rendering at 8K.",image:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=500&fit=crop"},
+    ],
+    experience:[
+      {co:"Studio Kowalski",role:"Creative Director",period:"2020 — Present"},
+      {co:"Territory Studio",role:"Motion Director",period:"2016 — 2020"},
+      {co:"MPC",role:"3D Artist",period:"2013 — 2016"},
+    ],
+    education:[{school:"Hochschule für Gestaltung Ulm",degree:"MA Communication Design",year:"2013"}],
+    links:{portfolio:"emilkowalski.de",vimeo:"emilkowalski"},
+    notes:[{by:"Riley Monroe",at:"Apr 5",text:"Title reel is best I've seen in 3 years. Has the Houdini depth + storytelling instinct. Push to offer."}]
+  },
+  {
+    id:"r008",name:"Stephanie Engle",discipline:"UX Research",subdisciplines:["Mixed Methods","AI/ML"],
+    location:"Seattle, WA",timezone:"PST",yrs:12,availability:"open",rate:"$180/hr",salary:"$230k",salaryMin:230,
+    shortlist:false,stage:"Sourced",lastActive:"1d",stars:4,
+    tags:["AI Research","Microsoft","Research Ops"],tools:["UserZoom","Dovetail","Python"],
+    summary:"Principal UX Researcher at Microsoft Azure AI. Led research that shaped Copilot's conversational UX for enterprise users. Published in CHI 2022 and 2024. Specializes in making complex AI systems legible to everyday users.",
+    pronouns:"she/her",color:"oklch(0.68 0.09 150)",
+    photo:"https://images.unsplash.com/photo-1569913486515-b74bf7751574?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:5,h:3,label:"Copilot conversational UX research",type:"doc",year:2024,client:"Microsoft",desc:"Foundational research shaping how 350M Office users interact with AI assistance.",image:"https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&h=400&fit=crop"},
+      {w:4,h:4,label:"AI transparency framework",type:"doc",year:2023,client:"Microsoft Azure",desc:"Research-driven framework for communicating AI uncertainty to users.",image:"https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=500&h=500&fit=crop"},
+      {w:6,h:4,label:"CHI 2024 paper · LLM onboarding",type:"doc",year:2024,client:"ACM CHI",desc:"Peer-reviewed research on user mental models during LLM tool adoption.",image:"https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=500&fit=crop"},
+      {w:3,h:3,label:"Azure enterprise dashboard research",type:"doc",year:2022,client:"Microsoft Azure",desc:"Longitudinal diary study — 60 enterprise admins over 8 weeks.",image:"https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=400&fit=crop"},
+    ],
+    experience:[
+      {co:"Microsoft",role:"Principal UX Researcher",period:"2020 — Present"},
+      {co:"Amazon",role:"Senior UX Researcher",period:"2015 — 2020"},
+      {co:"Nielsen Norman Group",role:"UX Specialist",period:"2012 — 2015"},
+    ],
+    education:[{school:"University of Washington",degree:"PhD Human-Computer Interaction",year:"2012"}],
+    links:{portfolio:"stephanieengle.com",linkedin:"/in/stephanieengle"},
+    notes:[]
+  },
+  {
+    id:"r009",name:"Benoît Challand",discipline:"Product Design",subdisciplines:["SaaS","AI UX"],
+    location:"Paris, FR",timezone:"CET",yrs:9,availability:"open",rate:"$170/hr",salary:"$195k",salaryMin:195,
+    shortlist:false,stage:"Screening",lastActive:"6h",stars:4,
+    tags:["Notion","AI UX","Enterprise"],tools:["Figma","Framer","Linear"],
+    summary:"Staff product designer at Notion, where he leads design for the AI product surface. Previously at Amplitude. Wrote the definitive internal guide on AI interaction patterns that circulated widely in design Twitter.",
+    pronouns:"he/him",color:"oklch(0.66 0.11 50)",
+    photo:"https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"Notion AI product surface",type:"web",year:2024,client:"Notion",desc:"Led design for AI features used by 40M+ Notion users.",image:"https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&h=500&fit=crop"},
+      {w:4,h:4,label:"Amplitude user journey maps",type:"web",year:2022,client:"Amplitude",desc:"End-to-end journey map visualization tool within Amplitude.",image:"https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=500&fit=crop"},
+      {w:5,h:3,label:"AI interaction patterns guide",type:"doc",year:2023,client:"Internal / Open",desc:"Internal guide on prompt design patterns. Widely shared on design Twitter.",image:"https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600&h=400&fit=crop"},
+    ],
+    experience:[
+      {co:"Notion",role:"Staff Product Designer",period:"2022 — Present"},
+      {co:"Amplitude",role:"Senior Designer",period:"2019 — 2022"},
+      {co:"Drivy",role:"Product Designer",period:"2015 — 2019"},
+    ],
+    education:[{school:"Gobelins Paris",degree:"MA UX Design",year:"2015"}],
+    links:{portfolio:"benoitchalland.com",twitter:"@challand"},
+    notes:[]
+  },
+  {
+    id:"r010",name:"Femke van Schoonhoven",discipline:"Product Design",subdisciplines:["Education","Community"],
+    location:"Amsterdam, NL",timezone:"CET",yrs:8,availability:"passive",rate:"$150/hr",salary:"$175k",salaryMin:175,
+    shortlist:true,stage:"Sourced",lastActive:"2d",stars:4,
+    tags:["YouTube","Education","Figma"],tools:["Figma","Webflow","Notion"],
+    summary:"Product designer and educator with 400k YouTube subscribers. Co-founded fellow.app, a 1:1 meeting management tool. Her online courses on Figma and product design have been taken by 200k+ designers globally.",
+    pronouns:"she/her",color:"oklch(0.72 0.10 100)",
+    photo:"https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"Fellow.app product design",type:"web",year:2023,client:"Fellow.app",desc:"Co-founded and led product design for the 1:1 meeting management tool.",image:"https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=500&fit=crop"},
+      {w:4,h:3,label:"YouTube channel visual system",type:"brand",year:2022,client:"Self",desc:"400k subscriber educational channel — complete visual identity.",image:"https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500&h=400&fit=crop"},
+      {w:5,h:4,label:"Figma course curriculum design",type:"doc",year:2023,client:"Self",desc:"200k+ students. Full curriculum design from zero to advanced.",image:"https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=500&fit=crop"},
+      {w:3,h:3,label:"Reflect app product work",type:"web",year:2021,client:"Reflect",desc:"Early design work on the networked note-taking app.",image:"https://images.unsplash.com/photo-1512758017271-d7b84c2113f1?w=400&h=400&fit=crop"},
+    ],
+    experience:[
+      {co:"Fellow.app",role:"Co-founder, Design Lead",period:"2021 — Present"},
+      {co:"Monzo",role:"Product Designer",period:"2019 — 2021"},
+      {co:"Ueno",role:"Designer",period:"2016 — 2019"},
+    ],
+    education:[{school:"University of Auckland",degree:"BDes Design",year:"2016"}],
+    links:{portfolio:"femke.design",youtube:"@femkesvs",instagram:"@femkesvs"},
+    notes:[{by:"Riley Monroe",at:"Mar 30",text:"Community reach is enormous. Would be a major signal hire if we can get her."}]
+  },
+  {
+    id:"r011",name:"Pita Havili",discipline:"Brand & Identity",subdisciplines:["Naming","Strategy"],
+    location:"San Francisco, CA",timezone:"PST",yrs:12,availability:"open",rate:"$220/hr",salary:"$240k",salaryMin:240,
+    shortlist:false,stage:"Sourced",lastActive:"1w",stars:4,
+    tags:["Naming","Strategy","Tech Branding"],tools:["Figma","Illustrator","InDesign"],
+    summary:"Brand strategist and identity designer. Built the brand strategy for three unicorn startups before their IPO — Figma, Rippling, and Brex. Known for naming architecture and verbal identity as much as visual systems.",
+    pronouns:"he/him",color:"oklch(0.66 0.13 30)",
+    photo:"https://images.unsplash.com/photo-1463453091185-61582044d556?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"Figma brand strategy",type:"brand",year:2021,client:"Figma",desc:"Brand architecture and positioning leading into Figma's growth phase.",image:"https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=500&fit=crop"},
+      {w:4,h:4,label:"Rippling identity system",type:"brand",year:2022,client:"Rippling",desc:"Complete identity rebrand — naming review, visual system, tone.",image:"https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=500&fit=crop"},
+      {w:5,h:3,label:"Brex rebrand",type:"brand",year:2023,client:"Brex",desc:"Visual identity and brand strategy refresh pre-IPO.",image:"https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop"},
+    ],
+    experience:[
+      {co:"Havili Studio",role:"Principal",period:"2018 — Present"},
+      {co:"Wolff Olins",role:"Senior Brand Strategist",period:"2014 — 2018"},
+      {co:"Prophet",role:"Brand Consultant",period:"2012 — 2014"},
+    ],
+    education:[{school:"California College of the Arts",degree:"MBA Design Strategy",year:"2012"}],
+    links:{portfolio:"havili.studio",linkedin:"/in/pitahavili"},
+    notes:[]
+  },
+  {
+    id:"r012",name:"Keita Goto",discipline:"Industrial Design",subdisciplines:["CMF","Consumer Electronics"],
+    location:"Tokyo, JP",timezone:"JST",yrs:15,availability:"passive",rate:"$230/hr",salary:"$260k",salaryMin:260,
+    shortlist:false,stage:"Sourced",lastActive:"5d",stars:5,
+    tags:["Sony","CMF","Consumer Electronics"],tools:["Rhino","KeyShot","CATIA"],
+    summary:"Senior industrial designer at Sony Design Center. Led CMF and form development for the WH-1000XM headphone line (80M units sold) and contributed to PlayStation hardware aesthetics. Holds 14 design patents.",
+    pronouns:"he/him",color:"oklch(0.60 0.09 200)",
+    photo:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face",
+    portfolio:[
+      {w:6,h:4,label:"Sony WH-1000XM5 — CMF lead",type:"image",year:2022,client:"Sony",desc:"CMF design lead on the flagship noise-cancelling headphone. 80M units sold globally.",image:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=500&fit=crop"},
+      {w:4,h:4,label:"PlayStation 5 industrial design",type:"image",year:2020,client:"Sony Interactive",desc:"Contributing industrial designer on PS5 industrial design team.",image:"https://images.unsplash.com/photo-1580327344181-c1163234e5a0?w=500&h=500&fit=crop"},
+      {w:5,h:3,label:"Linkbuds CMF explorations",type:"3d",year:2022,client:"Sony",desc:"Material and color explorations for the open-ear LinkBuds line.",image:"https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=400&fit=crop"},
+      {w:3,h:4,label:"Sketch ideation · headphone form",type:"doc",year:2023,client:"Sony",desc:"Early form ideation — ink sketches and foam models.",image:"https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=400&h=500&fit=crop"},
+    ],
+    experience:[
+      {co:"Sony Design Center",role:"Senior Industrial Designer",period:"2012 — Present"},
+      {co:"Naoto Fukasawa Design",role:"Designer",period:"2009 — 2012"},
+    ],
+    education:[{school:"Musashino Art University",degree:"BDes Product Design",year:"2009"}],
+    links:{portfolio:"keitagoto.jp"},
+    notes:[]
+  },
+];
+
+const DEFAULT_DISCIPLINES = ["Product Design","Brand & Identity","Motion Design","UX Research","Illustration","Industrial Design","Design Engineering","Content Design"];
+const STAGES = ["Sourced","Screening","Interview","Offer","Hired","Archived"];
+const DEMO_LISTS = [
+  {id:"l1",name:"Q2 Staff Designer search",count:3,updated:"Apr 8",ids:["r001","r002","r003"]},
+  {id:"l2",name:"Netflix · title sequence pitch",count:2,updated:"Apr 5",ids:["r007","r004"]},
+  {id:"l3",name:"AI UX specialists",count:3,updated:"Apr 1",ids:["r005","r008","r009"]},
+  {id:"l4",name:"Education + community hires",count:1,updated:"Mar 30",ids:["r010"]},
+  {id:"l5",name:"Consumer hardware bench",count:1,updated:"Mar 15",ids:["r012"]},
+];
+
+/* ── STORAGE HELPERS ── */
+const load = (key, fallback) => { try { const s=localStorage.getItem(key); return s?JSON.parse(s):fallback; } catch { return fallback; } };
+const save = (key, val) => { try { localStorage.setItem(key,JSON.stringify(val)); } catch {} };
+
+/* ── CLAUDE URL PARSER ── */
+/* ── PLATFORM DETECTION ── */
+const detectPlatform = (url) => {
+  const u = url.toLowerCase();
+  if(u.includes("behance.net")) return "behance";
+  if(u.includes("dribbble.com")) return "dribbble";
+  if(u.includes("linkedin.com")) return "linkedin";
+  if(u.includes("artstation.com")) return "artstation";
+  if(u.includes("cargo.site")||u.includes("cargocollective")) return "cargo";
+  if(u.includes("squarespace.com")||u.includes("format.com")||u.includes("portfoliobox")) return "portfolio_builder";
+  if(u.includes("github.com")) return "github";
+  if(u.includes("read.cv")||u.includes("readcv")) return "readcv";
+  if(u.includes("contra.com")) return "contra";
+  return "personal";
+};
+
+/* ── CORS PROXY FETCH ── */
+const fetchPageContent = async (url) => {
+  // Try allorigins first (free CORS proxy)
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  try {
+    const r = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+    const d = await r.json();
+    return d.contents || "";
+  } catch {
+    return "";
+  }
+};
+
+/* ── EXTRACT IMAGES FROM HTML ── */
+const extractImagesFromHTML = (html, baseUrl, platform) => {
+  if(!html) return [];
+  const imgs = [];
+  const seen = new Set();
+
+  // Parse URL for base domain
+  let base = "";
+  try { base = new URL(baseUrl).origin; } catch {}
+
+  // Helper: resolve relative URLs
+  const resolve = (src) => {
+    if(!src) return null;
+    if(src.startsWith("data:")) return null;
+    if(src.startsWith("http")) return src;
+    if(src.startsWith("//")) return "https:" + src;
+    if(src.startsWith("/")) return base + src;
+    return null;
+  };
+
+  // Extract og:image / twitter:image (most reliable)
+  const ogMatch = html.match(/<meta[^>]+(?:property=["']og:image["']|name=["']twitter:image["'])[^>]+content=["']([^"']+)["']/gi) || [];
+  ogMatch.forEach(m => {
+    const cm = m.match(/content=["']([^"']+)["']/);
+    if(cm && cm[1]) { const u=resolve(cm[1]); if(u&&!seen.has(u)){seen.add(u);imgs.push({url:u,type:"og",score:10});} }
+  });
+
+  // Platform-specific selectors
+  if(platform==="behance") {
+    // Behance project image URLs pattern
+    const re = /["']https:\/\/mir-s3-cdn-cf\.behance\.net\/projects\/[^"']+["']/g;
+    const matches = html.match(re)||[];
+    matches.slice(0,12).forEach(m => {
+      const u=m.replace(/["']/g,"");
+      if(!seen.has(u)){seen.add(u);imgs.push({url:u,type:"work",score:8});}
+    });
+    // Also check max-1200 pattern
+    const re2 = /["'](https:\/\/mir-s3-cdn-cf\.behance\.net\/[^"']+\.(jpg|jpeg|png|webp))["']/gi;
+    const m2=html.match(re2)||[];
+    m2.slice(0,10).forEach(m => { const u=m.replace(/["']/g,""); if(!seen.has(u)){seen.add(u);imgs.push({url:u,type:"work",score:7});} });
+  }
+
+  if(platform==="dribbble") {
+    const re = /["'](https:\/\/cdn\.dribbble\.com\/[^"']+\.(png|jpg|jpeg|gif|webp))["']/gi;
+    const matches=html.match(re)||[];
+    matches.slice(0,12).forEach(m=>{ const u=m.replace(/["']/g,""); if(!seen.has(u)){seen.add(u);imgs.push({url:u,type:"work",score:8});} });
+  }
+
+  if(platform==="artstation") {
+    const re = /["'](https:\/\/cdna?\.artstation\.com\/[^"']+\.(jpg|jpeg|png|webp))["']/gi;
+    const matches=html.match(re)||[];
+    matches.slice(0,12).forEach(m=>{ const u=m.replace(/["']/g,""); if(!seen.has(u)){seen.add(u);imgs.push({url:u,type:"work",score:8});} });
+  }
+
+  // Generic img src extraction (fallback)
+  const imgRe = /<img[^>]+src=["']([^"']+\.(jpg|jpeg|png|webp|gif))["']/gi;
+  let imgMatch;
+  while((imgMatch=imgRe.exec(html))!==null){
+    const u=resolve(imgMatch[1]);
+    if(u&&!seen.has(u)){
+      seen.add(u);
+      // Score based on size hints in src
+      const score = (u.includes("large")||u.includes("original")||u.includes("max")||u.includes("full")||u.includes("1200")||u.includes("800"))?5:2;
+      imgs.push({url:u,type:"img",score});
+    }
+    if(imgs.length>40) break;
+  }
+
+  // Sort by score, filter obvious non-work images (avatars, icons, logos)
+  return imgs
+    .filter(i=>{
+      const u=i.url.toLowerCase();
+      return !u.includes("avatar")&&!u.includes("icon")&&!u.includes("logo")&&!u.includes("sprite")&&!u.includes("pixel")&&!u.includes("badge")&&u.length>20;
+    })
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,12)
+    .map(i=>i.url);
+};
+
+/* ── MAIN PARSER — Multi-step with real web content ── */
+const parseURLWithClaude = async (url, onProgress) => {
+  const platform = detectPlatform(url);
+  onProgress && onProgress("Fetching page…", 15);
+
+  // Step 1: Try to fetch real page content
+  let pageHTML = "";
+  let pageImages = [];
+  try {
+    pageHTML = await fetchPageContent(url);
+    if(pageHTML) {
+      pageImages = extractImagesFromHTML(pageHTML, url, platform);
+      onProgress && onProgress(`Found ${pageImages.length} images…`, 40);
+    }
+  } catch(e) {
+    // Continue without HTML
+  }
+
+  onProgress && onProgress("Analyzing with AI…", 60);
+
+  // Step 2: Send to Claude with web_search tool so it can look up the person
+  const systemPrompt = `You are a creative talent researcher for a portfolio ATS. Your job is to extract structured candidate data from portfolio sites, LinkedIn, Behance, Dribbble, ArtStation, and personal sites. Be thorough and specific — infer from URLs, slugs, and any context. Always return valid JSON only.`;
+
+  // Trim HTML to avoid token overload — keep title, meta, and first meaningful chunk
+  let htmlSnippet = "";
+  if(pageHTML) {
+    // Extract title
+    const titleM = pageHTML.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleM ? titleM[1] : "";
+    // Extract all meta content
+    const metas = (pageHTML.match(/<meta[^>]+>/gi)||[]).slice(0,30).join("\n");
+    // Extract text content (strip tags, take first 3000 chars)
+    const textContent = pageHTML
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi,"")
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi,"")
+      .replace(/<[^>]+>/g," ")
+      .replace(/\s+/g," ")
+      .trim()
+      .slice(0,3000);
+    htmlSnippet = `TITLE: ${title}\n\nMETA TAGS:\n${metas}\n\nPAGE TEXT:\n${textContent}`;
+  }
+
+  const userPrompt = `Analyze this creative professional's online presence and extract structured data for a talent ATS.
+
+URL: ${url}
+PLATFORM DETECTED: ${platform}
+${htmlSnippet ? `\nPAGE CONTENT (scraped):\n${htmlSnippet}\n` : ""}
+${pageImages.length>0 ? `\nIMAGES FOUND ON PAGE (${pageImages.length} total, use these as portfolio piece images):\n${pageImages.slice(0,8).map((u,i)=>`${i+1}. ${u}`).join("\n")}\n` : ""}
+
+Based on ALL available information above, return a JSON object. Use web search if needed to look up this person.
+
+For the portfolio array, create entries for actual work visible on the page. Use the image URLs listed above.
+
+Return ONLY this JSON structure (no markdown, no backticks):
+{
+  "name": "Full Name (extract from URL slug, page title, or meta — e.g. 'sarah-chen' → 'Sarah Chen')",
+  "headline": "Short professional headline from page",
+  "discipline": "one of: Product Design, Brand & Identity, Motion Design, UX Research, Illustration, Industrial Design, Design Engineering, Content Design",
+  "subdisciplines": ["sub1", "sub2"],
+  "location": "City, Country (or City, State)",
+  "timezone": "EST|PST|GMT|CET|JST|AEST|etc",
+  "yrs": 7,
+  "availability": "open",
+  "rate": "$150/hr",
+  "salary": "$180k",
+  "salaryMin": 180,
+  "summary": "Specific 2-3 sentence bio. Reference actual clients, projects, or achievements found on page if possible.",
+  "pronouns": "they/them",
+  "tags": ["specific tag from their actual work"],
+  "tools": ["tools they actually use"],
+  "photo": "${pageImages.length>0 ? pageImages[0] : ""}",
+  "portfolio": [
+    {
+      "w": 6, "h": 4,
+      "label": "Project title from page",
+      "type": "web|mobile|brand|image|video|3d|print|doc",
+      "year": 2024,
+      "client": "Client name or self",
+      "desc": "What this project is about",
+      "image": "use one of the image URLs from the list above"
+    }
+  ],
+  "experience": [{"co": "Company", "role": "Job title", "period": "2022 — Present"}],
+  "education": [{"school": "School", "degree": "Degree", "year": "2020"}],
+  "links": {
+    "portfolio": "${url.replace(/https?:\/\/(www\.)?/,"")}"
+  }
+}
+
+Critical: extract the person's actual name from the URL slug (e.g. behance.net/sarahchen → "Sarah Chen", dribbble.com/sarah_chen → "Sarah Chen"). If you can infer real clients, projects, or bio from the page content, use them. Make portfolio pieces reference the actual image URLs provided above.`;
+
+  const apiBody = {
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 2000,
+    system: systemPrompt,
+    tools: [{
+      type: "web_search_20250305",
+      name: "web_search"
+    }],
+    messages: [{ role: "user", content: userPrompt }]
+  };
+
+  let response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(apiBody)
+  });
+
+  let data = await response.json();
+  onProgress && onProgress("Processing results…", 85);
+
+  // Handle multi-turn if Claude used web_search tool
+  if(data.stop_reason === "tool_use") {
+    const toolUseBlocks = data.content.filter(b => b.type === "tool_use");
+    const toolResults = toolUseBlocks.map(b => ({
+      type: "tool_result",
+      tool_use_id: b.id,
+      content: `[Web search performed for: ${b.input?.query||url}. Use the URL and page content provided to infer candidate details.]`
+    }));
+
+    // Continue conversation with tool results
+    const continueBody = {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      system: systemPrompt,
+      tools: [{ type: "web_search_20250305", name: "web_search" }],
+      messages: [
+        { role: "user", content: userPrompt },
+        { role: "assistant", content: data.content },
+        { role: "user", content: toolResults }
+      ]
+    };
+    response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(continueBody)
+    });
+    data = await response.json();
+  }
+
+  // Extract text from final response
+  const textBlocks = (data.content||[]).filter(b => b.type === "text");
+  const fullText = textBlocks.map(b => b.text).join("\n");
+
+  // Parse JSON — handle cases where Claude wraps in backticks
+  const jsonMatch = fullText.match(/\{[\s\S]*\}/);
+  if(!jsonMatch) throw new Error("No JSON in response");
+  const parsed = JSON.parse(jsonMatch[0]);
+
+  // Merge in any images we found that Claude didn't include
+  if(pageImages.length > 0 && (!parsed.photo || parsed.photo === "")) {
+    parsed.photo = pageImages[0];
+  }
+
+  // Enrich portfolio pieces with images if Claude left them empty
+  if(parsed.portfolio && pageImages.length > 0) {
+    parsed.portfolio = parsed.portfolio.map((p, i) => ({
+      ...p,
+      image: p.image || pageImages[i+1] || pageImages[i] || null
+    }));
+  }
+
+  return { ...parsed, _pageImages: pageImages };
+};
+
+/* ── TOAST ── */
+const Toast = ({ toasts }) => (
+  <div className="toast-container">
+    {toasts.map(t=><div key={t.id} className="toast">{t.msg}</div>)}
+  </div>
+);
+
+/* ── IMAGE UPLOAD UTIL ── */
+const toDataURL = file => new Promise((res,rej)=>{
+  const r = new FileReader();
+  r.onload = ()=>res(r.result);
+  r.onerror = rej;
+  r.readAsDataURL(file);
+});
+
+/* ── ADD CANDIDATE MODAL ── */
+const PLATFORM_HINTS = {
+  behance: { icon:"🎨", label:"Behance", tip:"Extracts projects, images, client work, and profile data." },
+  dribbble: { icon:"🏀", label:"Dribbble", tip:"Pulls shots, project descriptions, and designer bio." },
+  linkedin: { icon:"💼", label:"LinkedIn", tip:"Extracts headline, experience, education, and skills." },
+  artstation: { icon:"🖌️", label:"ArtStation", tip:"Pulls artwork, 3D renders, game art, and bio." },
+  cargo: { icon:"📦", label:"Cargo Collective", tip:"Pulls project images and portfolio grid from Cargo site." },
+  readcv: { icon:"📄", label:"Read.cv", tip:"Extracts work history, projects, and contact info." },
+  contra: { icon:"⚡", label:"Contra", tip:"Pulls freelance profile, rates, and recent projects." },
+  github: { icon:"💻", label:"GitHub", tip:"Extracts repos, bio, tech stack, and contribution history." },
+  personal: { icon:"🌐", label:"Personal site", tip:"Scrapes images, project titles, bio, and contact info." },
+  portfolio_builder: { icon:"🖼️", label:"Portfolio site", tip:"Extracts project images, titles, and bio from the page." },
+};
+
+const AddCandidateModal = ({ onClose, onAdd, disciplines, showToast }) => {
+  const [tab, setTab] = useState("url");
+  const [url, setUrl] = useState("");
+  const [parsing, setParsing] = useState(false);
+  const [parseProgress, setParseProgress] = useState({ msg:"", pct:0 });
+  const [parsed, setParsed] = useState(null);
+  const [parseError, setParseError] = useState("");
+  const [previewImages, setPreviewImages] = useState([]);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [form, setForm] = useState({
+    name:"",discipline:disciplines[0]||"",location:"",timezone:"EST",
+    yrs:"",availability:"open",rate:"",salary:"",salaryMin:"",
+    summary:"",pronouns:"they/them",tags:"",tools:"",portfolioURL:""
+  });
+  const set = (k,v)=>setForm(f=>({...f,[k]:v}));
+
+  const platform = url ? detectPlatform(url) : "personal";
+  const platformHint = PLATFORM_HINTS[platform] || PLATFORM_HINTS.personal;
+
+  const handleParse = async () => {
+    if(!url.trim()) return;
+    setParsing(true); setParsed(null); setParseError(""); setPreviewImages([]); setSelectedPhoto(null);
+    setParseProgress({ msg:"Connecting to page…", pct:5 });
+    try {
+      const result = await parseURLWithClaude(url.trim(), (msg, pct) => {
+        setParseProgress({ msg, pct });
+      });
+      setParsed(result);
+      setParseProgress({ msg:"Done!", pct:100 });
+
+      // Set preview images from page + portfolio
+      const imgs = [
+        ...(result._pageImages||[]),
+        ...(result.portfolio||[]).map(p=>p.image).filter(Boolean),
+      ].filter((v,i,a)=>a.indexOf(v)===i).slice(0,16);
+      setPreviewImages(imgs);
+      if(result.photo) setSelectedPhoto(result.photo);
+      else if(imgs.length>0) setSelectedPhoto(imgs[0]);
+
+      setForm(f=>({
+        ...f,
+        name: result.name||f.name,
+        discipline: disciplines.includes(result.discipline)?result.discipline:(f.discipline||disciplines[0]),
+        location: result.location||f.location,
+        timezone: result.timezone||f.timezone,
+        yrs: result.yrs||f.yrs,
+        availability: result.availability||f.availability,
+        rate: result.rate||f.rate,
+        salary: result.salary||f.salary,
+        salaryMin: result.salaryMin||f.salaryMin,
+        summary: result.summary||f.summary,
+        pronouns: result.pronouns||f.pronouns,
+        tags: (result.tags||[]).join(", "),
+        tools: (result.tools||[]).join(", "),
+        portfolioURL: url,
+      }));
+      if(parsed===null) setTab("url"); // stay on url tab to show parse result
+    } catch(e) {
+      console.error("Parse error:", e);
+      setParseError(`Couldn't automatically parse this URL — ${e.message||"network error"}. Fill in details manually below.`);
+      setTab("manual");
+    }
+    setParsing(false);
+  };
+
+  const canSubmit = form.name && form.discipline;
+
+  const handleSubmit = () => {
+    const portfolioPieces = parsed?.portfolio || [];
+    // Assign selected photo to first portfolio piece if it's a headshot
+    const newC = {
+      id: uid(),
+      name: form.name,
+      discipline: form.discipline,
+      subdisciplines: parsed?.subdisciplines||[],
+      location: form.location||"Unknown",
+      timezone: form.timezone||"EST",
+      yrs: parseInt(form.yrs)||0,
+      availability: form.availability||"open",
+      rate: form.rate||"—",
+      salary: form.salary||"—",
+      salaryMin: parseInt(form.salaryMin)||0,
+      shortlist: false,
+      stage: "Sourced",
+      lastActive: "just now",
+      stars: 3,
+      tags: form.tags?form.tags.split(",").map(t=>t.trim()).filter(Boolean):[],
+      tools: form.tools?form.tools.split(",").map(t=>t.trim()).filter(Boolean):[],
+      summary: form.summary||`${form.discipline} professional.`,
+      pronouns: form.pronouns||"they/them",
+      color: randomColor(),
+      photo: selectedPhoto||null,
+      portfolio: portfolioPieces.map(p=>({
+        w: p.w||4, h: p.h||3,
+        label: p.label||"Untitled",
+        type: p.type||"web",
+        year: p.year||new Date().getFullYear(),
+        client: p.client||"",
+        desc: p.desc||"",
+        image: p.image||null,
+      })),
+      experience: parsed?.experience||[],
+      education: parsed?.education||[],
+      links: {
+        ...(parsed?.links||{}),
+        ...(form.portfolioURL?{portfolio:form.portfolioURL.replace(/https?:\/\/(www\.)?/,"").split("?")[0]}:{})
+      },
+      notes:[],
+    };
+    onAdd(newC);
+    showToast(`${newC.name} added to roster ✓`);
+    onClose();
+  };
+
+  return (
+    <div className="modal" onClick={onClose}>
+      <div className="modal-inner" style={{maxWidth:760}} onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <div style={{fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--ink-3)",marginBottom:6}}>New Candidate</div>
+            <div style={{fontFamily:"var(--serif)",fontSize:26,letterSpacing:"-0.015em"}}>Add to Roster</div>
+          </div>
+          <button className="btn icon" onClick={onClose}><Icon name="x" className="icon-sm"/></button>
+        </div>
+        <div className="modal-body" style={{padding:0}}>
+          {/* Tab bar */}
+          <div style={{display:"flex",borderBottom:"1px solid var(--rule)",background:"var(--paper-2)"}}>
+            {[["url","🔗 Import from URL"],["manual","✏️ Manual entry"]].map(([t,label])=>(
+              <button key={t} onClick={()=>setTab(t)} style={{padding:"12px 20px",fontFamily:"var(--mono)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.12em",borderBottom:tab===t?"2px solid var(--accent)":"2px solid transparent",color:tab===t?"var(--accent)":"var(--ink-3)",background:"none",cursor:"pointer",transition:"all .1s"}}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{padding:"24px 28px"}}>
+            {tab==="url" && (
+              <div className="add-form-section">
+                {/* Platform hint */}
+                {url && (
+                  <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"var(--paper-2)",border:"1px solid var(--rule)",borderRadius:"var(--radius)",marginBottom:14,fontSize:12}}>
+                    <span style={{fontSize:18}}>{platformHint.icon}</span>
+                    <div><strong style={{color:"var(--ink)"}}>{platformHint.label} detected</strong><span style={{color:"var(--ink-3)",marginLeft:8}}>{platformHint.tip}</span></div>
+                  </div>
+                )}
+
+                <div className="add-form-section-title">Portfolio, Behance, Dribbble, LinkedIn, ArtStation URL</div>
+                <p style={{fontSize:13,color:"var(--ink-3)",marginBottom:16,lineHeight:1.5}}>Paste any URL — Claude will fetch the page, extract portfolio images, and build a full candidate profile automatically.</p>
+
+                {parseError && (
+                  <div style={{padding:"10px 12px",background:"oklch(0.97 0.02 15)",border:"1px solid oklch(0.85 0.08 15)",borderRadius:"var(--radius)",fontSize:12,color:"oklch(0.55 0.16 15)",marginBottom:14}}>
+                    ⚠ {parseError}
+                  </div>
+                )}
+
+                <div className="url-input-row">
+                  <input className="form-input" placeholder="behance.net/username, dribbble.com/name, linkedin.com/in/name, portfolio.com…" value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!parsing&&handleParse()} autoFocus/>
+                  <button className="btn accent" onClick={handleParse} disabled={parsing||!url.trim()} style={{whiteSpace:"nowrap"}}>
+                    {parsing?<><span className="parse-spinner"/>Analyzing…</>:<><Icon name="sparkles" className="icon-sm"/>Extract with AI</>}
+                  </button>
+                </div>
+
+                {/* Progress bar */}
+                {parsing && (
+                  <div style={{marginTop:14}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                      <span className="parse-spinner"/>
+                      <span style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--ink-2)"}}>{parseProgress.msg}</span>
+                    </div>
+                    <div style={{height:3,background:"var(--rule)",borderRadius:3,overflow:"hidden"}}>
+                      <div style={{height:"100%",background:"var(--accent)",width:`${parseProgress.pct}%`,transition:"width .4s ease",borderRadius:3}}/>
+                    </div>
+                    <div style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--ink-3)",marginTop:6,textTransform:"uppercase",letterSpacing:"0.1em"}}>
+                      Fetching page → Extracting images → AI analysis → Building profile
+                    </div>
+                  </div>
+                )}
+
+                {/* Parsed result preview */}
+                {parsed && !parsing && (
+                  <div style={{marginTop:16}}>
+                    <div className="parse-result" style={{marginBottom:previewImages.length>0?16:0}}>
+                      <div className="parse-label">
+                        ✓ Extracted — {parsed.portfolio?.length||0} portfolio pieces · {previewImages.length} images found
+                      </div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:8}}>
+                        {[["Name",parsed.name],["Discipline",parsed.discipline],["Location",parsed.location],["Experience",(parsed.yrs||"?")+" yrs"]].map(([k,v])=>(
+                          <div key={k} className="parse-field"><span className="fk">{k}</span><span className="fv">{v}</span></div>
+                        ))}
+                      </div>
+                      <div style={{marginTop:8,fontSize:12,color:"var(--ink-2)",lineHeight:1.5}}>{parsed.summary}</div>
+                    </div>
+
+                    {/* Image picker */}
+                    {previewImages.length>0 && (
+                      <div>
+                        <div style={{fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--ink-3)",marginBottom:10}}>
+                          Profile photo — click to select ({previewImages.length} images found)
+                        </div>
+                        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(80px,1fr))",gap:6}}>
+                          {previewImages.slice(0,12).map((img,i)=>(
+                            <div key={i} onClick={()=>setSelectedPhoto(img)}
+                              style={{aspectRatio:"1",borderRadius:6,overflow:"hidden",cursor:"pointer",border:selectedPhoto===img?"3px solid var(--accent)":"3px solid transparent",transition:"border-color .1s",position:"relative",background:"var(--paper-3)"}}>
+                              <img src={img} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}
+                                onError={e=>{e.target.style.display="none"}}/>
+                              {selectedPhoto===img && (
+                                <div style={{position:"absolute",inset:0,background:"oklch(0.56 0.16 35/.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                                  <Icon name="check" className="icon-sm" style={{color:"var(--accent)",strokeWidth:3}}/>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {selectedPhoto && (
+                          <div style={{marginTop:8,fontFamily:"var(--mono)",fontSize:10,color:"var(--ink-3)"}}>
+                            ✓ Photo selected — will appear on profile card
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Form fields — show after parse or on manual tab */}
+            {(tab==="manual" || parsed) && (
+              <div style={{marginTop: tab==="url"&&parsed ? 20 : 0}}>
+                {tab==="url"&&parsed && <div style={{borderTop:"1px solid var(--rule-soft)",paddingTop:20,marginBottom:16,fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--ink-3)"}}>Review & edit extracted details</div>}
+                <div className="add-form-section">
+                  <div className="add-form-section-title">Basic info</div>
+                  <div className="form-row" style={{marginBottom:12}}>
+                    <div className="form-group" style={{margin:0}}>
+                      <label className="form-label">Full name *</label>
+                      <input className="form-input" placeholder="Alex Chen" value={form.name} onChange={e=>set("name",e.target.value)}/>
+                    </div>
+                    <div className="form-group" style={{margin:0}}>
+                      <label className="form-label">Discipline *</label>
+                      <select className="form-input" value={form.discipline} onChange={e=>set("discipline",e.target.value)} style={{cursor:"pointer"}}>
+                        {disciplines.map(d=><option key={d}>{d}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-row" style={{marginBottom:12}}>
+                    <div className="form-group" style={{margin:0}}>
+                      <label className="form-label">Location</label>
+                      <input className="form-input" placeholder="City, Country" value={form.location} onChange={e=>set("location",e.target.value)}/>
+                    </div>
+                    <div className="form-group" style={{margin:0}}>
+                      <label className="form-label">Pronouns</label>
+                      <input className="form-input" placeholder="she/her" value={form.pronouns} onChange={e=>set("pronouns",e.target.value)}/>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Summary</label>
+                    <textarea className="form-input" style={{minHeight:72,resize:"vertical"}} placeholder="Professional summary..." value={form.summary} onChange={e=>set("summary",e.target.value)}/>
+                  </div>
+                </div>
+                <div className="add-form-section">
+                  <div className="add-form-section-title">Compensation & availability</div>
+                  <div className="form-row triple" style={{marginBottom:12}}>
+                    <div className="form-group" style={{margin:0}}><label className="form-label">Years exp.</label><input className="form-input" type="number" min="0" max="40" placeholder="5" value={form.yrs} onChange={e=>set("yrs",e.target.value)}/></div>
+                    <div className="form-group" style={{margin:0}}><label className="form-label">Salary expect.</label><input className="form-input" placeholder="$150k" value={form.salary} onChange={e=>set("salary",e.target.value)}/></div>
+                    <div className="form-group" style={{margin:0}}><label className="form-label">Contract rate</label><input className="form-input" placeholder="$150/hr" value={form.rate} onChange={e=>set("rate",e.target.value)}/></div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Availability</label>
+                    <div style={{display:"flex",gap:6}}>
+                      {["open","passive","closed"].map(a=>(
+                        <button key={a} className={"filter-pill"+(form.availability===a?" active":"")} onClick={()=>set("availability",a)}>{a.charAt(0).toUpperCase()+a.slice(1)}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="add-form-section">
+                  <div className="add-form-section-title">Skills & links</div>
+                  <div className="form-group"><label className="form-label">Tags (comma-separated)</label><input className="form-input" placeholder="Figma, Design Systems, Mobile" value={form.tags} onChange={e=>set("tags",e.target.value)}/></div>
+                  <div className="form-group"><label className="form-label">Tools (comma-separated)</label><input className="form-input" placeholder="Figma, Framer, Notion" value={form.tools} onChange={e=>set("tools",e.target.value)}/></div>
+                  <div className="form-group"><label className="form-label">Portfolio URL</label><input className="form-input" placeholder="https://portfolio.com" value={form.portfolioURL} onChange={e=>set("portfolioURL",e.target.value)}/></div>
+                </div>
+                {parsed?.portfolio?.length>0 && (
+                  <div className="add-form-section">
+                    <div className="add-form-section-title">Portfolio pieces extracted ({parsed.portfolio.length})</div>
+                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:8}}>
+                      {parsed.portfolio.slice(0,8).map((p,i)=>(
+                        <div key={i} style={{borderRadius:6,overflow:"hidden",border:"1px solid var(--rule)",background:"var(--paper-2)"}}>
+                          {p.image ? (
+                            <div style={{height:80,background:"var(--paper-3)",overflow:"hidden"}}>
+                              <img src={p.image} alt={p.label} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.parentElement.style.background="var(--paper-3)"}}/>
+                            </div>
+                          ) : (
+                            <div style={{height:80,background:`color-mix(in oklch,oklch(0.68 0.1 50) 30%,var(--paper-3))`,display:"grid",placeItems:"center",fontSize:24}}>🖼</div>
+                          )}
+                          <div style={{padding:"6px 8px"}}>
+                            <div style={{fontSize:11,fontWeight:500,color:"var(--ink)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.label||"Untitled"}</div>
+                            <div style={{fontSize:10,color:"var(--ink-3)",fontFamily:"var(--mono)"}}>{p.type} · {p.year}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="modal-footer">
+          <div style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--ink-3)",flex:1}}>
+            {parsed ? `${parsed.portfolio?.length||0} pieces · ${previewImages.length} images · ${(parsed.experience||[]).length} roles` : ""}
+          </div>
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn accent" onClick={handleSubmit} disabled={!canSubmit}>
+            <Icon name="plus" className="icon-sm"/>Add to roster
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── PIECE EDIT MODAL ── */
+const PieceEditModal = ({ piece, isNew, onSave, onClose, onDelete, candidateColor }) => {
+  const [p, setP] = useState(piece||{w:4,h:3,label:"",type:"web",year:new Date().getFullYear(),client:"",desc:"",image:null});
+  const [dragOver, setDragOver] = useState(false);
+  const sp = (k,v)=>setP(x=>({...x,[k]:v}));
+
+  const handleImg = async (file) => {
+    if(!file||!file.type.startsWith("image/")) return;
+    const dataUrl = await toDataURL(file);
+    sp("image",dataUrl);
+  };
+
+  return (
+    <div className="modal" onClick={onClose}>
+      <div className="modal-inner md" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <div style={{fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--ink-3)",marginBottom:6}}>{isNew?"Add Portfolio Piece":"Edit Portfolio Piece"}</div>
+            <div style={{fontFamily:"var(--serif)",fontSize:26,letterSpacing:"-0.015em"}}>{p.label||"Untitled piece"}</div>
+          </div>
+          <button className="btn icon" onClick={onClose}><Icon name="x" className="icon-sm"/></button>
+        </div>
+        <div className="modal-body">
+          {/* Image upload */}
+          <div className="form-group">
+            <label className="form-label">Piece image</label>
+            <div className={"upload-zone"+(dragOver?" drag":"")}
+              onDragOver={e=>{e.preventDefault();setDragOver(true)}}
+              onDragLeave={()=>setDragOver(false)}
+              onDrop={e=>{e.preventDefault();setDragOver(false);handleImg(e.dataTransfer.files[0])}}
+              style={{position:"relative",overflow:"hidden"}}>
+              {p.image ? (
+                <div style={{position:"relative"}}>
+                  <img src={p.image} style={{width:"100%",height:160,objectFit:"cover",borderRadius:6,display:"block"}}/>
+                  <button className="btn sm" style={{position:"absolute",top:8,right:8,background:"oklch(1 0 0/.9)"}} onClick={e=>{e.stopPropagation();sp("image",null)}}>Remove</button>
+                </div>
+              ) : (
+                <>
+                  <input type="file" accept="image/*" onChange={e=>handleImg(e.target.files[0])} style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",zIndex:2}}/>
+                  <div className="uz-icon"><Icon name="image" className="icon-lg"/></div>
+                  <div className="uz-label">Drop image or click to upload</div>
+                  <div className="uz-hint">PNG, JPG, WebP up to 10MB</div>
+                  <div style={{marginTop:10,fontFamily:"var(--mono)",fontSize:10,color:"var(--ink-3)"}}>or paste a URL below</div>
+                  <input className="form-input" style={{marginTop:8,fontSize:12}} placeholder="https://images.example.com/work.jpg" onChange={e=>sp("image",e.target.value)} onClick={e=>e.stopPropagation()}/>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="form-row" style={{marginBottom:12}}>
+            <div className="form-group" style={{margin:0}}><label className="form-label">Label / title</label><input className="form-input" value={p.label} onChange={e=>sp("label",e.target.value)} placeholder="Project name"/></div>
+            <div className="form-group" style={{margin:0}}><label className="form-label">Client</label><input className="form-input" value={p.client} onChange={e=>sp("client",e.target.value)} placeholder="Client or self"/></div>
+          </div>
+          <div className="form-row triple" style={{marginBottom:12}}>
+            <div className="form-group" style={{margin:0}}><label className="form-label">Type</label>
+              <select className="form-input" value={p.type} onChange={e=>sp("type",e.target.value)} style={{cursor:"pointer"}}>
+                {["web","mobile","brand","image","video","3d","print","doc","type"].map(t=><option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="form-group" style={{margin:0}}><label className="form-label">Year</label><input className="form-input" type="number" min="2000" max="2030" value={p.year} onChange={e=>sp("year",parseInt(e.target.value))}/></div>
+            <div className="form-group" style={{margin:0}}><label className="form-label">Grid width (1–12)</label><input className="form-input" type="number" min="1" max="12" value={p.w} onChange={e=>sp("w",parseInt(e.target.value))}/></div>
+          </div>
+          <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" style={{minHeight:64,resize:"vertical"}} value={p.desc} onChange={e=>sp("desc",e.target.value)} placeholder="Brief description of the work..."/></div>
+        </div>
+        <div className="modal-footer">
+          {!isNew && <button className="btn danger" onClick={()=>{ onDelete(); onClose(); }}><Icon name="trash" className="icon-sm"/>Delete</button>}
+          <div style={{flex:1}}/>
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button className="btn accent" disabled={!p.label} onClick={()=>{ onSave(p); onClose(); }}><Icon name="check" className="icon-sm"/>Save piece</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── CANDIDATE DETAIL (view + edit) ── */
+const CandidateDetail = ({ c, candidates, disciplines, onBack, onToggleStar, onSetStage, onAddNote, onNavigate, onUpdate, showToast }) => {
+  const [noteDraft, setNoteDraft] = useState("");
+  const [activePiece, setActivePiece] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [draft, setDraft] = useState(null);
+  const [editingPiece, setEditingPiece] = useState(null); // {piece, index} or {piece:null, isNew:true}
+  const [modal, setModal] = useState(null);
+  const idx = candidates.findIndex(x=>x.id===c.id);
+  const prev = candidates[(idx-1+candidates.length)%candidates.length];
+  const next = candidates[(idx+1)%candidates.length];
+  const stageIdx = STAGES.indexOf(c.stage);
+
+  const startEdit = () => {
+    setDraft(JSON.parse(JSON.stringify(c))); // deep clone
+    setEditMode(true);
+  };
+  const cancelEdit = () => { setDraft(null); setEditMode(false); };
+  const saveEdit = () => { onUpdate(draft); setEditMode(false); setDraft(null); showToast("Profile saved ✓"); };
+
+  const sd = (k,v) => setDraft(d=>({...d,[k]:v})); // set draft field
+  const cur = editMode ? draft : c;
+
+  const handleAvatarUpload = async (file) => {
+    if(!file||!file.type.startsWith("image/")) return;
+    const url = await toDataURL(file);
+    if(editMode) sd("photo",url);
+  };
+
+  const handlePieceKey = (dir) => {
+    const pidx = c.portfolio.indexOf(activePiece);
+    setActivePiece(c.portfolio[(pidx+dir+c.portfolio.length)%c.portfolio.length]);
+  };
+
+  const savePiece = (piece, index) => {
+    const pieces = [...(draft.portfolio||[])];
+    if(index===-1) pieces.push(piece);
+    else pieces[index] = piece;
+    sd("portfolio",pieces);
+  };
+  const deletePiece = (index) => {
+    const pieces = [...(draft.portfolio||[])];
+    pieces.splice(index,1);
+    sd("portfolio",pieces);
+  };
+
+  const addExp = () => sd("experience",[...(draft.experience||[]),{co:"",role:"",period:""}]);
+  const updateExp = (i,k,v) => { const a=[...(draft.experience||[])]; a[i]={...a[i],[k]:v}; sd("experience",a); };
+  const removeExp = (i) => { const a=[...(draft.experience||[])]; a.splice(i,1); sd("experience",a); };
+
+  const addEdu = () => sd("education",[...(draft.education||[]),{school:"",degree:"",year:""}]);
+  const updateEdu = (i,k,v) => { const a=[...(draft.education||[])]; a[i]={...a[i],[k]:v}; sd("education",a); };
+  const removeEdu = (i) => { const a=[...(draft.education||[])]; a.splice(i,1); sd("education",a); };
+
+  return (
+    <div className={`detail${editMode?" edit-mode":""}`}>
+      <div className="left">
+        {/* edit banner */}
+        {editMode && (
+          <div className="edit-banner">
+            <Icon name="edit" className="icon-sm"/>
+            <span>Editing profile</span>
+            <div className="spacer"/>
+            <button className="btn sm" style={{color:"white",borderColor:"oklch(1 0 0/.3)"}} onClick={cancelEdit}>Cancel</button>
+            <button className="btn sm" style={{background:"white",color:"var(--accent)",borderColor:"white"}} onClick={saveEdit}><Icon name="check" className="icon-sm"/>Save changes</button>
+          </div>
+        )}
+
+        <div className="detail-nav">
+          <button className="btn sm" onClick={onBack}><Icon name="arrowLeft" className="icon-sm"/>Roster</button>
+          <div style={{flex:1}}/>
+          <span style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--ink-3)",letterSpacing:"0.08em"}}>{String(idx+1).padStart(2,"0")} / {String(candidates.length).padStart(2,"0")}</span>
+          <button className="btn icon" onClick={()=>onNavigate(prev.id)} title="Previous (K)"><Icon name="arrowLeft" className="icon-sm"/></button>
+          <button className="btn icon" onClick={()=>onNavigate(next.id)} title="Next (J)"><Icon name="arrowRight" className="icon-sm"/></button>
+          {!editMode && <button className="btn sm" onClick={startEdit}><Icon name="edit" className="icon-sm"/>Edit profile</button>}
+        </div>
+
+        <div className="detail-hero">
+          {/* avatar */}
+          <label style={{cursor:"pointer"}}>
+            <div className="avatar-lg" style={{background:`color-mix(in oklch,${cur.color} 45%,var(--paper-2))`}}>
+              {cur.photo ? <img src={cur.photo} alt={cur.name}/> : Initials(cur.name)}
+              {editMode && (
+                <div className="avatar-upload-overlay">
+                  <Icon name="upload" className="icon-sm" style={{color:"white"}}/>
+                  <span>Change photo</span>
+                </div>
+              )}
+            </div>
+            {editMode && <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleAvatarUpload(e.target.files[0])}/>}
+          </label>
+
+          <div>
+            <div className="page-eyebrow" style={{marginBottom:8}}>
+              {editMode ? (
+                <select className="form-input" value={draft.discipline} onChange={e=>sd("discipline",e.target.value)} style={{cursor:"pointer",maxWidth:220,padding:"4px 8px",fontSize:11}}>
+                  {disciplines.map(d=><option key={d}>{d}</option>)}
+                </select>
+              ) : `${cur.discipline} · ${cur.availability==="open"?"Open to work":cur.availability==="passive"?"Passive":"Not looking"}`}
+            </div>
+
+            {editMode ? (
+              <input className="edit-field lg" value={draft.name} onChange={e=>sd("name",e.target.value)} style={{width:"100%",marginBottom:8}}/>
+            ) : (
+              <h1>{cur.name}</h1>
+            )}
+
+            <div className="role-line">
+              {editMode ? (
+                <>
+                  <input className="edit-field" value={draft.yrs} onChange={e=>sd("yrs",parseInt(e.target.value)||0)} style={{width:50}} type="number" min="0" max="40"/>
+                  <span className="sep">yrs ·</span>
+                  <input className="edit-field" value={draft.location} onChange={e=>sd("location",e.target.value)} style={{width:140}} placeholder="City, Country"/>
+                  <span className="sep">·</span>
+                  <input className="edit-field" value={draft.timezone} onChange={e=>sd("timezone",e.target.value)} style={{width:60}} placeholder="TZ"/>
+                </>
+              ) : (
+                <>
+                  <span>{cur.yrs} YRS</span><span className="sep">·</span><span>{cur.location}</span><span className="sep">·</span><span>{cur.timezone}</span><span className="sep">·</span><Stars n={cur.stars} small/>
+                </>
+              )}
+            </div>
+
+            {editMode ? (
+              <textarea className="edit-field summary" style={{marginTop:16,width:"100%"}} value={draft.summary} onChange={e=>sd("summary",e.target.value)}/>
+            ) : (
+              <div className="summary">{cur.summary}</div>
+            )}
+
+            {!editMode && (
+              <div className="hero-actions">
+                <button className="btn accent lg" onClick={()=>setModal("reach")}><Icon name="mail" className="icon-sm"/>Reach out</button>
+                <button className="btn lg" onClick={()=>setModal("schedule")}><Icon name="calendar" className="icon-sm"/>Schedule</button>
+                <button className="btn lg" onClick={()=>onToggleStar(c.id)}>
+                  <Icon name={c.shortlist?"starFill":"star"} className="icon-sm" style={c.shortlist?{color:"var(--accent)"}:{}}/>
+                  {c.shortlist?"Shortlisted":"Shortlist"}
+                </button>
+                <button className="btn lg ghost" onClick={()=>setModal("share")}><Icon name="share" className="icon-sm"/>Share</button>
+              </div>
+            )}
+            {editMode && (
+              <div className="hero-actions" style={{marginTop:16}}>
+                <div style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--ink-3)",textTransform:"uppercase",letterSpacing:"0.12em",display:"flex",alignItems:"center",gap:8}}>
+                  <Icon name="eye" className="icon-sm"/>Photo and name are now editable above
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* key stats */}
+        <div className="key-stats">
+          {editMode ? (
+            <>
+              {[["Comp expected","salary"],["Contract rate","rate"]].map(([label,key])=>(
+                <div key={key} className="stat">
+                  <div className="k">{label}</div>
+                  <input className="edit-field" value={draft[key]} onChange={e=>sd(key,e.target.value)} style={{fontSize:18,fontFamily:"var(--serif)"}}/>
+                </div>
+              ))}
+              <div className="stat"><div className="k">Portfolio</div><div className="v">{(draft.portfolio||[]).length} pieces</div></div>
+              <div className="stat">
+                <div className="k">Pronouns</div>
+                <input className="edit-field" value={draft.pronouns} onChange={e=>sd("pronouns",e.target.value)} style={{fontSize:14}}/>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="stat"><div className="k">Comp expected</div><div className="v">{cur.salary}</div></div>
+              <div className="stat"><div className="k">Contract rate</div><div className="v">{cur.rate}</div></div>
+              <div className="stat"><div className="k">Portfolio</div><div className="v">{cur.portfolio.length} pieces</div></div>
+              <div className="stat"><div className="k">Last active</div><div className="v vsmall" style={{paddingTop:4}}>{cur.lastActive}{cur.lastActive!=="just now"?" ago":""}</div></div>
+            </>
+          )}
+        </div>
+
+        {/* portfolio */}
+        <div className="section">
+          <div className="section-title">
+            <span>Portfolio · {cur.portfolio.length} pieces</span>
+            {cur.links?.portfolio && !editMode && (
+              <a className="link-out" href={`https://${cur.links.portfolio}`} target="_blank" rel="noopener">
+                <Icon name="arrowUpRight" className="icon-sm" style={{width:11,height:11}}/>{cur.links.portfolio}
+              </a>
+            )}
+          </div>
+          {cur.portfolio.length>0 ? (
+            <div className="portfolio-grid">
+              {cur.portfolio.map((p,i)=>(
+                <div key={i} className="portfolio-piece"
+                  style={{gridColumn:`span ${p.w}`,gridRow:`span ${Math.max(1,p.h-1)}`,background:`color-mix(in oklch,${cur.color} ${32+(i*9)%32}%,var(--paper-3))`}}
+                  onClick={()=>!editMode&&setActivePiece(p)}>
+                  {p.image && <img src={p.image} alt={p.label}/>}
+                  <span className="type-badge">{p.type}</span>
+                  <span className="piece-label">{p.label}</span>
+                  {!editMode && (
+                    <div className="piece-preview">
+                      <div className="preview-meta"><span>{p.client}</span><span>·</span><span>{p.year}</span></div>
+                      <div className="preview-title">{p.label}</div>
+                      <div className="preview-desc">{p.desc}</div>
+                      <div className="preview-cta">View piece <Icon name="arrowUpRight" className="icon-sm" style={{width:11,height:11}}/></div>
+                    </div>
+                  )}
+                  {editMode && (
+                    <button className="piece-edit-btn" onClick={e=>{e.stopPropagation();setEditingPiece({piece:p,index:i})}}>
+                      <Icon name="edit" className="icon-sm"/>Edit
+                    </button>
+                  )}
+                </div>
+              ))}
+              {editMode && (
+                <div className="piece-add-zone" onClick={()=>setEditingPiece({piece:null,isNew:true})}>
+                  <Icon name="plus" className="icon-lg"/>
+                  <span style={{fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.12em"}}>Add piece</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{textAlign:"center",padding:"32px 0",color:"var(--ink-3)"}}>
+              {editMode ? (
+                <button className="btn accent" onClick={()=>setEditingPiece({piece:null,isNew:true})}><Icon name="plus" className="icon-sm"/>Add first piece</button>
+              ) : (
+                <div style={{fontFamily:"var(--mono)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.1em"}}>No portfolio pieces yet</div>
+              )}
+            </div>
+          )}
+          {editMode && cur.portfolio.length>0 && (
+            <button className="edit-section-add" onClick={()=>setEditingPiece({piece:null,isNew:true})} style={{marginTop:16}}>
+              <Icon name="plus" className="icon-sm"/>Add portfolio piece
+            </button>
+          )}
+        </div>
+
+        {/* experience */}
+        <div className="section">
+          <div className="section-title"><span>Experience</span></div>
+          {(cur.experience||[]).map((e,i)=>(
+            editMode ? (
+              <div key={i} className="inline-edit-group">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <div style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--ink-3)",textTransform:"uppercase",letterSpacing:"0.1em"}}>Role {i+1}</div>
+                  <button className="btn icon sm" onClick={()=>removeExp(i)} style={{width:24,height:24,color:"var(--ink-3)"}}><Icon name="trash" className="icon-sm"/></button>
+                </div>
+                <div className="irow">
+                  <div><div className="inline-edit-label">Company</div><input className="form-input" value={e.co} onChange={ev=>updateExp(i,"co",ev.target.value)} placeholder="Company name" style={{fontSize:13}}/></div>
+                  <div><div className="inline-edit-label">Role</div><input className="form-input" value={e.role} onChange={ev=>updateExp(i,"role",ev.target.value)} placeholder="Job title" style={{fontSize:13}}/></div>
+                </div>
+                <div><div className="inline-edit-label">Period</div><input className="form-input" value={e.period} onChange={ev=>updateExp(i,"period",ev.target.value)} placeholder="2022 — Present" style={{fontSize:13,marginTop:0}}/></div>
+              </div>
+            ) : (
+              <div className="experience-row" key={i}>
+                <span className="period">{e.period}</span>
+                <div><div className="co">{e.co}</div><div className="role">{e.role}</div></div>
+                <span>{i===0?<span className="badge-current">Current</span>:null}</span>
+              </div>
+            )
+          ))}
+          {editMode && <button className="edit-section-add" onClick={addExp}><Icon name="plus" className="icon-sm"/>Add experience</button>}
+          {!editMode && (cur.experience||[]).length===0 && <div style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--ink-3)",textTransform:"uppercase",letterSpacing:"0.1em"}}>No experience listed</div>}
+        </div>
+
+        {/* education */}
+        <div className="section">
+          <div className="section-title"><span>Education</span></div>
+          {(cur.education||[]).map((e,i)=>(
+            editMode ? (
+              <div key={i} className="inline-edit-group">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <div style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--ink-3)",textTransform:"uppercase",letterSpacing:"0.1em"}}>School {i+1}</div>
+                  <button className="btn icon sm" onClick={()=>removeEdu(i)} style={{width:24,height:24,color:"var(--ink-3)"}}><Icon name="trash" className="icon-sm"/></button>
+                </div>
+                <div className="irow">
+                  <div><div className="inline-edit-label">School</div><input className="form-input" value={e.school} onChange={ev=>updateEdu(i,"school",ev.target.value)} placeholder="School name" style={{fontSize:13}}/></div>
+                  <div><div className="inline-edit-label">Degree</div><input className="form-input" value={e.degree} onChange={ev=>updateEdu(i,"degree",ev.target.value)} placeholder="BFA Graphic Design" style={{fontSize:13}}/></div>
+                </div>
+                <div><div className="inline-edit-label">Year</div><input className="form-input" value={e.year} onChange={ev=>updateEdu(i,"year",ev.target.value)} placeholder="2020" style={{fontSize:13,maxWidth:100,marginTop:0}}/></div>
+              </div>
+            ) : (
+              <div className="experience-row" key={i}>
+                <span className="period">{e.year}</span>
+                <div><div className="co">{e.school}</div><div className="role">{e.degree}</div></div>
+                <span/>
+              </div>
+            )
+          ))}
+          {editMode && <button className="edit-section-add" onClick={addEdu}><Icon name="plus" className="icon-sm"/>Add education</button>}
+        </div>
+
+        {/* tools & tags */}
+        <div className="section">
+          <div className="section-title"><span>Tools & Tags</span></div>
+          {editMode ? (
+            <>
+              <div className="form-group"><label className="form-label">Tools (comma-separated)</label><input className="form-input" value={(draft.tools||[]).join(", ")} onChange={e=>sd("tools",e.target.value.split(",").map(t=>t.trim()).filter(Boolean))}/></div>
+              <div className="form-group"><label className="form-label">Tags (comma-separated)</label><input className="form-input" value={(draft.tags||[]).join(", ")} onChange={e=>sd("tags",e.target.value.split(",").map(t=>t.trim()).filter(Boolean))}/></div>
+            </>
+          ) : (
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {(cur.tools||[]).map(t=><span key={t} className="tag solid">{t}</span>)}
+              {(cur.tags||[]).map(t=><span key={t} className="tag">{t}</span>)}
+            </div>
+          )}
+        </div>
+
+        {/* links (edit) */}
+        {editMode && (
+          <div className="section">
+            <div className="section-title"><span>Links</span></div>
+            {Object.entries(draft.links||{}).map(([k,v])=>(
+              <div key={k} className="form-group">
+                <label className="form-label">{k}</label>
+                <div style={{display:"flex",gap:8}}>
+                  <input className="form-input" value={v} onChange={e=>sd("links",{...draft.links,[k]:e.target.value})}/>
+                  <button className="btn icon sm danger" onClick={()=>{ const lnk={...draft.links}; delete lnk[k]; sd("links",lnk); }}><Icon name="x" className="icon-sm"/></button>
+                </div>
+              </div>
+            ))}
+            <button className="edit-section-add" onClick={()=>{
+              const key=prompt("Link type (e.g. portfolio, github, twitter):");
+              if(key&&key.trim()) sd("links",{...(draft.links||{}),[key.trim()]:""});
+            }}><Icon name="plus" className="icon-sm"/>Add link</button>
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT PANEL */}
+      <div className="right">
+        <div className="section" style={{paddingTop:24}}>
+          <div className="section-title"><span>Pipeline stage</span></div>
+          <div className="pipeline">
+            {STAGES.map((s,i)=>(
+              <button key={s} className={"stage-cell"+(s===c.stage?" active":(i<stageIdx?" past":""))} onClick={()=>{ onSetStage(c.id,s); showToast(`Moved to ${s}`); }}>{s}</button>
+            ))}
+          </div>
+        </div>
+
+        <div className="meta-grid">
+          <div className="cell"><div className="k">Rating</div><div className="v"><Stars n={c.stars} onClick={(n)=>onUpdate({...c,stars:n})}/></div></div>
+          <div className="cell"><div className="k">Availability</div><div className="v" style={{fontSize:12}}><Availability state={c.availability}/></div></div>
+          <div className="cell"><div className="k">Pronouns</div><div className="v">{c.pronouns||"—"}</div></div>
+          <div className="cell"><div className="k">Timezone</div><div className="v">{c.timezone}</div></div>
+        </div>
+
+        <div className="section">
+          <div className="section-title">
+            <span>Notes · {(c.notes||[]).length}</span>
+            <span style={{color:"var(--ink-3)",fontFamily:"var(--mono)",fontSize:10}}>PRIVATE</span>
+          </div>
+          <textarea className="note-input" placeholder="Add a note — impressions, questions, follow-ups..." value={noteDraft} onChange={e=>setNoteDraft(e.target.value)}/>
+          <div style={{display:"flex",justifyContent:"flex-end",marginTop:10,marginBottom:14}}>
+            <button className="btn primary sm" disabled={!noteDraft.trim()} onClick={()=>{ onAddNote(c.id,noteDraft); setNoteDraft(""); showToast("Note saved"); }}>Save note</button>
+          </div>
+          {(c.notes||[]).length===0 ? (
+            <div style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--ink-3)",padding:"14px 0",textTransform:"uppercase",letterSpacing:"0.08em"}}>No notes yet</div>
+          ) : (c.notes||[]).map((n,i)=>(
+            <div className="note" key={i}>
+              <div className="meta"><span>{n.by}</span><span>{n.at}</span></div>
+              <div className="text">{n.text}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="section">
+          <div className="section-title"><span>Resume & Links</span></div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <label style={{cursor:"pointer"}}>
+              <div className="btn" style={{justifyContent:"flex-start"}}>
+                <Icon name="fileText" className="icon-sm"/>
+                {c.resumeName||"Upload resume / PDF"}
+              </div>
+              <input type="file" accept=".pdf,.doc,.docx" style={{display:"none"}} onChange={e=>{if(e.target.files[0]) { onUpdate({...c,resumeName:e.target.files[0].name}); showToast(`${e.target.files[0].name} attached`); }}}/>
+            </label>
+            {Object.entries(c.links||{}).map(([k,v])=>(
+              <a key={k} href={v.startsWith("http")||v.startsWith("mailto")?v:`https://${v}`} target="_blank" rel="noopener" className="btn" style={{justifyContent:"flex-start",textTransform:"capitalize"}}>
+                <Icon name="link" className="icon-sm"/>{k} · {v}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* color picker in edit mode */}
+        {editMode && (
+          <div className="section">
+            <div className="section-title"><span>Profile color</span></div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {COLORS.map(col=>(
+                <button key={col} onClick={()=>sd("color",col)} style={{width:28,height:28,borderRadius:"50%",background:col,border:draft.color===col?"3px solid var(--ink)":"2px solid transparent",cursor:"pointer",transition:"all .1s"}}/>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* MODALS (view mode only) */}
+      {activePiece && !editMode && (
+        <div className="modal" onClick={()=>setActivePiece(null)}>
+          <div className="modal-inner" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <div style={{fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--ink-3)"}}>{c.name} · {activePiece.type}</div>
+                <div style={{fontFamily:"var(--serif)",fontSize:26,marginTop:4,letterSpacing:"-0.015em"}}>{activePiece.label}</div>
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                <button className="btn icon" onClick={()=>handlePieceKey(-1)}><Icon name="arrowLeft" className="icon-sm"/></button>
+                <button className="btn icon" onClick={()=>handlePieceKey(1)}><Icon name="arrowRight" className="icon-sm"/></button>
+                <button className="btn icon" onClick={()=>setActivePiece(null)}><Icon name="x" className="icon-sm"/></button>
+              </div>
+            </div>
+            <div className="modal-body">
+              <div className="modal-img" style={{background:`color-mix(in oklch,${c.color} 55%,var(--paper-3))`}}>
+                {activePiece.image && <img src={activePiece.image} alt={activePiece.label} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:2}}/>}
+              </div>
+              <div className="modal-meta-row">
+                <div className="m-item"><div className="k">Client</div><div className="v">{activePiece.client}</div></div>
+                <div className="m-item"><div className="k">Year</div><div className="v">{activePiece.year}</div></div>
+                <div className="m-item"><div className="k">Type</div><div className="v" style={{textTransform:"capitalize"}}>{activePiece.type}</div></div>
+                <div className="m-item" style={{flex:1,minWidth:280}}><div className="k">Description</div><div className="v" style={{fontSize:13,color:"var(--ink-2)"}}>{activePiece.desc}</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingPiece && editMode && (
+        <PieceEditModal
+          piece={editingPiece.piece}
+          isNew={editingPiece.isNew}
+          candidateColor={draft.color}
+          onSave={(p)=>savePiece(p, editingPiece.isNew ? -1 : editingPiece.index)}
+          onDelete={()=>!editingPiece.isNew&&deletePiece(editingPiece.index)}
+          onClose={()=>setEditingPiece(null)}
+        />
+      )}
+
+      {modal==="reach" && (
+        <div className="modal" onClick={()=>setModal(null)}>
+          <div className="modal-inner md" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <div><div style={{fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--ink-3)",marginBottom:6}}>Reach Out · {c.name}</div><div style={{fontFamily:"var(--serif)",fontSize:26,letterSpacing:"-0.015em"}}>Draft Message</div></div>
+              <button className="btn icon" onClick={()=>setModal(null)}><Icon name="x" className="icon-sm"/></button>
+            </div>
+            <ReachOutBody candidate={c} onClose={()=>setModal(null)} showToast={showToast}/>
+          </div>
+        </div>
+      )}
+      {modal==="schedule" && (
+        <div className="modal" onClick={()=>setModal(null)}>
+          <div className="modal-inner sm" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <div><div style={{fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--ink-3)",marginBottom:6}}>Schedule · {c.name}</div><div style={{fontFamily:"var(--serif)",fontSize:26,letterSpacing:"-0.015em"}}>Book a Call</div></div>
+              <button className="btn icon" onClick={()=>setModal(null)}><Icon name="x" className="icon-sm"/></button>
+            </div>
+            <ScheduleBody candidate={c} onClose={()=>setModal(null)} showToast={showToast}/>
+          </div>
+        </div>
+      )}
+      {modal==="share" && (
+        <div className="modal" onClick={()=>setModal(null)}>
+          <div className="modal-inner sm" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header"><div style={{fontFamily:"var(--serif)",fontSize:26,letterSpacing:"-0.015em"}}>Share Profile</div><button className="btn icon" onClick={()=>setModal(null)}><Icon name="x" className="icon-sm"/></button></div>
+            <ShareBody title="Profile" onClose={()=>setModal(null)} showToast={showToast}/>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── MODAL BODIES ── */
+const ReachOutBody = ({ candidate, onClose, showToast }) => {
+  const [msg, setMsg] = useState(`Hi ${candidate.name.split(" ")[0]},\n\nI came across your portfolio and was genuinely impressed by your work in ${candidate.discipline.toLowerCase()}. We have an exciting opportunity I think you'd be interested in.\n\nWould you be open to a 20-minute intro call this week?\n\nBest,`);
+  return (
+    <>
+      <div className="modal-body"><div className="form-group"><label className="form-label">Message</label><textarea className="form-input" value={msg} onChange={e=>setMsg(e.target.value)} style={{minHeight:180,resize:"vertical"}}/></div></div>
+      <div className="modal-footer">
+        <button className="btn" onClick={()=>{ navigator.clipboard?.writeText(msg).catch(()=>{}); showToast("Copied to clipboard"); onClose(); }}><Icon name="copy" className="icon-sm"/>Copy message</button>
+        <button className="btn accent" onClick={()=>{ window.open(`mailto:?subject=Opportunity for you&body=${encodeURIComponent(msg)}`); showToast("Opening mail client…"); onClose(); }}><Icon name="send" className="icon-sm"/>Open in mail</button>
+      </div>
+    </>
+  );
+};
+const ScheduleBody = ({ candidate, onClose, showToast }) => {
+  const [date,setDate]=useState(""); const [time,setTime]=useState("10:00"); const [type,setType]=useState("intro");
+  return (
+    <>
+      <div className="modal-body">
+        <div className="form-group"><label className="form-label">Meeting type</label><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{["intro","portfolio_review","technical","offer_discussion"].map(t=><button key={t} className={"filter-pill"+(type===t?" active":"")} onClick={()=>setType(t)}>{t.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())}</button>)}</div></div>
+        <div className="form-row"><div className="form-group" style={{margin:0}}><label className="form-label">Date</label><input className="form-input" type="date" value={date} onChange={e=>setDate(e.target.value)}/></div><div className="form-group" style={{margin:0}}><label className="form-label">Time</label><input className="form-input" type="time" value={time} onChange={e=>setTime(e.target.value)}/></div></div>
+      </div>
+      <div className="modal-footer"><button className="btn" onClick={onClose}>Cancel</button><button className="btn accent" disabled={!date} onClick={()=>{ showToast(`${type.replace(/_/g," ")} scheduled with ${candidate.name.split(" ")[0]}`); onClose(); }}><Icon name="calendar" className="icon-sm"/>Confirm</button></div>
+    </>
+  );
+};
+const ShareBody = ({ title, onClose, showToast }) => {
+  const link = `https://roladex.app/shared/${Math.random().toString(36).slice(2,8)}`;
+  return (
+    <>
+      <div className="modal-body"><p style={{fontSize:14,color:"var(--ink-2)",marginBottom:20,lineHeight:1.5}}>Anyone with this link can view this {title.toLowerCase()}.</p><div style={{display:"flex",gap:8}}><input className="form-input" value={link} readOnly style={{flex:1,fontFamily:"var(--mono)",fontSize:12}}/><button className="btn accent" onClick={()=>{ navigator.clipboard?.writeText(link).catch(()=>{}); showToast("Link copied!"); }}><Icon name="copy" className="icon-sm"/>Copy</button></div></div>
+      <div className="modal-footer"><button className="btn" onClick={onClose}>Done</button></div>
+    </>
+  );
+};
+
+/* ── CARD / ROW ── */
+const PortfolioThumbs = ({ c }) => {
+  const pieces = c.portfolio.slice(0,4);
+  const featured = pieces[0];
+  return (
+    <div className="card-thumbs">
+      {pieces.length>0 ? pieces.map((p,i)=>(
+        <div key={i} className={"t"+(i===0?" big":"")} style={{background:`color-mix(in oklch,${c.color} ${30+i*8}%,var(--paper-3))`}}>
+          {p.image && <img src={p.image} alt={p.label}/>}
+          <div className="t-bg"/>
+        </div>
+      )) : (
+        <div className="t big" style={{background:`color-mix(in oklch,${c.color} 30%,var(--paper-3))`}}><div className="t-bg"/></div>
+      )}
+      <div className="count-overlay">{c.portfolio.length} pieces</div>
+      {featured && (
+        <div className="card-preview">
+          <div className="title">{featured.label}</div>
+          <div className="meta">{featured.client} · {featured.year}</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CandidateCard = ({ c, onOpen, onToggleStar }) => (
+  <div className="card" onClick={()=>onOpen(c.id)}>
+    <button className={"star-btn"+(c.shortlist?" active":"")} onClick={e=>{e.stopPropagation();onToggleStar(c.id);}} aria-label="Shortlist">
+      <Icon name={c.shortlist?"starFill":"star"} className="icon-sm"/>
+    </button>
+    <PortfolioThumbs c={c}/>
+    <div className="card-head">
+      <div className="card-avatar" style={{background:`color-mix(in oklch,${c.color} 40%,var(--paper-2))`}}>
+        {c.photo ? <img src={c.photo} alt={c.name}/> : Initials(c.name)}
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div className="card-name">{c.name}</div>
+        <div className="card-role">{c.discipline} · {c.yrs}Y</div>
+      </div>
+    </div>
+    <div className="card-summary">{c.summary}</div>
+    <div className="card-tags">{(c.tags||[]).slice(0,3).map(t=><span key={t} className="tag">{t}</span>)}</div>
+    <div className="card-meta">
+      <Availability state={c.availability}/>
+      <span style={{color:"var(--ink-4)"}}>·</span>
+      <span>{c.location}</span>
+      <span style={{marginLeft:"auto"}}><Stars n={c.stars} small/></span>
+    </div>
+  </div>
+);
+
+const CandidateRow = ({ c, onOpen, onToggleStar }) => (
+  <tr onClick={()=>onOpen(c.id)}>
+    <td><div className="name-cell">
+      <button style={{width:20,height:20,color:c.shortlist?"var(--accent)":"var(--ink-4)"}} onClick={e=>{e.stopPropagation();onToggleStar(c.id);}}><Icon name={c.shortlist?"starFill":"star"} className="icon-sm"/></button>
+      <div className="card-avatar" style={{width:32,height:32,fontSize:14,background:`color-mix(in oklch,${c.color} 40%,var(--paper-2))`}}>
+        {c.photo?<img src={c.photo} alt={c.name} style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>:Initials(c.name)}
+      </div>
+      <div><div style={{fontFamily:"var(--serif)",fontSize:19,letterSpacing:"-0.01em",color:"var(--ink)"}}>{c.name}</div><div className="sub">{c.pronouns} · {c.location}</div></div>
+    </div></td>
+    <td>{c.discipline}<div className="sub">{(c.subdisciplines||[]).join(", ")}</div></td>
+    <td><span className="sub">{c.yrs} yrs</span></td>
+    <td><Availability state={c.availability}/></td>
+    <td><span className="sub">{c.salary}</span></td>
+    <td><Stars n={c.stars} small/></td>
+    <td><span className="sub">{c.stage}</span></td>
+    <td><span className="sub">{c.lastActive}{c.lastActive!=="just now"?" ago":""}</span></td>
+  </tr>
+);
+
+/* ── ROSTER ── */
+const Roster = ({ candidates, view, setView, onOpen, onToggleStar, filterState, setFilterState, currentNav, disciplines, onAddCandidate, showToast }) => {
+  const filtered = useMemo(() => {
+    return candidates.filter(c=>{
+      if(filterState.query){const q=filterState.query.toLowerCase();const hay=[c.name,c.discipline,...(c.tags||[]),...(c.tools||[]),c.location,c.summary].join(" ").toLowerCase();if(!hay.includes(q))return false;}
+      if(filterState.discipline&&c.discipline!==filterState.discipline)return false;
+      if(filterState.availability&&c.availability!==filterState.availability)return false;
+      if(filterState.minYrs&&c.yrs<filterState.minYrs)return false;
+      if(filterState.stars&&c.stars<filterState.stars)return false;
+      if(currentNav==="shortlist"&&!c.shortlist)return false;
+      if(currentNav==="archived"&&c.stage!=="Archived")return false;
+      if(currentNav==="pipeline"&&(c.stage==="Archived"||c.stage==="Sourced"))return false;
+      return true;
+    }).sort((a,b)=>{
+      if(filterState.sort==="recent")return a.lastActive.localeCompare(b.lastActive);
+      if(filterState.sort==="yrs")return b.yrs-a.yrs;
+      if(filterState.sort==="salary")return b.salaryMin-a.salaryMin;
+      if(filterState.sort==="stars")return b.stars-a.stars;
+      return a.name.localeCompare(b.name);
+    });
+  },[candidates,filterState,currentNav]);
+
+  const pageMeta = {
+    all:{eyebrow:"Your roster",title:"All candidates",sub:"Everyone you've saved — filter, sort, and open any candidate for a full portfolio review."},
+    shortlist:{eyebrow:"Starred",title:"Shortlist",sub:"The candidates you're keeping close."},
+    pipeline:{eyebrow:"In motion",title:"Active pipeline",sub:"Candidates currently moving through screening, interviews, or offer."},
+    archived:{eyebrow:"Archive",title:"Reviewed previously",sub:"Candidates you've archived — still searchable and restorable."},
+  }[currentNav]||{eyebrow:"Your roster",title:"All candidates",sub:""};
+
+  const exportCSV = () => {
+    const headers=["Name","Discipline","Location","Years","Availability","Salary","Rate","Stage","Stars","Tags","Tools"];
+    const rows=filtered.map(c=>[c.name,c.discipline,c.location,c.yrs,c.availability,c.salary,c.rate,c.stage,c.stars,(c.tags||[]).join("|"),(c.tools||[]).join("|")].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
+    const csv=[headers.join(","),...rows].join("\n");
+    const blob=new Blob([csv],{type:"text/csv"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="roladex-candidates.csv";a.click();
+    showToast("CSV exported");
+  };
+
+  const set=(k,v)=>setFilterState(s=>({...s,[k]:s[k]===v?null:v}));
+  const anyFilter=filterState.discipline||filterState.availability||filterState.minYrs||filterState.stars;
+
+  return (
+    <>
+      <div className="page-header">
+        <div>
+          <div className="page-eyebrow">{pageMeta.eyebrow}</div>
+          <h1 className="page-title">{pageMeta.title}</h1>
+          <div className="page-sub">{pageMeta.sub}</div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10}}>
+          <div className="page-meta">{filtered.length} / {candidates.length} candidates</div>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn" onClick={exportCSV}><Icon name="download" className="icon-sm"/>Export CSV</button>
+            <button className="btn accent" onClick={onAddCandidate}><Icon name="plus" className="icon-sm"/>Add candidate</button>
+          </div>
+        </div>
+      </div>
+      <div className="toolbar">
+        <div className="seg">
+          <button className={view==="grid"?"active":""} onClick={()=>setView("grid")}><Icon name="grid" className="icon-sm"/>Grid</button>
+          <button className={view==="list"?"active":""} onClick={()=>setView("list")}><Icon name="list" className="icon-sm"/>List</button>
+        </div>
+        <div className="divider"/>
+        <select className="filter-pill" value={filterState.sort} onChange={e=>setFilterState(s=>({...s,sort:e.target.value}))} style={{cursor:"pointer",paddingRight:22}}>
+          <option value="name">Sort: Name A–Z</option>
+          <option value="recent">Sort: Recently active</option>
+          <option value="yrs">Sort: Experience</option>
+          <option value="salary">Sort: Comp expectation</option>
+          <option value="stars">Sort: Rating</option>
+        </select>
+        {anyFilter&&<button className="btn sm ghost" onClick={()=>setFilterState(s=>({...s,discipline:null,availability:null,minYrs:null,stars:null}))}><Icon name="x" className="icon-sm"/>Clear filters</button>}
+      </div>
+      <div className="filter-bar">
+        <span className="label-tiny">Discipline</span>
+        {disciplines.map(d=><button key={d} className={"filter-pill"+(filterState.discipline===d?" active":"")} onClick={()=>set("discipline",d)}>{d}</button>)}
+      </div>
+      <div className="filter-bar">
+        <span className="label-tiny">Availability</span>
+        {["open","passive","closed"].map(a=><button key={a} className={"filter-pill"+(filterState.availability===a?" active":"")} onClick={()=>set("availability",a)}>{a[0].toUpperCase()+a.slice(1)}</button>)}
+        <span className="label-tiny" style={{marginLeft:14}}>Min. years</span>
+        {[3,5,8,10].map(y=><button key={y} className={"filter-pill"+(filterState.minYrs===y?" active":"")} onClick={()=>set("minYrs",y)}>{y}+ yrs</button>)}
+        <span className="label-tiny" style={{marginLeft:14}}>Rating</span>
+        {[3,4,5].map(s=><button key={s} className={"filter-pill"+(filterState.stars===s?" active":"")} onClick={()=>set("stars",s)}>{"★".repeat(s)}+</button>)}
+      </div>
+      {filtered.length===0 ? <div className="empty">No candidates match these filters</div>
+      : view==="grid" ? <div className="grid">{filtered.map(c=><CandidateCard key={c.id} c={c} onOpen={onOpen} onToggleStar={onToggleStar}/>)}</div>
+      : <table className="list-table"><thead><tr><th>Name</th><th>Discipline</th><th>Exp.</th><th>Availability</th><th>Comp</th><th>Rating</th><th>Stage</th><th>Active</th></tr></thead><tbody>{filtered.map(c=><CandidateRow key={c.id} c={c} onOpen={onOpen} onToggleStar={onToggleStar}/>)}</tbody></table>}
+    </>
+  );
+};
+
+/* ── LISTS ── */
+const Lists = ({ lists, candidates, onOpenCandidate, activeList, setActiveList, onNewList, showToast, setLists }) => {
+  const [shareTarget, setShareTarget] = useState(null);
+  if(activeList){
+    const list=lists.find(l=>l.id===activeList);
+    if(!list) return null;
+    const lc=list.ids.map(id=>candidates.find(c=>c.id===id)).filter(Boolean);
+    return (
+      <>
+        <div className="page-header">
+          <div>
+            <div className="page-eyebrow"><button onClick={()=>setActiveList(null)} style={{color:"var(--accent)",fontFamily:"var(--mono)",fontSize:10,letterSpacing:"0.18em",textTransform:"uppercase"}}>← All lists</button></div>
+            <h1 className="page-title">{list.name}</h1>
+            <div className="page-sub">{lc.length} candidates · Updated {list.updated}</div>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn" onClick={()=>setShareTarget(list)}><Icon name="share" className="icon-sm"/>Share list</button>
+            <button className="btn accent" onClick={()=>showToast("Add candidate to list — drag from roster")}><Icon name="plus" className="icon-sm"/>Add candidate</button>
+          </div>
+        </div>
+        {lc.length===0?<div className="empty">No candidates in this list yet</div>
+        :<div className="grid">{lc.map(c=><CandidateCard key={c.id} c={c} onOpen={onOpenCandidate} onToggleStar={()=>{}}/>)}</div>}
+        {shareTarget&&(
+          <div className="modal" onClick={()=>setShareTarget(null)}>
+            <div className="modal-inner sm" onClick={e=>e.stopPropagation()}>
+              <div className="modal-header"><div style={{fontFamily:"var(--serif)",fontSize:26,letterSpacing:"-0.015em"}}>Share List</div><button className="btn icon" onClick={()=>setShareTarget(null)}><Icon name="x" className="icon-sm"/></button></div>
+              <ShareBody title="List" onClose={()=>setShareTarget(null)} showToast={showToast}/>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+  return (
+    <>
+      <div className="page-header">
+        <div><div className="page-eyebrow">Collections</div><h1 className="page-title">Lists</h1><div className="page-sub">Saved collections you can share with hiring managers or keep private.</div></div>
+        <button className="btn accent lg" onClick={onNewList}><Icon name="plus" className="icon-sm"/>New list</button>
+      </div>
+      <div className="lists-grid">
+        {lists.map(l=>{
+          const cs=l.ids.map(id=>candidates.find(c=>c.id===id)).filter(Boolean);
+          return (
+            <div key={l.id} className="list-card" onClick={()=>setActiveList(l.id)}>
+              <div><div style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--ink-3)",textTransform:"uppercase",letterSpacing:"0.14em",marginBottom:6}}>LIST · {l.count} CANDIDATES</div><div className="name">{l.name}</div></div>
+              <div className="mini-thumbs">
+                {cs.slice(0,5).map(c=>(
+                  <div key={c.id} className="m" style={{background:`color-mix(in oklch,${c.color} 45%,var(--paper-2))`}}>
+                    {c.photo?<img src={c.photo} alt={c.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>:Initials(c.name)}
+                  </div>
+                ))}
+                {cs.length>5&&<div className="m" style={{background:"var(--paper-3)",fontFamily:"var(--mono)",fontSize:11}}>+{cs.length-5}</div>}
+              </div>
+              <div className="meta-row"><span>Updated {l.updated}</span><span>→ Open</span></div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+};
+
+/* ── HOME PAGE ── */
+const HomePage = ({ onLogin }) => {
+  const [email,setEmail]=useState("");
+  const [pass,setPass]=useState("");
+  const [error,setError]=useState("");
+  const [loading,setLoading]=useState(false);
+
+  const doLogin = async () => {
+    if(!email||!pass){setError("Please enter your email and password.");return;}
+    setLoading(true);setError("");
+    await new Promise(r=>setTimeout(r,700));
+    if(email===DEMO_USER.email&&pass===DEMO_USER.password){
+      onLogin(DEMO_USER);
+    } else if(email.includes("@")&&pass.length>=4){
+      onLogin({name:email.split("@")[0].replace(/[._]/g," ").replace(/\b\w/g,c=>c.toUpperCase()),email,title:"Talent Lead"});
+    } else {
+      setError("Invalid credentials. Try riley@roladex.app / roladex2025");
+    }
+    setLoading(false);
+  };
+
+  const features=[
+    {icon:"users",label:"AI-powered portfolio URL import"},
+    {icon:"folder",label:"Curated shortlists for every search"},
+    {icon:"sparkles",label:"Claude extracts candidate details"},
+    {icon:"briefcase",label:"Full pipeline & stage tracking"},
+    {icon:"edit",label:"Editable profiles with image upload"},
+    {icon:"share",label:"Shareable links for hiring managers"},
+  ];
+
+  return (
+    <div className="home">
+      <nav className="home-nav">
+        <div className="brand"><span className="dot"/> Roladex<span className="mono">ATS · v0.3</span></div>
+        <div className="spacer"/>
+        <div className="nav-links">
+          <button className="btn ghost sm" style={{fontSize:13,color:"var(--ink-2)"}}>Features</button>
+          <button className="btn ghost sm" style={{fontSize:13,color:"var(--ink-2)"}}>Pricing</button>
+          <button className="btn sm" onClick={()=>{setEmail(DEMO_USER.email);setPass(DEMO_USER.password);}}>Load demo credentials</button>
+        </div>
+      </nav>
+      <div className="home-body">
+        <div className="hero-section">
+          <div>
+            <div className="hero-eyebrow">Portfolio ATS · v0.3</div>
+            <h1 className="hero-title">Your creative<br/>talent <em>roster,</em><br/>finally sorted.</h1>
+          </div>
+          <p className="hero-body">Roladex is the ATS built for teams hiring designers, illustrators, motion artists, and creative engineers. Import from any portfolio URL — Claude parses the details automatically.</p>
+          <div className="feature-chips">
+            {features.map(f=>(
+              <div key={f.label} className="feature-chip">
+                <div className="ic"><Icon name={f.icon} className="icon-sm"/></div>
+                <span style={{fontSize:12,lineHeight:1.35}}>{f.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="hero-stats">
+            <div className="hero-stat"><div className="n">12</div><div className="l">Real-world designers</div></div>
+            <div className="hero-stat"><div className="n">8</div><div className="l">Disciplines</div></div>
+            <div className="hero-stat"><div className="n">5</div><div className="l">Saved lists</div></div>
+          </div>
+        </div>
+        <div className="login-panel">
+          <div className="login-panel-inner">
+            <h2 className="login-heading">Sign in</h2>
+            <p className="login-sub">Welcome back to your talent roster.</p>
+            <div className="demo-cred">
+              <div className="dc-label">Demo account</div>
+              <div className="dc-row">
+                <div className="dc-field"><span className="dc-key">Email</span><span className="dc-val">riley@roladex.app</span></div>
+                <div className="dc-field"><span className="dc-key">Pass</span><span className="dc-val">roladex2025</span></div>
+              </div>
+            </div>
+            {error&&<div className="login-error">{error}</div>}
+            <div className="form-group"><label className="form-label">Email address</label><input className={"form-input"+(error?" error":"")} type="email" placeholder="you@company.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+            <div className="form-group"><label className="form-label">Password</label><input className={"form-input"+(error?" error":"")} type="password" placeholder="••••••••" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+            <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}><a style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--accent)",cursor:"pointer",textTransform:"uppercase",letterSpacing:"0.1em"}}>Forgot password?</a></div>
+            <button className="btn accent full lg" onClick={doLogin} disabled={loading} style={{fontSize:14,padding:"12px 20px"}}>{loading?"Signing in…":"Sign in"}</button>
+            <div className="login-divider">or</div>
+            <button className="btn full" style={{fontSize:13,padding:"10px 16px",justifyContent:"center"}} onClick={()=>{setEmail(DEMO_USER.email);setPass(DEMO_USER.password);setTimeout(doLogin,100);}}>Continue with demo account</button>
+            <div className="login-footer">Don't have an account? <a>Request access →</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── MANAGE DISCIPLINES ── */
+const ManageDisciplinesModal = ({ disciplines, candidates, onClose, onSave, showToast }) => {
+  const [list,setList]=useState([...disciplines]);
+  const [newD,setNewD]=useState("");
+  const add=()=>{const t=newD.trim();if(!t||list.includes(t))return;setList(l=>[...l,t]);setNewD("");};
+  const remove=d=>{const cnt=candidates.filter(c=>c.discipline===d).length;if(cnt>0){showToast(`Can't remove "${d}" — ${cnt} candidate${cnt>1?"s":""} assigned`);return;}setList(l=>l.filter(x=>x!==d));};
+  return (
+    <div className="modal" onClick={onClose}>
+      <div className="modal-inner sm" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header"><div><div style={{fontFamily:"var(--mono)",fontSize:10,textTransform:"uppercase",letterSpacing:"0.14em",color:"var(--ink-3)",marginBottom:6}}>Settings</div><div style={{fontFamily:"var(--serif)",fontSize:26,letterSpacing:"-0.015em"}}>Manage Disciplines</div></div><button className="btn icon" onClick={onClose}><Icon name="x" className="icon-sm"/></button></div>
+        <div className="modal-body">
+          <div className="discipline-list">
+            {list.map(d=>{const cnt=candidates.filter(c=>c.discipline===d).length;return(
+              <div key={d} className="discipline-item">
+                <span style={{width:6,height:6,borderRadius:"50%",background:"var(--ink-3)",opacity:.4,flexShrink:0,display:"inline-block"}}/>
+                <span style={{flex:1,fontSize:13,color:"var(--ink)"}}>{d}</span>
+                <span style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--ink-3)"}}>{cnt} candidate{cnt!==1?"s":""}</span>
+                <button className="btn icon sm" onClick={()=>remove(d)} style={{width:26,height:26,color:"var(--ink-3)"}}><Icon name="x" className="icon-sm"/></button>
+              </div>
+            );})}
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:8}}>
+            <input className="form-input" style={{flex:1}} placeholder="New discipline name…" value={newD} onChange={e=>setNewD(e.target.value)} onKeyDown={e=>e.key==="Enter"&&add()}/>
+            <button className="btn accent" onClick={add} disabled={!newD.trim()}><Icon name="plus" className="icon-sm"/>Add</button>
+          </div>
+        </div>
+        <div className="modal-footer"><button className="btn" onClick={onClose}>Cancel</button><button className="btn primary" onClick={()=>{onSave(list);showToast("Disciplines updated");onClose();}}>Save changes</button></div>
+      </div>
+    </div>
+  );
+};
+
+/* ── THEME MAPS ── */
+const ACCENT_MAP={
+  terracotta:{accent:"oklch(0.56 0.16 35)",accent2:"oklch(0.48 0.17 35)",soft:"oklch(0.95 0.04 35)",ink:"oklch(0.36 0.13 35)"},
+  indigo:{accent:"oklch(0.5 0.14 270)",accent2:"oklch(0.42 0.16 270)",soft:"oklch(0.94 0.04 270)",ink:"oklch(0.35 0.12 270)"},
+  moss:{accent:"oklch(0.5 0.1 150)",accent2:"oklch(0.42 0.12 150)",soft:"oklch(0.94 0.04 150)",ink:"oklch(0.35 0.1 150)"},
+  ink:{accent:"oklch(0.22 0.012 60)",accent2:"oklch(0.12 0.012 60)",soft:"oklch(0.92 0.01 60)",ink:"oklch(0.22 0.012 60)"},
+};
+const PAPER_MAP={
+  warm:{p:"oklch(0.985 0.006 85)",p2:"oklch(0.965 0.008 80)",p3:"oklch(0.93 0.01 78)"},
+  cool:{p:"oklch(0.985 0.004 240)",p2:"oklch(0.965 0.006 240)",p3:"oklch(0.93 0.008 240)"},
+  neutral:{p:"oklch(0.985 0 0)",p2:"oklch(0.965 0 0)",p3:"oklch(0.93 0 0)"},
+};
+
+/* ── ROOT APP ── */
+const App = () => {
+  const [loggedIn,setLoggedIn]=useState(()=>!!load("ats.user",null));
+  const [user,setUser]=useState(()=>load("ats.user",null));
+  const [candidates,setCandidates]=useState(()=>load("ats.candidates",DEMO_CANDIDATES));
+  const [lists,setLists]=useState(()=>load("ats.lists",DEMO_LISTS));
+  const [disciplines,setDisciplines]=useState(()=>load("ats.disciplines",DEFAULT_DISCIPLINES));
+  const [route,setRoute]=useState({view:"roster",nav:"all",id:null});
+  const [listView,setListView]=useState("grid");
+  const [sidebarOpen,setSidebarOpen]=useState(false);
+  const [activeList,setActiveList]=useState(null);
+  const [filterState,setFilterState]=useState({query:"",discipline:null,availability:null,minYrs:null,stars:null,sort:"name"});
+  const [tweaks,setTweaks]=useState({accent:"terracotta",density:"comfortable",paperTone:"warm"});
+  const [tweaksOpen,setTweaksOpen]=useState(false);
+  const [modal,setModal]=useState(null);
+  const [toasts,setToasts]=useState([]);
+  const avatarRef=useRef(null);
+
+  const showToast=useCallback((msg)=>{const id=Date.now();setToasts(t=>[...t,{id,msg}]);setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),2800);},[]);
+
+  useEffect(()=>{save("ats.candidates",candidates);},[candidates]);
+  useEffect(()=>{save("ats.lists",lists);},[lists]);
+  useEffect(()=>{save("ats.disciplines",disciplines);},[disciplines]);
+  useEffect(()=>{if(user)save("ats.user",user);else localStorage.removeItem("ats.user");},[user]);
+
+  useEffect(()=>{
+    const root=document.documentElement;
+    const a=ACCENT_MAP[tweaks.accent]||ACCENT_MAP.terracotta;
+    root.style.setProperty("--accent",a.accent);root.style.setProperty("--accent-2",a.accent2);root.style.setProperty("--accent-soft",a.soft);root.style.setProperty("--accent-ink",a.ink);
+    const p=PAPER_MAP[tweaks.paperTone]||PAPER_MAP.warm;
+    root.style.setProperty("--paper",p.p);root.style.setProperty("--paper-2",p.p2);root.style.setProperty("--paper-3",p.p3);
+    document.body.style.fontSize=tweaks.density==="compact"?"13px":"14px";
+  },[tweaks]);
+
+  useEffect(()=>{
+    const handler=e=>{
+      if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")return;
+      if(route.view==="detail"&&route.id){
+        const i=candidates.findIndex(c=>c.id===route.id);
+        if(e.key==="j")navigateCandidate(candidates[(i+1)%candidates.length].id);
+        if(e.key==="k")navigateCandidate(candidates[(i-1+candidates.length)%candidates.length].id);
+        if(e.key==="s")toggleStar(route.id);
+        if(e.key==="Escape")closeCandidate();
+      }
+      if(e.key==="/"){ e.preventDefault(); document.querySelector(".topbar input")?.focus(); }
+      if(e.key==="Escape"&&modal)setModal(null);
+    };
+    window.addEventListener("keydown",handler);
+    return()=>window.removeEventListener("keydown",handler);
+  },[route,candidates,modal]);
+
+  useEffect(()=>{
+    if(modal!=="avatarMenu")return;
+    const h=e=>{if(avatarRef.current&&!avatarRef.current.contains(e.target))setModal(null);};
+    setTimeout(()=>document.addEventListener("mousedown",h),0);
+    return()=>document.removeEventListener("mousedown",h);
+  },[modal]);
+
+  const handleLogin=u=>{setUser(u);setLoggedIn(true);};
+  const handleLogout=()=>{setUser(null);setLoggedIn(false);setModal(null);localStorage.removeItem("ats.user");};
+
+  const openCandidate=id=>setRoute({view:"detail",nav:route.nav,id});
+  const closeCandidate=()=>setRoute({...route,view:"roster",id:null});
+  const navigateCandidate=id=>setRoute({...route,id});
+  const toggleStar=id=>setCandidates(cs=>cs.map(c=>c.id===id?{...c,shortlist:!c.shortlist}:c));
+  const setStage=(id,stage)=>setCandidates(cs=>cs.map(c=>c.id===id?{...c,stage}:c));
+  const addNote=(id,text)=>setCandidates(cs=>cs.map(c=>c.id===id?{...c,notes:[{by:user?.name||"You",at:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}),text},...(c.notes||[])]}:c));
+  const addCandidate=c=>setCandidates(cs=>[c,...cs]);
+  const updateCandidate=updated=>setCandidates(cs=>cs.map(c=>c.id===updated.id?updated:c));
+  const addList=l=>setLists(ls=>[...ls,l]);
+
+  const goNav=nav=>{setRoute({view:nav==="lists"?"lists":"roster",nav,id:null});setActiveList(null);setSidebarOpen(false);};
+
+  const shortlistCount=candidates.filter(c=>c.shortlist).length;
+  const pipelineCount=candidates.filter(c=>c.stage!=="Archived"&&c.stage!=="Sourced").length;
+  const archivedCount=candidates.filter(c=>c.stage==="Archived").length;
+  const currentCandidate=route.id?candidates.find(c=>c.id===route.id):null;
+  const userInitials=(user?.name||"RM").split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase();
+
+  if(!loggedIn) return <HomePage onLogin={handleLogin}/>;
+
+  return (
+    <div className="app">
+      {/* TOPBAR */}
+      <div className="topbar">
+        <button className="btn icon menu-btn" onClick={()=>setSidebarOpen(o=>!o)}><Icon name="menu" className="icon-sm"/></button>
+        <div className="brand" onClick={()=>goNav("all")}><span className="dot"/>Roladex<span className="mono">ATS · v0.3</span></div>
+        <div className="search"><Icon name="search" className="icon-sm"/><input placeholder="Search candidates, skills, studios…" value={filterState.query} onChange={e=>setFilterState(s=>({...s,query:e.target.value}))}/><span className="kbd">/</span></div>
+        <div className="spacer"/>
+        <div className="topbar-actions">
+          <button className="btn icon" onClick={()=>showToast("No new notifications")}><Icon name="bell" className="icon-sm"/></button>
+          <button className="btn icon" onClick={()=>setModal("disciplines")}><Icon name="settings" className="icon-sm"/></button>
+          <button className="btn sm" onClick={()=>setModal("addCandidate")} style={{gap:6}}><Icon name="plus" className="icon-sm"/>Add</button>
+          <div ref={avatarRef} style={{position:"relative"}}>
+            <div className="avatar" onClick={()=>setModal(m=>m==="avatarMenu"?null:"avatarMenu")} title={user?.name}>{userInitials}</div>
+            {modal==="avatarMenu"&&(
+              <div className="avatar-menu">
+                <div style={{padding:"10px 12px 8px",borderBottom:"1px solid var(--rule-soft)",marginBottom:4}}>
+                  <div style={{fontWeight:600,fontSize:13,color:"var(--ink)"}}>{user?.name}</div>
+                  <div style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--ink-3)",marginTop:2}}>{user?.email}</div>
+                  {user?.title&&<div style={{fontSize:11,color:"var(--ink-3)",marginTop:2}}>{user.title}</div>}
+                </div>
+                <button className="menu-item" onClick={()=>{setTweaksOpen(o=>!o);setModal(null);}}><Icon name="settings" className="icon-sm"/>Appearance</button>
+                <hr/>
+                <button className="menu-item danger" onClick={handleLogout}><Icon name="logout" className="icon-sm"/>Sign out</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* SIDEBAR */}
+      <div className={"sidebar"+(sidebarOpen?" open":"")}>
+        <div className="nav-label">Roster</div>
+        <button className={"nav-item"+(route.view==="roster"&&route.nav==="all"?" active":"")} onClick={()=>goNav("all")}><Icon name="users" className="icon-sm"/>All candidates<span className="count">{candidates.length}</span></button>
+        <button className={"nav-item"+(route.view==="roster"&&route.nav==="shortlist"?" active":"")} onClick={()=>goNav("shortlist")}><Icon name="starFill" className="icon-sm"/>Shortlist<span className="count">{shortlistCount}</span></button>
+        <button className={"nav-item"+(route.view==="roster"&&route.nav==="pipeline"?" active":"")} onClick={()=>goNav("pipeline")}><Icon name="inbox" className="icon-sm"/>Active pipeline<span className="count">{pipelineCount}</span></button>
+        <button className={"nav-item"+(route.view==="roster"&&route.nav==="archived"?" active":"")} onClick={()=>goNav("archived")}><Icon name="archive" className="icon-sm"/>Archive<span className="count">{archivedCount}</span></button>
+        <div className="nav-section">
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 10px 8px"}}>
+            <div className="nav-label" style={{padding:0}}>Collections</div>
+            <button style={{color:"var(--accent)",fontSize:18,lineHeight:1}} onClick={()=>setModal("newList")}>+</button>
+          </div>
+          <button className={"nav-item"+(route.view==="lists"&&!activeList?" active":"")} onClick={()=>goNav("lists")}><Icon name="folder" className="icon-sm"/>All lists<span className="count">{lists.length}</span></button>
+          {lists.slice(0,4).map(l=>(
+            <button key={l.id} className={"nav-item"+(activeList===l.id?" active":"")} onClick={()=>{setRoute({view:"lists",nav:"lists",id:null});setActiveList(l.id);setSidebarOpen(false);}}>
+              <span className="dot-small"/><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.name}</span><span className="count">{l.count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="nav-section">
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 10px 8px"}}>
+            <div className="nav-label" style={{padding:0}}>Disciplines</div>
+            <button style={{color:"var(--accent)",fontSize:16,lineHeight:1}} onClick={()=>setModal("disciplines")}>⚙</button>
+          </div>
+          {disciplines.map(d=>{
+            const cnt=candidates.filter(c=>c.discipline===d).length;
+            return <button key={d} className={"nav-item"+(filterState.discipline===d?" active":"")} onClick={()=>{setFilterState(s=>({...s,discipline:s.discipline===d?null:d}));goNav("all");}}><span className="dot-small"/>{d}<span className="count">{cnt}</span></button>;
+          })}
+        </div>
+      </div>
+
+      {/* MAIN */}
+      <div className="main">
+        {route.view==="detail"&&currentCandidate ? (
+          <CandidateDetail c={currentCandidate} candidates={candidates} disciplines={disciplines} onBack={closeCandidate} onToggleStar={toggleStar} onSetStage={setStage} onAddNote={addNote} onNavigate={navigateCandidate} onUpdate={updateCandidate} showToast={showToast}/>
+        ) : route.view==="lists" ? (
+          <Lists lists={lists} candidates={candidates} activeList={activeList} setActiveList={setActiveList} onOpenCandidate={openCandidate} onNewList={()=>setModal("newList")} showToast={showToast} setLists={setLists}/>
+        ) : (
+          <Roster candidates={candidates} view={listView} setView={setListView} onOpen={openCandidate} onToggleStar={toggleStar} filterState={filterState} setFilterState={setFilterState} currentNav={route.nav} disciplines={disciplines} onAddCandidate={()=>setModal("addCandidate")} showToast={showToast}/>
+        )}
+      </div>
+
+      {sidebarOpen&&<div style={{position:"fixed",inset:0,background:"oklch(0 0 0/.2)",zIndex:20}} onClick={()=>setSidebarOpen(false)}/>}
+
+      {/* TWEAKS */}
+      <div className={"tweaks-panel"+(tweaksOpen?" open":"")}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <h3 style={{margin:0}}>Appearance</h3>
+          <button className="btn icon" style={{width:22,height:22}} onClick={()=>setTweaksOpen(false)}><Icon name="x" className="icon-sm"/></button>
+        </div>
+        <div className="row"><label>Accent color</label><div className="swatches">{Object.entries(ACCENT_MAP).map(([k,v])=><button key={k} className={"swatch"+(tweaks.accent===k?" active":"")} style={{background:v.accent}} onClick={()=>setTweaks(t=>({...t,accent:k}))} title={k}/>)}</div></div>
+        <div className="row"><label>Paper tone</label><div className="swatches">{Object.entries(PAPER_MAP).map(([k,v])=><button key={k} className={"swatch"+(tweaks.paperTone===k?" active":"")} style={{background:v.p,border:"1px solid var(--rule)"}} onClick={()=>setTweaks(t=>({...t,paperTone:k}))} title={k}/>)}</div></div>
+        <div className="row"><label>Density</label><div style={{display:"flex",gap:4}}>{["comfortable","compact"].map(d=><button key={d} className={"filter-pill"+(tweaks.density===d?" active":"")} onClick={()=>setTweaks(t=>({...t,density:d}))} style={{fontSize:11,padding:"3px 8px"}}>{d}</button>)}</div></div>
+      </div>
+
+      {/* MODALS */}
+      {modal==="addCandidate"&&<AddCandidateModal onClose={()=>setModal(null)} onAdd={addCandidate} disciplines={disciplines} showToast={showToast}/>}
+      {modal==="disciplines"&&<ManageDisciplinesModal disciplines={disciplines} candidates={candidates} onClose={()=>setModal(null)} onSave={setDisciplines} showToast={showToast}/>}
+      {modal==="newList"&&(
+        <div className="modal" onClick={()=>setModal(null)}>
+          <div className="modal-inner sm" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header"><div style={{fontFamily:"var(--serif)",fontSize:26,letterSpacing:"-0.015em"}}>New List</div><button className="btn icon" onClick={()=>setModal(null)}><Icon name="x" className="icon-sm"/></button></div>
+            <NewListBody onClose={()=>setModal(null)} onAdd={addList} showToast={showToast}/>
+          </div>
+        </div>
+      )}
+      <Toast toasts={toasts}/>
+    </div>
+  );
+};
+
+const NewListBody = ({ onClose, onAdd, showToast }) => {
+  const [name,setName]=useState("");
+  return (
+    <>
+      <div className="modal-body"><div className="form-group"><label className="form-label">List name</label><input className="form-input" placeholder="e.g. Q3 Motion shortlist" autoFocus value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&name.trim()&&(onAdd({id:"l"+Date.now(),name:name.trim(),count:0,updated:"Today",ids:[]}),showToast("List created"),onClose())}/></div></div>
+      <div className="modal-footer"><button className="btn" onClick={onClose}>Cancel</button><button className="btn accent" disabled={!name.trim()} onClick={()=>{onAdd({id:"l"+Date.now(),name:name.trim(),count:0,updated:"Today",ids:[]});showToast("List created");onClose();}}><Icon name="plus" className="icon-sm"/>Create list</button></div>
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Financial Futures — Compare Your 25-Year Path</title>
+<!-- Chart.js is the ONLY external resource. -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  /* ============================================================
+     DESIGN TOKENS — Apple-inspired
+     ============================================================ */
+  :root{
+    --bg:#ffffff;
+    --bg-soft:#f5f5f7;
+    --ink:#1d1d1f;
+    --ink-soft:#6e6e73;
+    --hairline:rgba(0,0,0,0.08);
+    --card:#ffffff;
+    --shadow:0 10px 40px rgba(0,0,0,0.08);
+    --shadow-hover:0 20px 60px rgba(0,0,0,0.14);
+    --radius:22px;
+    --blue:#0071e3;
+    --green:#2fa84f;
+    --indigo:#5e5ce6;
+    --teal:#12a5b3;
+    --orange:#f08c1d;
+    --font:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.4;
+    letter-spacing:-0.01em;
+  }
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 22px;}
+
+  /* ============================================================
+     NAV — frosted glass sticky
+     ============================================================ */
+  nav{
+    position:sticky;top:0;z-index:1000;
+    background:rgba(255,255,255,0.72);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid var(--hairline);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:52px;}
+  nav .brand{font-weight:700;font-size:19px;letter-spacing:-0.02em;}
+  nav .links{display:flex;gap:26px;}
+  nav .links a{font-size:13.5px;color:var(--ink-soft);transition:color .2s;}
+  nav .links a:hover{color:var(--ink);}
+  @media(max-width:760px){ nav .links{display:none;} }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  header.hero{
+    position:relative;text-align:center;padding:96px 22px 70px;overflow:hidden;
+    background:
+      radial-gradient(1200px 500px at 50% -10%, rgba(0,113,227,0.12), transparent 60%),
+      radial-gradient(900px 500px at 85% 10%, rgba(94,92,230,0.10), transparent 60%),
+      linear-gradient(180deg,#fbfbfd, #ffffff);
+  }
+  header.hero h1{
+    font-size:clamp(38px,6.2vw,72px);font-weight:700;letter-spacing:-0.03em;line-height:1.03;
+    background:linear-gradient(90deg,#1d1d1f,#3a3a3c);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  header.hero .sub{
+    font-size:clamp(17px,2.3vw,22px);color:var(--ink-soft);max-width:640px;margin:20px auto 0;font-weight:400;
+  }
+  .scrollcue{
+    display:inline-flex;align-items:center;gap:8px;margin-top:38px;font-size:14px;color:var(--blue);
+    font-weight:500;animation:bob 2s ease-in-out infinite;
+  }
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(6px);}}
+
+  /* ============================================================
+     SECTION SCAFFOLD
+     ============================================================ */
+  section{padding:70px 0;}
+  .section-head{margin-bottom:34px;}
+  .section-head .eyebrow{color:var(--blue);font-weight:600;font-size:14px;letter-spacing:0;}
+  .section-head h2{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-0.03em;margin-top:6px;}
+  .section-head p{color:var(--ink-soft);font-size:17px;margin-top:10px;max-width:680px;}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1;transform:none;}
+
+  /* ============================================================
+     CONTROL PANEL (Your Inputs)
+     ============================================================ */
+  #inputs{background:var(--bg-soft);}
+  .panel{
+    background:rgba(255,255,255,0.7);
+    backdrop-filter:saturate(180%) blur(18px);
+    -webkit-backdrop-filter:saturate(180%) blur(18px);
+    border:1px solid var(--hairline);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:28px;
+  }
+  .grid-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 30px;}
+  @media(max-width:900px){ .grid-controls{grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:600px){ .grid-controls{grid-template-columns:1fr;} }
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;font-weight:600;margin-bottom:8px;}
+  .ctrl label .val{color:var(--blue);font-variant-numeric:tabular-nums;font-weight:700;}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:5px;
+    background:#e3e3e8;outline:none;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+    background:#fff;border:1px solid rgba(0,0,0,0.12);box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    transition:transform .15s;
+  }
+  input[type=range]::-webkit-slider-thumb:active{transform:scale(1.15);}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,0.12);box-shadow:0 2px 6px rgba(0,0,0,0.2);cursor:pointer;}
+  .toggles{display:flex;flex-direction:column;gap:14px;margin-top:26px;padding-top:22px;border-top:1px solid var(--hairline);}
+  .toggle-head{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:-.01em;}
+  .toggle-head span{font-weight:500;color:var(--ink-soft);}
+  .switch{display:flex;align-items:flex-start;gap:13px;cursor:pointer;user-select:none;padding:13px 15px;border:1px solid var(--hairline);border-radius:14px;background:#fbfbfd;transition:border-color .2s,background .2s;}
+  .switch:hover{border-color:#c7c7cc;background:#fff;}
+  .switch input{display:none;}
+  .track{width:44px;height:26px;border-radius:20px;background:#d2d2d7;position:relative;transition:background .25s;flex:0 0 auto;margin-top:1px;}
+  .track::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.25);transition:transform .25s;}
+  .switch input:checked + .track{background:var(--green);}
+  .switch input:checked + .track::after{transform:translateX(18px);}
+  .switch-body{display:flex;flex-direction:column;gap:3px;}
+  .switch-title{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;font-weight:650;color:var(--ink);}
+  .switch-state{font-size:11.5px;font-weight:600;color:var(--green);}
+  .switch-desc{font-size:12.5px;font-weight:450;color:var(--ink-soft);line-height:1.55;}
+  .chip{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+  .chip-retire{background:rgba(88,86,214,.12);color:#5856d6;}
+  .chip-all{background:rgba(0,113,227,.12);color:#0071e3;}
+  .chip-sea{background:rgba(240,140,29,.14);color:#c56a00;}
+
+  .constants{margin-top:20px;font-size:12.5px;color:var(--ink-soft);line-height:1.7;}
+  .constants b{color:var(--ink);font-weight:600;}
+
+  /* ============================================================
+     HERO CHART
+     ============================================================ */
+  .chart-card{background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px;}
+  .chart-wrap{position:relative;height:440px;}
+  @media(max-width:600px){ .chart-wrap{height:340px;} }
+  .chart-fallback{display:none;padding:40px;text-align:center;color:var(--ink-soft);}
+  .legendnote{margin-top:14px;font-size:13px;color:var(--ink-soft);text-align:center;}
+
+  /* ============================================================
+     SCENARIO CARDS (flip)
+     ============================================================ */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media(max-width:900px){ .cards{grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:600px){ .cards{grid-template-columns:1fr;} }
+
+  .flip{perspective:1600px;min-height:290px;cursor:pointer;}
+  .flip-inner{position:relative;width:100%;height:100%;min-height:290px;transition:transform .7s cubic-bezier(.4,.05,.2,1);transform-style:preserve-3d;}
+  .flip.flipped .flip-inner{transform:rotateY(180deg);}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    border-radius:var(--radius);padding:26px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+    border:1px solid var(--hairline);box-shadow:var(--shadow);
+    display:flex;flex-direction:column;
+    transition:box-shadow .3s, transform .3s;
+  }
+  .flip:hover .face{box-shadow:var(--shadow-hover);}
+  .face.back{transform:rotateY(180deg);overflow-y:auto;}
+  .accentbar{width:38px;height:5px;border-radius:5px;margin-bottom:16px;}
+  .face .tag{font-size:13px;font-weight:600;color:var(--ink-soft);}
+  .face h3{font-size:20px;font-weight:700;letter-spacing:-0.02em;margin:4px 0 auto;}
+  .bignum{font-size:clamp(30px,3.4vw,40px);font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;}
+  .bignum.small{font-size:26px;}
+  .biglabel{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  .fliphint{font-size:12px;color:var(--blue);font-weight:600;margin-top:16px;display:inline-flex;align-items:center;gap:6px;}
+  .face.back .tag{margin-bottom:12px;}
+  .brk{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--hairline);font-variant-numeric:tabular-nums;}
+  .brk:last-of-type{border-bottom:none;}
+  .brk .k{color:var(--ink-soft);}
+  .brk .v{font-weight:600;}
+  .brk.total{font-weight:700;font-size:15px;color:var(--ink);border-top:2px solid var(--ink);margin-top:4px;padding-top:9px;}
+  .note{font-size:11.5px;color:var(--ink-soft);margin-top:12px;line-height:1.5;}
+
+  /* ============================================================
+     PHANTOM COSTS
+     ============================================================ */
+  #phantom{background:var(--bg-soft);}
+  .phantom-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:26px;align-items:center;}
+  @media(max-width:820px){ .phantom-grid{grid-template-columns:1fr;} }
+  .bars{display:flex;flex-direction:column;gap:12px;}
+  .bar-row{display:flex;align-items:center;gap:14px;}
+  .bar-row .name{width:150px;font-size:13.5px;font-weight:600;flex:0 0 auto;}
+  .bar-track{flex:1;background:#e7e7ec;height:26px;border-radius:8px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:8px;transition:width .8s cubic-bezier(.2,.7,.2,1);}
+  .bar-row .amt{width:96px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;flex:0 0 auto;}
+  .phantom-summary{background:var(--card);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow);border:1px solid var(--hairline);}
+  .phantom-summary .sticker{font-size:14px;color:var(--ink-soft);}
+  .phantom-summary .stickerval{font-size:34px;font-weight:700;letter-spacing:-0.02em;}
+  .phantom-summary hr{border:none;border-top:1px solid var(--hairline);margin:18px 0;}
+
+  /* ============================================================
+     BEST PATH SUMMARY
+     ============================================================ */
+  /* Suggested best options — unified spacing, generous breathing room */
+  #best .reco{margin:0 0 20px;padding:24px 26px;}
+  #best .reco .lead{font-size:19px;line-height:1.5;}
+  .rank-list{display:flex;flex-direction:column;gap:14px;}
+  .rank-item{background:var(--card);border:1px solid var(--hairline);border-radius:18px;box-shadow:var(--shadow);
+    overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+  .rank-item:hover{box-shadow:var(--shadow-hover);}
+  .rank-item.first{background:linear-gradient(180deg,#f0f7ff,#ffffff);border-color:rgba(0,113,227,0.3);}
+  .rank-head{display:flex;align-items:center;gap:18px;width:100%;background:transparent;border:none;cursor:pointer;
+    padding:20px 24px;font:inherit;text-align:left;color:var(--ink);}
+  .rank-head .pos{font-size:22px;font-weight:700;width:28px;color:var(--ink-soft);flex:0 0 auto;font-variant-numeric:tabular-nums;}
+  .rank-head .rdot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;}
+  .rank-head .rname{font-weight:600;font-size:16px;flex:1;line-height:1.3;}
+  .rank-head .rval{font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;}
+  .rank-head .rchev{flex:0 0 auto;color:var(--ink-soft);font-size:13px;transition:transform .3s;margin-left:2px;}
+  .rank-item.open .rchev{transform:rotate(180deg);}
+  .rank-body{max-height:0;overflow:hidden;transition:max-height .45s ease;}
+  .rank-item.open .rank-body{max-height:900px;}
+  .rank-body-inner{padding:22px 24px 26px;border-top:1px solid var(--hairline);}
+  .rwhy{font-size:14px;color:var(--ink);line-height:1.7;margin:0 0 22px;}
+  .rbreak{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;}
+  .rstat{background:var(--bg-soft);border-radius:11px;padding:11px 15px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .rstat span{display:block;color:var(--ink-soft);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px;}
+  .rsteps .stephead{font-weight:700;font-size:14px;margin-bottom:14px;}
+  .rsteps ul{margin:0;padding-left:20px;line-height:1.75;color:var(--ink);font-size:13.5px;}
+  .rsteps li{margin-bottom:8px;padding-left:2px;}
+  .rsteps li:last-child{margin-bottom:0;}
+  .reco{
+    margin-top:26px;background:var(--card);border-radius:var(--radius);padding:26px;border:1px solid var(--hairline);box-shadow:var(--shadow);
+  }
+  .reco .lead{font-size:20px;font-weight:600;letter-spacing:-0.02em;}
+  .reco .lead b{color:var(--blue);}
+  .disclaimer{margin-top:16px;font-size:12.5px;color:var(--ink-soft);background:var(--bg-soft);padding:14px 16px;border-radius:12px;line-height:1.6;}
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  footer{background:#f5f5f7;color:var(--ink-soft);padding:44px 0;border-top:1px solid var(--hairline);font-size:12.5px;line-height:1.7;}
+  footer b{color:var(--ink);}
+
+  /* ============================================================
+     LIVE DASHBOARD — chart + connected controls
+     ============================================================ */
+  #dashboard{background:var(--bg-soft);}
+  .dash-grid{display:grid;grid-template-columns:1.15fr .95fr;gap:26px;align-items:start;}
+  @media(max-width:940px){ .dash-grid{grid-template-columns:1fr;} }
+  .dash-chart{position:sticky;top:64px;}
+  /* mobile sticky behavior is defined in the MOBILE POLISH block below */
+
+  /* live scenario chips (color-matched to chart lines) */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .chip-pill{display:flex;align-items:center;gap:9px;padding:8px 13px;border-radius:12px;border:1px solid var(--hairline);
+    background:#fff;cursor:pointer;font-size:12.5px;font-weight:600;transition:opacity .2s,border-color .2s,box-shadow .2s,transform .2s;
+    flex:1 1 auto;min-width:150px;}
+  .chip-pill .cdot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;transition:transform .2s;}
+  .chip-pill .cname{color:var(--ink-soft);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chip-pill .cval{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);}
+  .chip-pill:hover{border-color:#c7c7cc;box-shadow:0 5px 16px rgba(0,0,0,.07);transform:translateY(-1px);}
+  .chip-pill.dim{opacity:.38;}
+  .chip-pill.spot{border-color:currentColor;box-shadow:0 6px 18px rgba(0,0,0,.10);}
+  .chip-pill.spot .cdot{transform:scale(1.25);}
+  .spotnote{font-size:12px;color:var(--blue);font-weight:600;margin-top:10px;min-height:16px;}
+
+  /* controls with tabs */
+  .dash-controls{background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(18px);
+    -webkit-backdrop-filter:saturate(180%) blur(18px);border:1px solid var(--hairline);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;}
+  .ctrl-tabs{display:flex;flex-wrap:wrap;gap:5px;background:#ececef;padding:5px;border-radius:14px;margin-bottom:20px;}
+  .ctab{flex:1 1 auto;border:none;background:transparent;padding:9px 8px;border-radius:10px;font:inherit;font-size:12.5px;
+    font-weight:600;color:var(--ink-soft);cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .ctab.active{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.14);}
+  .cgroup{display:flex;flex-direction:column;gap:18px;}
+  .cgroup[hidden]{display:none;}
+  .grouphint{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-bottom:2px;}
+  /* mobile: single collapsible that reveals the whole tabbed control panel */
+  .controls-toggle{display:none;}
+  .ct-chev{transition:transform .3s;color:var(--ink-soft);font-size:12px;flex:0 0 auto;margin-left:10px;}
+
+  /* ============================================================
+     DETAILS — splayed breakdown cards
+     ============================================================ */
+  .dhead{margin-bottom:18px;}
+  .dtag{font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:8px;}
+  .dbreak{max-width:600px;}
+
+  /* details as splayed cards (all visible, side by side) */
+  .dcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:20px;align-items:start;}
+  .dcard{background:var(--card);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:26px;display:flex;flex-direction:column;transition:box-shadow .3s,transform .3s;}
+  .dcard:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px);}
+  .dcard .bignum{font-size:32px;}
+  .dcard .dbreak{max-width:none;}
+  .dcard-wide{margin-top:20px;}
+  @media(max-width:560px){ .dcard .bignum{font-size:28px;} }
+  /* expand-for-more inside a card */
+  .dmore{max-height:0;overflow:hidden;transition:max-height .45s ease;}
+  .dcard.open .dmore{max-height:1400px;}
+  .dtoggle{margin-top:16px;align-self:flex-start;background:transparent;border:none;color:var(--blue);
+    font:inherit;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 0;}
+  .dtoggle:hover{opacity:.75;}
+  .dtoggle .tchev{font-size:11px;transition:transform .3s;}
+  .dcard.open .dtoggle .tchev{transform:rotate(180deg);}
+  /* current-standings line inside a card */
+  .brk.stand-row .k{color:var(--ink);font-weight:600;}
+  .brk.stand-row .v{color:var(--green);font-weight:700;}
+  .brk.stand-row.neg .v{color:#e0524b;}
+
+  /* ============================================================
+     MOBILE POLISH  — pinned compact chart + reachable controls
+     ============================================================ */
+  @media(max-width:940px){
+    .dash-grid{grid-template-columns:1fr;gap:18px;}
+    /* Chart sits normally at the top (no pinning / scroll-under). */
+    .dash-chart{position:static;}
+    .chart-card{padding:18px;}
+    .chart-wrap{height:240px;}
+    .chips{gap:7px;margin-top:14px;}
+    .chip-pill{min-width:0;flex:1 1 44%;padding:8px 11px;font-size:12px;}
+    .spotnote{margin-top:8px;font-size:11.5px;}
+    .dash-controls{padding:14px;}
+
+    /* Single "Adjust your numbers" collapsible that opens the full tabbed panel. */
+    .controls-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;
+      padding:15px 16px;background:#fff;border:1px solid var(--hairline);border-radius:14px;
+      font:inherit;font-size:15px;font-weight:650;color:var(--ink);cursor:pointer;text-align:left;}
+    .controls-inner{max-height:0;overflow:hidden;transition:max-height .5s ease;}
+    .dash-controls.controls-open .controls-inner{max-height:3000px;padding-top:16px;}
+    .dash-controls.controls-open .ct-chev{transform:rotate(180deg);}
+  }
+
+  @media(max-width:760px){
+    section{padding:46px 0;}
+    .section-head{margin-bottom:22px;}
+    .section-head p{font-size:16px;}
+    header.hero{padding:60px 20px 44px;}
+    .legendnote{display:none;}                 /* save vertical space in the pinned chart */
+    /* bigger, easier-to-drag sliders */
+    input[type=range]{height:8px;}
+    input[type=range]::-webkit-slider-thumb{width:27px;height:27px;}
+    input[type=range]::-moz-range-thumb{width:27px;height:27px;}
+    .ctrl label{font-size:14px;margin-bottom:10px;}
+    .ctab{padding:11px 8px;font-size:13px;}
+    .switch{padding:14px;}
+    .dcard{padding:22px;}
+    .dcard .bignum{font-size:30px;}
+    .rank-head{padding:18px;gap:12px;}
+    .rank-head .rname{font-size:15px;}
+    .rank-head .rval{font-size:16px;}
+    .rank-head .pos{font-size:19px;width:22px;}
+    .rank-body-inner{padding:18px;}
+  }
+
+  @media(max-width:560px){
+    .wrap{padding:0 16px;}
+    .dash-chart{margin:0 -16px;padding-left:16px;padding-right:16px;}
+    header.hero h1{font-size:33px;}
+    .chart-wrap{height:180px;}
+    nav .wrap{height:48px;}
+    .dash-chart{top:48px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<nav>
+  <div class="wrap">
+    <div class="brand">Financial Futures</div>
+    <div class="links">
+      <a href="#dashboard">Live Model</a>
+      <a href="#details">The Details</a>
+      <a href="#best">Game Plan</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="wrap">
+    <h1>Five futures for<br/>your money.</h1>
+    <p class="sub">Buy a home, invest the market, max retirement, park it safe, or go lean abroad. Adjust your numbers and watch 25 years unfold, side by side.</p>
+    <a href="#inputs" class="scrollcue">Adjust your numbers ↓</a>
+  </div>
+</header>
+
+<!-- ================= LIVE DASHBOARD ================= -->
+<section id="dashboard">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Live model</div>
+      <h2>Move a slider, watch it change</h2>
+      <p>The chart redraws the instant you adjust anything on the right. <span id="realBadge"></span></p>
+    </div>
+
+    <div class="dash-grid reveal">
+
+      <!-- LEFT: chart + live chips (sticky) -->
+      <div class="dash-chart">
+        <div class="chart-card">
+          <div class="chart-wrap"><canvas id="mainChart"></canvas>
+            <div class="chart-fallback" id="chartFallback">Chart library couldn't load (you may be offline). Every number on this page still works.</div>
+          </div>
+          <div class="chips" id="scenarioChips"><!-- injected live --></div>
+          <div class="spotnote" id="spotNote"></div>
+          <div class="legendnote">Each chip is a path on the chart, with its value at your horizon. Tap one to spotlight it.</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: grouped, tabbed controls -->
+      <div class="dash-controls controls-open">
+        <button class="controls-toggle" type="button">Adjust your numbers <span class="ct-chev">▾</span></button>
+        <div class="controls-inner">
+        <div class="ctrl-tabs" id="ctrlTabs">
+          <button class="ctab active" data-group="you">You</button>
+          <button class="ctab" data-group="current">Current</button>
+          <button class="ctab" data-group="home">Home</button>
+          <button class="ctab" data-group="market">Markets</button>
+          <button class="ctab" data-group="abroad">Abroad</button>
+          <button class="ctab" data-group="options">Options</button>
+        </div>
+
+        <div class="cgroup" data-group="you">
+          <div class="grouphint">The basics about you — what you have, what you can add, and how long you're planning for.</div>
+          <div class="ctrl"><label>Starting savings / lump sum <span class="val" id="v_lump"></span></label><input type="range" id="lump" min="50000" max="500000" step="5000" value="250000"></div>
+          <div class="ctrl"><label>Monthly investable <span class="val" id="v_monthly"></span></label><input type="range" id="monthly" min="500" max="4000" step="50" value="1500"></div>
+          <div class="ctrl"><label>Time horizon <span class="val" id="v_years"></span></label><input type="range" id="years" min="10" max="40" step="1" value="25"></div>
+          <div class="ctrl"><label>Inflation (for real values) <span class="val" id="v_infl"></span></label><input type="range" id="infl" min="0" max="6" step="0.1" value="3"></div>
+        </div>
+
+        <div class="cgroup" data-group="current" hidden>
+          <label class="switch">
+            <input type="checkbox" id="standTog"><span class="track"></span>
+            <span class="switch-body">
+              <span class="switch-title">Include my current standings <span class="chip chip-all">All paths</span> <span class="switch-state" id="s_stand"></span></span>
+              <span class="switch-desc">Fold in what you already have. When on, your existing investments and retirement balances grow at the market rate and your debt is paid down — all added to every path's net worth so the numbers reflect your real starting point.</span>
+            </span>
+          </label>
+          <div class="ctrl"><label>Already invested (brokerage) <span class="val" id="v_invested"></span></label><input type="range" id="invested" min="0" max="1000000" step="5000" value="0"></div>
+          <div class="ctrl"><label>Existing 401(k) / IRA balance <span class="val" id="v_k401"></span></label><input type="range" id="k401" min="0" max="1000000" step="5000" value="0"></div>
+          <div class="ctrl"><label>Current debt <span class="val" id="v_debt"></span></label><input type="range" id="debt" min="0" max="200000" step="1000" value="0"></div>
+          <div class="ctrl"><label>Debt interest rate <span class="val" id="v_debtrate"></span></label><input type="range" id="debtrate" min="0" max="25" step="0.5" value="6.5"></div>
+          <div class="grouphint" id="standReadout">Turn the toggle on and set your balances. Debt is modeled as paid off over 10 years.</div>
+        </div>
+
+        <div class="cgroup" data-group="home" hidden>
+          <div class="grouphint">Drives the <b>Buy the home</b> path (blue) and the <b>Rent + invest</b> counterfactual (green).</div>
+          <div class="ctrl"><label>Home purchase price <span class="val" id="v_price"></span></label><input type="range" id="price" min="650000" max="800000" step="5000" value="725000"></div>
+          <div class="ctrl"><label>Down payment <span class="val" id="v_down"></span></label><input type="range" id="down" min="5" max="100" step="1" value="20"></div>
+          <div class="ctrl"><label>Mortgage rate <span class="val" id="v_mort"></span></label><input type="range" id="mort" min="4" max="9" step="0.1" value="6.6"></div>
+          <div class="ctrl"><label>Home appreciation <span class="val" id="v_appr"></span></label><input type="range" id="appr" min="0" max="7" step="0.1" value="4"></div>
+          <div class="ctrl"><label>Monthly rent (baseline) <span class="val" id="v_rent"></span></label><input type="range" id="rent" min="1800" max="4500" step="50" value="2600"></div>
+        </div>
+
+        <div class="cgroup" data-group="market" hidden>
+          <div class="grouphint">Return assumptions for the <b>invest</b> (green), <b>retirement</b> (indigo) and <b>safe cash</b> (teal) paths.</div>
+          <div class="ctrl"><label>Stock market return <span class="val" id="v_stock"></span></label><input type="range" id="stock" min="3" max="11" step="0.1" value="7"></div>
+          <div class="ctrl"><label>HYSA APY <span class="val" id="v_hysa"></span></label><input type="range" id="hysa" min="1" max="5" step="0.1" value="4.0"></div>
+          <div class="ctrl"><label>CD APY <span class="val" id="v_cd"></span></label><input type="range" id="cd" min="1" max="5" step="0.1" value="4.1"></div>
+        </div>
+
+        <div class="cgroup" data-group="abroad" hidden>
+          <div class="grouphint">Shapes the <b>Southeast Asia</b> path (orange) — cost of living here vs there.</div>
+          <div class="ctrl"><label>SE Asia cost of living <span class="val" id="v_seacost"></span></label><input type="range" id="seacost" min="800" max="3000" step="50" value="1500"></div>
+          <div class="ctrl"><label>U.S. retirement cost <span class="val" id="v_uscost"></span></label><input type="range" id="uscost" min="3000" max="9000" step="100" value="4500"></div>
+          <label class="switch">
+            <input type="checkbox" id="seaAtRetire"><span class="track"></span>
+            <span class="switch-body">
+              <span class="switch-title">Move at retirement <span class="chip chip-sea">SE Asia</span> <span class="switch-state" id="s_sea"></span></span>
+              <span class="switch-desc"><b>Off = move now:</b> buy a cheap cash home today and invest the rest. <b>On = move at retirement:</b> invest normally for your whole horizon, then relocate — the details tab shows how many years your nest egg lasts on U.S. money vs. SE Asia money.</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="cgroup" data-group="options" hidden>
+          <div class="grouphint">Switches that change how a path is calculated.</div>
+          <label class="switch">
+            <input type="checkbox" id="matchTog" checked><span class="track"></span>
+            <span class="switch-body">
+              <span class="switch-title">Employer 401(k) match <span class="chip chip-retire">Retirement</span> <span class="switch-state" id="s_match"></span></span>
+              <span class="switch-desc">Adds your employer's free contribution — 50% of the first 6% of a $90k salary (up to ~$2,700/yr). Turn <b>off</b> if you have no match.</span>
+            </span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="rothTog" checked><span class="track"></span>
+            <span class="switch-body">
+              <span class="switch-title">Roth vs. Traditional <span class="chip chip-retire">Retirement</span> <span class="switch-state" id="s_roth"></span></span>
+              <span class="switch-desc"><b>On = Roth:</b> after-tax now, withdraw <b>tax-free</b> later. <b>Off = Traditional:</b> pre-tax now, taxed 22% at withdrawal (lower ending balance).</span>
+            </span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="realTog"><span class="track"></span>
+            <span class="switch-body">
+              <span class="switch-title">Inflation-adjusted <span class="chip chip-all">All paths</span> <span class="switch-state" id="s_real"></span></span>
+              <span class="switch-desc"><b>Off = nominal</b> future dollars. <b>On = real:</b> discounted to today's purchasing power, so you can judge what a path is truly worth.</span>
+            </span>
+          </label>
+          <div class="constants">
+            Held constant: <b>Property tax 1.1%</b>, <b>Insurance 0.5%</b>, <b>Maintenance 1%</b>, <b>Closing 3% buy / 6% sell</b>,
+            <b>PMI 0.6%</b> below 20% equity, mortgage <b>30 yr</b>. Caps (2026): <b>IRA $7,500</b>, <b>401(k) $24,500</b>.
+            Cheap-state cash home <b>$250,000</b>. Traditional tax <b>22%</b>.
+          </div>
+        </div>
+        </div><!-- /controls-inner -->
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= DETAILS (tabbed) ================= -->
+<section id="details">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Go deeper</div>
+      <h2>The details</h2>
+      <p>Every path's full breakdown, laid out side by side so you can compare. All figures track your sliders live.</p>
+    </div>
+
+    <div class="dcards reveal" id="detailCards">
+
+      <!-- Home -->
+      <div class="dcard">
+        <div class="accentbar" style="background:var(--blue)"></div>
+        <div class="dhead">
+          <div class="dtag">Scenario A · Buy the home</div>
+          <div class="bignum" id="home_net" style="color:var(--blue)">—</div>
+          <div class="biglabel">Net position at horizon (equity minus carrying costs)</div>
+        </div>
+        <div class="dbreak">
+          <div class="brk"><span class="k">Home value at horizon</span><span class="v" id="home_val">—</span></div>
+          <div class="brk"><span class="k">Equity built</span><span class="v" id="home_eq">—</span></div>
+          <div class="dmore">
+            <div class="brk"><span class="k">Purchase price (today's sticker)</span><span class="v" id="home_sticker">—</span></div>
+            <div class="brk"><span class="k">Remaining mortgage</span><span class="v" id="home_rem">—</span></div>
+            <div class="brk"><span class="k">Total interest paid</span><span class="v" id="home_int">—</span></div>
+            <div class="brk"><span class="k">Total property tax</span><span class="v" id="home_tax">—</span></div>
+            <div class="brk"><span class="k">Insurance + maintenance</span><span class="v" id="home_maint">—</span></div>
+            <div class="brk"><span class="k">PMI paid</span><span class="v" id="home_pmi">—</span></div>
+            <div class="brk"><span class="k">Down-pmt opportunity cost</span><span class="v" id="home_opp">—</span></div>
+            <div class="brk"><span class="k">Phantom cost total</span><span class="v" id="home_phantom">—</span></div>
+            <div class="brk stand-row" id="home_stand_row" style="display:none"><span class="k">+ Current standings (grown)</span><span class="v" id="home_stand">—</span></div>
+            <div class="brk total"><span class="k">Net position</span><span class="v" id="home_net2">—</span></div>
+            <div class="note" id="home_sold">—</div>
+          </div>
+        </div>
+        <button class="dtoggle" type="button">Show details <span class="tchev">▾</span></button>
+      </div>
+
+      <!-- Rent + Invest -->
+      <div class="dcard">
+        <div class="accentbar" style="background:var(--green)"></div>
+        <div class="dhead">
+          <div class="dtag">Scenario B · Rent + invest the difference</div>
+          <div class="bignum" id="inv_net" style="color:var(--green)">—</div>
+          <div class="biglabel">Ending portfolio value</div>
+        </div>
+        <div class="dbreak">
+          <div class="brk"><span class="k">Total contributed</span><span class="v" id="inv_contrib">—</span></div>
+          <div class="brk"><span class="k">Total growth</span><span class="v" id="inv_growth">—</span></div>
+          <div class="dmore">
+            <div class="brk"><span class="k">Lump sum invested</span><span class="v" id="inv_lump">—</span></div>
+            <div class="brk"><span class="k">Monthly invested</span><span class="v" id="inv_mo">—</span></div>
+            <div class="brk stand-row" id="inv_stand_row" style="display:none"><span class="k">+ Current standings (grown)</span><span class="v" id="inv_stand">—</span></div>
+            <div class="brk total"><span class="k">Ending value</span><span class="v" id="inv_net2">—</span></div>
+            <div class="note" id="inv_note">—</div>
+          </div>
+        </div>
+        <button class="dtoggle" type="button">Show details <span class="tchev">▾</span></button>
+      </div>
+
+      <!-- Retirement -->
+      <div class="dcard">
+        <div class="accentbar" style="background:var(--indigo)"></div>
+        <div class="dhead">
+          <div class="dtag">Scenario C · Max retirement accounts</div>
+          <div class="bignum" id="ret_net" style="color:var(--indigo)">—</div>
+          <div class="biglabel"><span id="ret_mode">Roth</span> after-tax ending balance</div>
+        </div>
+        <div class="dbreak">
+          <div class="brk"><span class="k">Account balance (pre-tax)</span><span class="v" id="ret_bal">—</span></div>
+          <div class="brk"><span class="k">Employer match value</span><span class="v" id="ret_match">—</span></div>
+          <div class="dmore">
+            <div class="brk"><span class="k">Annual employee contribution</span><span class="v" id="ret_annual">—</span></div>
+            <div class="brk"><span class="k">Roth (tax-free)</span><span class="v" id="ret_roth">—</span></div>
+            <div class="brk"><span class="k">Traditional (after 22% tax)</span><span class="v" id="ret_trad">—</span></div>
+            <div class="brk"><span class="k">Lump sum (taxable brokerage)</span><span class="v" id="ret_taxable">—</span></div>
+            <div class="brk stand-row" id="ret_stand_row" style="display:none"><span class="k">+ Current standings (grown)</span><span class="v" id="ret_stand">—</span></div>
+            <div class="brk total"><span class="k">Total (current toggle)</span><span class="v" id="ret_net2">—</span></div>
+            <div class="note" id="ret_note">—</div>
+          </div>
+        </div>
+        <button class="dtoggle" type="button">Show details <span class="tchev">▾</span></button>
+      </div>
+
+      <!-- HYSA + CD -->
+      <div class="dcard">
+        <div class="accentbar" style="background:var(--teal)"></div>
+        <div class="dhead">
+          <div class="dtag">Scenario D · HYSA + CD ladder</div>
+          <div class="bignum" id="cash_net" style="color:var(--teal)">—</div>
+          <div class="biglabel">Ending value of safe cash savings</div>
+        </div>
+        <div class="dbreak">
+          <div class="brk"><span class="k">Interest earned</span><span class="v" id="cash_growth">—</span></div>
+          <div class="brk"><span class="k">In today's dollars (real)</span><span class="v" id="cash_real">—</span></div>
+          <div class="dmore">
+            <div class="brk"><span class="k">Lump sum in CD ladder</span><span class="v" id="cash_lump">—</span></div>
+            <div class="brk"><span class="k">Monthly in HYSA</span><span class="v" id="cash_series">—</span></div>
+            <div class="brk"><span class="k">Total contributed</span><span class="v" id="cash_contrib">—</span></div>
+            <div class="brk stand-row" id="cash_stand_row" style="display:none"><span class="k">+ Current standings (grown)</span><span class="v" id="cash_stand">—</span></div>
+            <div class="brk total"><span class="k">Ending value</span><span class="v" id="cash_net2">—</span></div>
+            <div class="note" id="cash_note">—</div>
+          </div>
+        </div>
+        <button class="dtoggle" type="button">Show details <span class="tchev">▾</span></button>
+      </div>
+
+      <!-- SE Asia -->
+      <div class="dcard">
+        <div class="accentbar" style="background:var(--orange)"></div>
+        <div class="dhead">
+          <div class="dtag" id="sea_scentag">Scenario E · move now</div>
+          <div class="bignum" id="sea_net" style="color:var(--orange)">—</div>
+          <div class="biglabel" id="sea_frontlabel">Net worth: paid-off home + invested remainder</div>
+        </div>
+        <div class="dbreak">
+          <div class="brk"><span class="k">Passive income / yr (4% rule)</span><span class="v" id="sea_hi">—</span></div>
+          <div class="brk"><span class="k">Cost of living abroad / yr</span><span class="v" id="sea_hi2">—</span></div>
+          <div class="dmore">
+            <div class="dtag" id="sea_backtag" style="margin:12px 0 10px">SE Asia path — breakdown</div>
+            <div id="sea_now">
+              <div class="brk"><span class="k">Cheap-state home value</span><span class="v" id="sea_home">—</span></div>
+              <div class="brk"><span class="k">Home carrying costs</span><span class="v" id="sea_carry">—</span></div>
+              <div class="brk"><span class="k">Invested remainder + monthly</span><span class="v" id="sea_port">—</span></div>
+              <div class="brk"><span class="k">Passive income (4% rule)</span><span class="v" id="sea_passive">—</span></div>
+              <div class="brk"><span class="k">Living cost abroad</span><span class="v" id="sea_cost">—</span></div>
+              <div class="brk total"><span class="k">Net worth</span><span class="v" id="sea_net2">—</span></div>
+            </div>
+            <div id="sea_ret" style="display:none">
+              <div class="brk"><span class="k">Nest egg at retirement (yr <span id="sea_ret_yr">25</span>)</span><span class="v" id="sea_nest">—</span></div>
+              <div class="brk"><span class="k">Passive income (4% rule)</span><span class="v" id="sea_passive2">—</span></div>
+              <div class="brk"><span class="k">Lasts if you stay in the U.S.</span><span class="v" id="sea_us_last">—</span></div>
+              <div class="brk"><span class="k">Lasts if you move to SE Asia</span><span class="v" id="sea_sea_last">—</span></div>
+              <div class="brk total"><span class="k">Runway gained by moving</span><span class="v" id="sea_extra">—</span></div>
+            </div>
+            <div class="brk stand-row" id="sea_stand_row" style="display:none"><span class="k">+ Current standings (grown)</span><span class="v" id="sea_stand">—</span></div>
+            <div class="note" id="sea_last">—</div>
+          </div>
+        </div>
+        <button class="dtoggle" type="button">Show details <span class="tchev">▾</span></button>
+      </div>
+
+    </div>
+
+    <!-- Phantom costs (full-width) -->
+    <div class="dcard dcard-wide reveal">
+      <div class="accentbar" style="background:var(--orange)"></div>
+      <div class="dhead">
+        <div class="dtag">The hidden math · Phantom costs of owning</div>
+        <div class="bignum" id="ph_total" style="color:var(--orange)">—</div>
+        <div class="biglabel">Total phantom (non-equity) cost of owning over your horizon</div>
+      </div>
+      <div class="phantom-grid">
+        <div class="bars" id="phantomBars"><!-- injected --></div>
+        <div class="phantom-summary">
+          <div class="sticker">Sticker price</div>
+          <div class="stickerval" id="ph_sticker">—</div>
+          <hr/>
+          <div class="note">Interest, property tax, insurance, maintenance, closing costs, and the opportunity cost of your down payment — money that never builds equity. It can rival or exceed the price of the house itself.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= SUGGESTED BEST OPTIONS (expandable) ================= -->
+<section id="best">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Your game plan</div>
+      <h2>Suggested best options</h2>
+      <p>Ranked by projected net worth at your horizon, using your current sliders. Tap any option to see why it lands there — and how to actually tackle it.</p>
+    </div>
+    <div class="reco reveal"><div class="lead" id="recoLead">—</div></div>
+    <div class="rank-list reveal" id="rankList"><!-- injected accordion --></div>
+    <div class="disclaimer reveal" style="margin-top:18px">
+      <b>Not financial advice.</b> This is an illustrative model, not a recommendation. It ignores many real-world factors (taxes on brokerage gains, transaction frictions, job changes, health, market sequence risk, the non-financial value of a home, currency and visa risk abroad, and more). Consult a licensed professional before acting.
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <b>Financial Futures</b> — a self-contained illustrative planner. Every assumption on this page is editable; the defaults reflect real mid-2026 U.S. market conditions (mortgage rates ~6.6%, HYSA ~4%, long-run equity ~7% nominal). Numbers update live and are held only in memory — nothing is saved. <b>Not financial advice.</b>
+  </div>
+</footer>
+
+<script>
+/* ============================================================================
+   FINANCIAL FUTURES — all computation lives here. Well commented.
+   State is held in plain JS variables (no storage). Every input change
+   calls recompute() which redraws the chart and rewrites every number.
+   ============================================================================ */
+
+/* ---------- Constants (shown in the UI, not slider-editable) ---------- */
+const K = {
+  propTax: 0.011,        // property tax, % of home value / yr
+  insurance: 0.005,      // home insurance
+  maintenance: 0.010,    // maintenance
+  closingBuy: 0.03,      // closing cost on purchase
+  closingSell: 0.06,     // closing cost on sale
+  pmiRate: 0.006,        // PMI, % of loan / yr while equity < 20%
+  mortTerm: 30,          // mortgage amortization term (years)
+  iraCap: 7500,          // 2026 IRA contribution cap
+  k401Cap: 24500,        // 2026 401k employee cap
+  salary: 90000,         // salary used for match calc
+  matchPct: 0.50,        // employer matches 50%...
+  matchUpTo: 0.06,       // ...of first 6% of salary
+  tradTax: 0.22,         // effective tax on Traditional withdrawal
+  seAsiaCost: 1500,      // monthly cost of living, Vietnam
+  cheapHome: 250000      // cash home price in a low-cost state
+};
+
+/* ---------- Core finance helpers ---------- */
+
+// Future value of a lump sum, compounded MONTHLY.
+function fvLumpMonthly(P, annualRate, years){
+  return P * Math.pow(1 + annualRate/12, years*12);
+}
+// Future value of a lump sum, compounded ANNUALLY.
+function fvLumpAnnual(P, annualRate, years){
+  return P * Math.pow(1 + annualRate, years);
+}
+// Future value of a monthly contribution stream (ordinary annuity), MONTHLY compounding.
+// FV = PMT * (((1+m)^N - 1) / m),  m = monthly rate, N = months.
+function fvSeriesMonthly(pmt, annualRate, years){
+  const m = annualRate/12, N = Math.round(years*12);
+  if (m === 0) return pmt * N;
+  return pmt * (Math.pow(1+m, N) - 1) / m;
+}
+// Future value of an ANNUAL contribution stream (ordinary annuity), annual compounding.
+function fvSeriesAnnual(pmt, annualRate, years){
+  if (annualRate === 0) return pmt * years;
+  return pmt * (Math.pow(1+annualRate, years) - 1) / annualRate;
+}
+// Standard mortgage monthly payment.
+// M = P * r(1+r)^n / ((1+r)^n - 1)
+function mortgagePayment(principal, annualRate, termYears){
+  const r = annualRate/12, n = termYears*12;
+  if (r === 0) return principal / n;
+  const f = Math.pow(1+r, n);
+  return principal * r * f / (f - 1);
+}
+// Remaining mortgage balance after `monthsElapsed` payments.
+// B = P(1+r)^k - M((1+r)^k - 1)/r
+function remainingBalance(principal, annualRate, termYears, monthsElapsed){
+  const r = annualRate/12;
+  const M = mortgagePayment(principal, annualRate, termYears);
+  if (r === 0) return Math.max(0, principal - M*monthsElapsed);
+  const f = Math.pow(1+r, monthsElapsed);
+  return Math.max(0, principal*f - M*(f - 1)/r);
+}
+
+/* ============================================================================
+   HAND-CHECK (verified in comments):
+   Defaults: price 725,000, down 20% -> down 145,000, loan 580,000,
+   rate 6.6% (r=0.0055/mo), term 30yr (n=360).
+   (1.0055)^360 = 7.2015 -> M = 580000*0.0055*7.2015/6.2015 = $3,704.9 / mo.  ✓
+   After 300 payments (25 yr): (1.0055)^300 = 5.1830 ->
+   B = 580000*5.1830 - 3704.9*(5.1830-1)/0.0055 = 3,006,140 - 2,817,600 = ~$188,540 remaining.  ✓
+   Home value yr25 = 725000*1.04^25 = 725000*2.6658 = ~$1,932,700.  ✓
+   Equity = 1,932,700 - 188,540 = ~$1,744,160.
+   Carrying (tax+ins+maint = 2.6%/yr of growing value), sum yr1..25:
+   Σ 725000*1.04^t = 725000*1.04*(1.04^25-1)/0.04 = ~31,404,000; *2.6% = ~$816,500.
+   Net position = 1,744,160 - 816,500 = ~$927,700.  ✓ (matches rendered value)
+   ============================================================================ */
+
+/* ---------- Read all inputs into a plain object ---------- */
+function readInputs(){
+  const g = id => parseFloat(document.getElementById(id).value);
+  return {
+    lump:   g('lump'),
+    monthly:g('monthly'),
+    years:  g('years'),
+    price:  g('price'),
+    downPct:g('down'),
+    mort:   g('mort')/100,
+    appr:   g('appr')/100,
+    stock:  g('stock')/100,
+    hysa:   g('hysa')/100,
+    cd:     g('cd')/100,
+    rent:   g('rent'),
+    infl:   g('infl')/100,
+    seaCost:g('seacost'),
+    usCost: g('uscost'),
+    invested:g('invested'),
+    k401:   g('k401'),
+    debt:   g('debt'),
+    debtRate:g('debtrate')/100,
+    matchOn:document.getElementById('matchTog').checked,
+    roth:   document.getElementById('rothTog').checked,
+    real:   document.getElementById('realTog').checked,
+    seaAtRetire:document.getElementById('seaAtRetire').checked,
+    standOn:document.getElementById('standTog').checked
+  };
+}
+
+/* ---------- SCENARIO: Buy the home. Returns per-year net worth + summary. ---------- */
+function computeHome(inp, t){
+  const down = inp.price * inp.downPct/100;
+  const loan = inp.price - down;
+  const M = mortgagePayment(loan, inp.mort, K.mortTerm);
+  const closingBuy = inp.price * K.closingBuy;
+
+  // Iterate year by year to accumulate carrying + PMI (PMI stops at 20% equity).
+  let cumCarry = 0, cumPMI = 0;
+  for (let y = 1; y <= t; y++){
+    const val = inp.price * Math.pow(1+inp.appr, y);
+    cumCarry += val * (K.propTax + K.insurance + K.maintenance);
+    // PMI: paid while loan balance > 80% of ORIGINAL price (i.e. equity < 20%) and down < 20%.
+    if (inp.downPct < 20){
+      const bal = remainingBalance(loan, inp.mort, K.mortTerm, Math.min(y,K.mortTerm)*12);
+      if (bal > 0.8 * inp.price) cumPMI += loan * K.pmiRate;
+    }
+  }
+  const monthsElapsed = Math.min(t, K.mortTerm) * 12;
+  const remBal = t >= K.mortTerm ? 0 : remainingBalance(loan, inp.mort, K.mortTerm, monthsElapsed);
+  const homeVal = inp.price * Math.pow(1+inp.appr, t);
+  const equity = homeVal - remBal;
+
+  // Interest paid so far = payments made - principal reduced.
+  const totalPaid = M * monthsElapsed;
+  const principalPaid = loan - remBal;
+  const cumInterest = totalPaid - principalPaid;
+
+  // Opportunity cost of the down payment + buy closing (what it *could* have earned in stocks).
+  const oppCost = fvLumpMonthly(down + closingBuy, inp.stock, t) - (down + closingBuy);
+
+  // Net worth per spec: equity minus carrying (interest is embedded via remaining balance).
+  const netWorth = equity - cumCarry - cumPMI;
+
+  const phantom = cumInterest + cumCarry + cumPMI + closingBuy + oppCost;
+  const ifSold = equity - homeVal * K.closingSell; // net if sold at horizon
+
+  return {
+    netWorth, homeVal, remBal, equity, cumInterest,
+    cumTax: cumCarry * (K.propTax/(K.propTax+K.insurance+K.maintenance)),
+    cumInsMaint: cumCarry * ((K.insurance+K.maintenance)/(K.propTax+K.insurance+K.maintenance)),
+    cumPMI, oppCost, phantom, closingBuy, ifSold, M, down, loan
+  };
+}
+
+/* ---------- SCENARIO: Rent + invest the difference ---------- */
+function computeInvest(inp, t){
+  // Homeowner's first-year monthly outflow (P&I + tax/ins/maint) vs rent = the "difference".
+  const down = inp.price * inp.downPct/100;
+  const loan = inp.price - down;
+  const M = mortgagePayment(loan, inp.mort, K.mortTerm);
+  const ownerMonthly = M + inp.price * (K.propTax+K.insurance+K.maintenance)/12;
+  const housingDiff = Math.max(0, ownerMonthly - inp.rent);
+  const monthlyContrib = inp.monthly + housingDiff; // base savings + rent-vs-own savings
+
+  const lumpFV   = fvLumpMonthly(inp.lump, inp.stock, t);   // full lump invested (no home bought)
+  const seriesFV = fvSeriesMonthly(monthlyContrib, inp.stock, t);
+  const net = lumpFV + seriesFV;
+  const contributed = inp.lump + monthlyContrib * 12 * t;
+  return { net, lumpFV, seriesFV, monthlyContrib, contributed, growth: net - contributed, housingDiff };
+}
+
+/* ---------- SCENARIO: Max retirement accounts ---------- */
+function computeRetire(inp, t){
+  // Employee can only contribute what they have: min(annual budget, combined caps).
+  const budget = inp.monthly * 12;
+  const employee = Math.min(budget, K.iraCap + K.k401Cap);
+  const toIRA = Math.min(employee, K.iraCap);
+  const to401 = employee - toIRA;
+  // Employer match: 50% of first 6% of salary, but only up to what's put in the 401k.
+  const matchable = Math.min(to401, K.salary * K.matchUpTo);
+  const match = inp.matchOn ? matchable * K.matchPct : 0;
+
+  const annualContrib = employee + match;
+  const acctBal = fvSeriesAnnual(annualContrib, inp.stock, t); // grows at market rate
+  const matchValue = fvSeriesAnnual(match, inp.stock, t);
+  const roth = acctBal;                       // Roth: withdrawals tax-free
+  const trad = acctBal * (1 - K.tradTax);     // Traditional: taxed 22% at withdrawal
+  const taxable = fvLumpAnnual(inp.lump, inp.stock, t); // lump can't fit in accounts -> brokerage
+
+  const net = taxable + (inp.roth ? roth : trad);
+  return { net, acctBal, roth, trad, taxable, matchValue, annualContrib, employee, match };
+}
+
+/* ---------- SCENARIO: HYSA + CD ladder (safe cash) ---------- */
+function computeCash(inp, t){
+  const lumpFV   = fvLumpMonthly(inp.lump, inp.cd, t);      // lump in a CD ladder
+  const seriesFV = fvSeriesMonthly(inp.monthly, inp.hysa, t); // monthly into HYSA
+  const net = lumpFV + seriesFV;
+  const contributed = inp.lump + inp.monthly * 12 * t;
+  const real = net / Math.pow(1+inp.infl, t);
+  return { net, lumpFV, seriesFV, contributed, growth: net - contributed, real };
+}
+
+/* ---------- SCENARIO: Southeast Asia retirement ----------
+   Two modes, set by the "Move to SE Asia at retirement" toggle:
+   (a) mode 'now'  — buy a cheap cash home TODAY and invest the remainder + monthly.
+   (b) mode 'ret'  — invest normally for the whole horizon, then relocate AT retirement;
+                     compare how long the same nest egg lasts spending U.S. money vs SE Asia money.  */
+function computeSEAsia(inp, t){
+  const seaAnnual = inp.seaCost * 12;
+
+  if (inp.seaAtRetire){
+    // (b) Save & invest normally now; the move (and the low cost of living) happens at retirement.
+    const nestEgg  = fvLumpMonthly(inp.lump, inp.stock, t) + fvSeriesMonthly(inp.monthly, inp.stock, t);
+    const passive  = nestEgg * 0.04;                 // 4% safe-withdrawal income
+    const usAnnual = inp.usCost * 12;
+    // Decumulation: how many years the nest egg funds each lifestyle (returns keep compounding, costs inflate).
+    const yearsSEA = yearsMoneyLasts(nestEgg, seaAnnual, inp.stock, inp.infl);
+    const yearsUS  = yearsMoneyLasts(nestEgg, usAnnual,  inp.stock, inp.infl);
+    return { mode:'ret', net:nestEgg, nestEgg, passive, yearsSEA, yearsUS, seaAnnual, usAnnual };
+  }
+
+  // (a) Move now: buy a ~$250k home in cash; invest whatever lump remains + the monthly amount.
+  const remainder = Math.max(0, inp.lump - K.cheapHome);
+  const homeVal = K.cheapHome * Math.pow(1+inp.appr, t);
+  // Carrying costs on the paid-off cheap home.
+  let carry = 0;
+  for (let y=1; y<=t; y++){ carry += K.cheapHome*Math.pow(1+inp.appr,y)*(K.propTax+K.insurance+K.maintenance); }
+  const portfolio = fvLumpMonthly(remainder, inp.stock, t) + fvSeriesMonthly(inp.monthly, inp.stock, t);
+  const net = homeVal - carry + portfolio;
+
+  // How long does the portfolio fund the SE Asia lifestyle? (with inflation & returns)
+  const yearsLast = yearsMoneyLasts(portfolio, seaAnnual, inp.stock, inp.infl);
+  const passive = portfolio * 0.04; // 4% safe withdrawal rule
+  return { mode:'now', net, homeVal, carry, portfolio, remainder, yearsLast, passive, seaAnnual };
+}
+
+// Depletion simulation. Returns -1 if the money never runs out (passive income covers costs).
+function yearsMoneyLasts(startBal, annualCost, growth, infl){
+  if (startBal * growth >= annualCost) return -1; // returns alone cover living costs -> perpetual
+  let bal = startBal, cost = annualCost;
+  for (let y=1; y<=60; y++){
+    bal = bal*(1+growth) - cost;
+    cost *= (1+infl);
+    if (bal <= 0) return y;
+  }
+  return 60;
+}
+
+/* ---------- Formatting + number count-up ---------- */
+function fmt(n){
+  const neg = n < 0;
+  const s = '$' + Math.round(Math.abs(n)).toLocaleString('en-US');
+  return neg ? '-' + s : s;
+}
+function deflate(n, inp, t){ return inp.real ? n / Math.pow(1+inp.infl, t) : n; }
+
+// animate a number element from its current value to a target.
+const _cur = {};
+function setNum(id, target){
+  const el = document.getElementById(id);
+  if (!el) return;
+  const from = _cur[id] || 0;
+  _cur[id] = target;
+  const start = performance.now(), dur = 550;
+  function step(now){
+    const p = Math.min(1, (now-start)/dur);
+    const e = 1 - Math.pow(1-p, 3); // ease-out cubic
+    el.textContent = fmt(from + (target-from)*e);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---------- Current standings: existing wealth carried into every path ----------
+   Existing investments + retirement grow at the market rate; debt is paid down
+   (amortized over 10 years). The net is added to every scenario's net worth so
+   the projections reflect your real starting point. Nominal (deflation applied later). */
+const DEBT_PAYOFF_YEARS = 10;
+function standings(inp, t){
+  if (!inp.standOn) return { on:false, invFV:0, retFV:0, debtRem:0, net:0 };
+  const invFV  = fvLumpMonthly(inp.invested, inp.stock, t);        // brokerage grows at market
+  const retFV  = fvLumpMonthly(inp.k401,     inp.stock, t);        // 401k/IRA grows at market
+  const debtRem = remainingBalance(inp.debt, inp.debtRate, DEBT_PAYOFF_YEARS, Math.min(t, DEBT_PAYOFF_YEARS)*12);
+  return { on:true, invFV, retFV, debtRem, net: invFV + retFV - debtRem };
+}
+
+/* ---------- Build the full per-year series for the chart ---------- */
+function seriesFor(fn, inp){
+  const arr = [];
+  for (let t=0; t<=inp.years; t++){
+    let v = fn(inp, t).net !== undefined ? fn(inp, t).net : fn(inp, t).netWorth;
+    v += standings(inp, t).net;            // fold in current standings at each year
+    arr.push(deflate(v, inp, t));
+  }
+  return arr;
+}
+
+/* ---------- Chart.js setup ---------- */
+let chart = null;
+let spotlight = null;   // dataset index to isolate on the chart, or null for "show all"
+function buildChart(inp){
+  const canvas = document.getElementById('mainChart');
+  if (typeof Chart === 'undefined'){
+    canvas.style.display='none';
+    document.getElementById('chartFallback').style.display='block';
+    return;
+  }
+  const labels = Array.from({length: inp.years+1}, (_,i)=> 'Yr '+i);
+  const mk = (label,color,data)=>({
+    label, data, borderColor:color, backgroundColor:color+'22',
+    borderWidth:2.5, tension:.35, pointRadius:0, pointHoverRadius:5, fill:false
+  });
+  const data = {
+    labels,
+    datasets:[
+      mk('Buy the home', '#0071e3', seriesFor(computeHome, inp)),
+      mk('Rent + invest', '#2fa84f', seriesFor(computeInvest, inp)),
+      mk('Max retirement', '#5e5ce6', seriesFor(computeRetire, inp)),
+      mk('HYSA + CD', '#12a5b3', seriesFor(computeCash, inp)),
+      mk('Cheap buy + SE Asia', '#f08c1d', seriesFor(computeSEAsia, inp))
+    ]
+  };
+  const opts = {
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    animation:{duration:900, easing:'easeOutQuart'},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'rgba(255,255,255,0.95)', titleColor:'#1d1d1f', bodyColor:'#1d1d1f',
+        borderColor:'rgba(0,0,0,0.1)', borderWidth:1, padding:12, usePointStyle:true,
+        callbacks:{ label:(c)=> ' '+c.dataset.label+': '+fmt(c.parsed.y) }
+      }
+    },
+    scales:{
+      x:{grid:{display:false}, ticks:{color:'#6e6e73', maxTicksLimit:9, font:{size:12}}},
+      y:{grid:{color:'rgba(0,0,0,0.05)'}, ticks:{color:'#6e6e73', font:{size:12},
+        callback:(v)=> '$'+(v/1000000>=1 ? (v/1000000).toFixed(1)+'M' : Math.round(v/1000)+'k')}}
+    }
+  };
+  // Apply any active spotlight (isolate one path) before drawing.
+  data.datasets.forEach((ds,i)=> ds.hidden = (spotlight!==null && spotlight!==i));
+  if (chart){ chart.data = data; chart.options.animation = false; chart.update(); }
+  else { chart = new Chart(canvas.getContext('2d'), {type:'line', data, options:opts}); }
+}
+
+/* ---------- Live scenario chips (color-matched to chart lines) ---------- */
+const CHIP_META = [
+  {name:'Buy home',     c:'#0071e3'},
+  {name:'Rent + invest',c:'#2fa84f'},
+  {name:'Retirement',   c:'#5e5ce6'},
+  {name:'HYSA + CD',    c:'#12a5b3'},
+  {name:'SE Asia',      c:'#f08c1d'}
+];
+function renderChips(vals){
+  // vals: array of 5 display values in chart-dataset order.
+  const el = document.getElementById('scenarioChips');
+  el.innerHTML = CHIP_META.map((m,i)=>`
+    <button class="chip-pill" data-idx="${i}" style="color:${m.c}">
+      <span class="cdot" style="background:${m.c}"></span>
+      <span class="cname">${m.name}</span>
+      <span class="cval">${fmt(vals[i])}</span>
+    </button>`).join('');
+  applySpotlight();
+}
+function applySpotlight(){
+  document.querySelectorAll('.chip-pill').forEach(p=>{
+    const idx = +p.dataset.idx;
+    p.classList.toggle('spot', spotlight===idx);
+    p.classList.toggle('dim',  spotlight!==null && spotlight!==idx);
+  });
+  const note = document.getElementById('spotNote');
+  if (note) note.textContent = spotlight===null ? '' : `Spotlighting “${CHIP_META[spotlight].name}”. Tap it again to show all paths.`;
+  if (chart){
+    chart.data.datasets.forEach((ds,i)=> ds.hidden = (spotlight!==null && spotlight!==i));
+    chart.update();
+  }
+}
+
+/* ---------- Phantom costs visual ---------- */
+function renderPhantom(inp, home){
+  document.getElementById('ph_sticker').textContent = fmt(inp.price);
+  document.getElementById('ph_total').textContent = fmt(home.phantom);
+  const rows = [
+    ['Loan interest', home.cumInterest, '#0071e3'],
+    ['Property tax', home.cumTax, '#5e5ce6'],
+    ['Insurance + maint.', home.cumInsMaint, '#12a5b3'],
+    ['PMI', home.cumPMI, '#e0524b'],
+    ['Closing costs (buy)', home.closingBuy, '#8e8e93'],
+    ['Down-pmt opp. cost', home.oppCost, '#f08c1d']
+  ];
+  const max = Math.max(...rows.map(r=>r[1]), 1);
+  document.getElementById('phantomBars').innerHTML = rows.map(r=>`
+    <div class="bar-row">
+      <div class="name">${r[0]}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(r[1]/max*100).toFixed(1)}%;background:${r[2]}"></div></div>
+      <div class="amt">${fmt(r[1])}</div>
+    </div>`).join('');
+}
+
+/* ---------- Best-path ranking: expandable accordion with why + how-to ---------- */
+let openRanks = new Set();   // which scenario keys are expanded (persists across recompute)
+let ranksInit = false;
+function renderRanking(scen, inp){
+  const t = inp.years;
+  const D = v => deflate(v, inp, t);
+  const stNet = standings(inp, t).net;   // current standings fold into every path equally
+  const yl = y => y===-1 ? 'never runs out' : (y>=60 ? '60+ yrs' : y+' yrs');
+
+  // Per-scenario copy: the "why", a few key stats, and concrete steps to tackle it.
+  const meta = {
+    home: {
+      name:'Buy the home', c:'#0071e3', v:scen.home.netWorth + stNet,
+      why:`Owning builds ${fmt(D(scen.home.equity))} of equity, but ${fmt(D(scen.home.cumInterest))} of interest and ${fmt(D(scen.home.phantom))} of total phantom costs weigh the net position down. Strongest when you value stability and stay put long enough to outrun the cost of buying and selling.`,
+      stats:[['Equity built',D(scen.home.equity)],['Interest paid',D(scen.home.cumInterest)],['Phantom costs',D(scen.home.phantom)]],
+      steps:[
+        'Put 20% down if you can — it erases PMI and shrinks the loan.',
+        'Shop at least three lenders; even 0.25% off the rate saves tens of thousands.',
+        'Budget ~1–2% of the home value every year for maintenance.',
+        'Plan to stay 5+ years so appreciation outweighs the ~9% round-trip closing costs.'
+      ]
+    },
+    invest: {
+      name:'Rent + invest the difference', c:'#2fa84f', v:scen.invest.net + stNet,
+      why:`Investing the down payment plus the monthly gap compounds to ${fmt(D(scen.invest.net))} — ${fmt(D(scen.invest.growth))} of that is pure growth on ${fmt(D(scen.invest.contributed))} contributed. Powerful, but it only works if you truly invest the difference and ride out the down years.`,
+      stats:[['Contributed',D(scen.invest.contributed)],['Growth',D(scen.invest.growth)],['Ending',D(scen.invest.net)]],
+      steps:[
+        'Automate the monthly transfer so investing happens before you can spend it.',
+        'Use broad, low-cost index funds (expense ratio under ~0.1%).',
+        'Fill tax-advantaged space first (401k / IRA), then a taxable brokerage.',
+        'Never sell in a downturn — the growth above assumes you stay invested.'
+      ]
+    },
+    retire: {
+      name:'Max retirement accounts', c:'#5e5ce6', v:scen.retire.net + stNet,
+      why:`Tax-advantaged accounts turn your contributions plus ${fmt(D(scen.retire.matchValue))} of employer match into ${fmt(D(scen.retire.net))}. The free match and the tax treatment (Roth vs. Traditional) are the entire edge here.`,
+      stats:[['Account balance',D(scen.retire.acctBal)],['Match value',D(scen.retire.matchValue)]],
+      steps:[
+        'Contribute enough to capture the FULL employer match first — it is free money.',
+        'Then max a Roth IRA ($7,500 in 2026) for tax-free growth.',
+        'Then push more into the 401(k), up to $24,500.',
+        'Pick a target-date or total-market index fund and leave it alone.'
+      ]
+    },
+    cash: {
+      name:'HYSA + CD ladder', c:'#12a5b3', v:scen.cash.net + stNet,
+      why:`The safest path lands at ${fmt(D(scen.cash.net))} — in today's dollars only ${fmt(scen.cash.real)}, barely ahead of inflation. Ideal for money you cannot risk, weak as a decades-long growth engine.`,
+      stats:[['Ending value',D(scen.cash.net)],['Real value',scen.cash.real]],
+      steps:[
+        'Keep 3–6 months of expenses here as your emergency fund.',
+        'Ladder CDs (staggered maturities) so cash keeps coming free.',
+        'Chase APY — rates move, so revisit your bank yearly.',
+        'Don’t park long-term money here; it loses purchasing power over decades.'
+      ]
+    },
+    seasia: {
+      name:'Southeast Asia retirement', c:'#f08c1d', v:scen.seasia.net + stNet,
+      why: scen.seasia.mode==='ret'
+        ? `Invest normally, then relocate at retirement: the same ${fmt(D(scen.seasia.nestEgg))} nest egg lasts ${yl(scen.seasia.yearsUS)} at a U.S. lifestyle but ${yl(scen.seasia.yearsSEA)} in Southeast Asia. A low cost of living can make a modest nest egg effectively permanent.`
+        : `Buying cheap in cash and living lean abroad nets ${fmt(D(scen.seasia.net))}, throwing off about ${fmt(scen.seasia.passive)}/yr of passive income against a low cost of living. Geographic arbitrage does the heavy lifting.`,
+      stats: scen.seasia.mode==='ret'
+        ? [['Nest egg',D(scen.seasia.nestEgg)],['Lasts in U.S.',yl(scen.seasia.yearsUS)],['In SE Asia',yl(scen.seasia.yearsSEA)]]
+        : [['Net worth',D(scen.seasia.net)],['Passive income',scen.seasia.passive]],
+      steps:[
+        'Research long-stay / retirement visas early (Thailand, Vietnam, Malaysia MM2H, etc.).',
+        'Build a nest egg you can draw ~4%/yr from to cover local costs.',
+        'Budget separately for healthcare and trips back home.',
+        'Account for currency swings — hold some assets in your spending currency.'
+      ]
+    }
+  };
+
+  const order = Object.keys(meta).sort((a,b)=> meta[b].v - meta[a].v);
+  if (!ranksInit){ openRanks.add(order[0]); ranksInit = true; } // open the winner on first load
+
+  document.getElementById('rankList').innerHTML = order.map((k,i)=>{
+    const m = meta[k];
+    const stats = m.stats.map(s=>`<div class="rstat"><span>${s[0]}</span>${typeof s[1]==='number'?fmt(s[1]):s[1]}</div>`).join('');
+    const steps = m.steps.map(x=>`<li>${x}</li>`).join('');
+    const open = openRanks.has(k);
+    return `<div class="rank-item ${i===0?'first ':''}${open?'open':''}" data-key="${k}">
+      <button class="rank-head" aria-expanded="${open}">
+        <div class="pos">${i+1}</div>
+        <div class="rdot" style="background:${m.c}"></div>
+        <div class="rname">${m.name}</div>
+        <div class="rval">${fmt(D(m.v))}</div>
+        <div class="rchev">▾</div>
+      </button>
+      <div class="rank-body"><div class="rank-body-inner">
+        <div class="rwhy">${m.why}</div>
+        <div class="rbreak">${stats}</div>
+        <div class="rsteps"><div class="stephead">How to tackle it</div><ul>${steps}</ul></div>
+      </div></div>
+    </div>`;
+  }).join('');
+
+  const top = meta[order[0]], second = meta[order[1]];
+  document.getElementById('recoLead').innerHTML =
+    `With your current numbers, <b>${top.name}</b> comes out ahead — about <b>${fmt(D(top.v - second.v))}</b> more than the next-best option (${second.name}) at your horizon. Tap any option below for the why and a step-by-step plan.`;
+}
+
+/* ---------- Master recompute: reads inputs, updates everything ---------- */
+function recompute(){
+  const inp = readInputs();
+  const t = inp.years;
+
+  // Live slider labels.
+  document.getElementById('v_lump').textContent   = fmt(inp.lump);
+  document.getElementById('v_monthly').textContent= fmt(inp.monthly)+'/mo';
+  document.getElementById('v_years').textContent  = t+' yrs';
+  document.getElementById('v_price').textContent  = fmt(inp.price);
+  document.getElementById('v_down').textContent   = inp.downPct+'%';
+  document.getElementById('v_mort').textContent   = (inp.mort*100).toFixed(1)+'%';
+  document.getElementById('v_appr').textContent   = (inp.appr*100).toFixed(1)+'%';
+  document.getElementById('v_stock').textContent  = (inp.stock*100).toFixed(1)+'%';
+  document.getElementById('v_hysa').textContent   = (inp.hysa*100).toFixed(1)+'%';
+  document.getElementById('v_cd').textContent     = (inp.cd*100).toFixed(1)+'%';
+  document.getElementById('v_rent').textContent   = fmt(inp.rent)+'/mo';
+  document.getElementById('v_infl').textContent   = (inp.infl*100).toFixed(1)+'%';
+  document.getElementById('v_seacost').textContent= fmt(inp.seaCost)+'/mo';
+  document.getElementById('v_uscost').textContent = fmt(inp.usCost)+'/mo';
+  document.getElementById('v_invested').textContent = fmt(inp.invested);
+  document.getElementById('v_k401').textContent     = fmt(inp.k401);
+  document.getElementById('v_debt').textContent     = fmt(inp.debt);
+  document.getElementById('v_debtrate').textContent = (inp.debtRate*100).toFixed(1)+'%';
+  document.getElementById('realBadge').textContent = inp.real ? 'Showing real (today’s dollars).' : 'Showing nominal dollars.';
+
+  // Live toggle state labels.
+  const setState = (id,on,onTxt,offTxt)=>{ const e=document.getElementById(id); e.textContent = on?onTxt:offTxt; e.style.color = on?'var(--green)':'var(--ink-soft)'; };
+  setState('s_match', inp.matchOn, '· On', '· Off (no match)');
+  setState('s_roth',  inp.roth,    '· Roth (tax-free)', '· Traditional (taxed 22%)');
+  setState('s_real',  inp.real,    '· On (today’s $)', '· Off (nominal $)');
+  setState('s_sea',   inp.seaAtRetire, '· At retirement', '· Move now');
+  setState('s_stand', inp.standOn, '· Included', '· Off');
+
+  // Compute all scenarios at horizon.
+  const home  = computeHome(inp, t);
+  const invest= computeInvest(inp, t);
+  const retire= computeRetire(inp, t);
+  const cash  = computeCash(inp, t);
+  const seasia= computeSEAsia(inp, t);
+
+  const D = v => deflate(v, inp, t); // display helper
+
+  // Current standings: existing wealth folded into every path's net worth.
+  const st = standings(inp, t);
+  const TN = base => D(base + st.net);   // total net incl. current standings
+  const showStand = (rowId, valId)=>{
+    const row = document.getElementById(rowId);
+    row.style.display = st.on ? 'flex' : 'none';
+    if (st.on){
+      setNum(valId, D(st.net));
+      row.classList.toggle('neg', st.net < 0);
+      row.querySelector('.k').textContent = st.net >= 0 ? '+ Current standings (grown)' : 'Current standings (net debt)';
+    }
+  };
+  ['home','inv','ret','cash','sea'].forEach(p=> showStand(p+'_stand_row', p+'_stand'));
+  document.getElementById('standReadout').innerHTML = st.on
+    ? `Investments → <b>${fmt(D(st.invFV))}</b>, 401(k)/IRA → <b>${fmt(D(st.retFV))}</b>, debt remaining → <b>${fmt(D(st.debtRem))}</b>. Net added to every path: <b>${fmt(D(st.net))}</b>. Debt is modeled as paid off over ${DEBT_PAYOFF_YEARS} years.`
+    : 'Turn the toggle on and set your balances. Debt is modeled as paid off over 10 years.';
+
+  /* --- Card A: Home --- */
+  setNum('home_sticker', inp.price); // today's purchase price, for context (not deflated)
+  setNum('home_net',  TN(home.netWorth));  setNum('home_net2', TN(home.netWorth));
+  setNum('home_val',  D(home.homeVal));   setNum('home_rem',  D(home.remBal));
+  setNum('home_eq',   D(home.equity));    setNum('home_int',  D(home.cumInterest));
+  setNum('home_tax',  D(home.cumTax));    setNum('home_maint',D(home.cumInsMaint));
+  setNum('home_pmi',  D(home.cumPMI));    setNum('home_opp',  D(home.oppCost));
+  setNum('home_phantom', D(home.phantom));
+  document.getElementById('home_sold').textContent =
+    `If sold at horizon (after 6% selling costs): ${fmt(D(home.ifSold))}. Mortgage payment: ${fmt(home.M)}/mo on a ${fmt(home.loan)} loan.`;
+
+  /* --- Card B: Rent + invest --- */
+  setNum('inv_net', TN(invest.net)); setNum('inv_net2', TN(invest.net));
+  setNum('inv_lump', D(invest.lumpFV)); setNum('inv_mo', D(invest.seriesFV));
+  setNum('inv_contrib', D(invest.contributed)); setNum('inv_growth', D(invest.growth));
+  document.getElementById('inv_note').textContent =
+    `Assumes the full lump sum is invested and ${fmt(invest.monthlyContrib)}/mo goes in — your ${fmt(inp.monthly)} base plus ${fmt(invest.housingDiff)} saved by renting (${fmt(inp.rent)}) instead of owning. ${(inp.stock*100).toFixed(1)}% return, compounded monthly.`;
+
+  /* --- Card C: Retirement --- */
+  document.getElementById('ret_mode').textContent = inp.roth ? 'Roth' : 'Traditional';
+  setNum('ret_net', TN(retire.net)); setNum('ret_net2', TN(retire.net));
+  setNum('ret_annual', retire.employee); setNum('ret_match', D(retire.matchValue));
+  setNum('ret_bal', D(retire.acctBal)); setNum('ret_roth', D(retire.roth));
+  setNum('ret_trad', D(retire.trad));   setNum('ret_taxable', D(retire.taxable));
+  document.getElementById('ret_note').textContent =
+    `Contributions are capped at what your ${fmt(inp.monthly)}/mo budget allows (IRA first, then 401k). Employer match ${inp.matchOn?'on':'off'}. The lump sum can't fit in tax-advantaged accounts, so it grows in a taxable brokerage. Roth is tax-free; Traditional is taxed 22% at withdrawal.`;
+
+  /* --- Card D: Cash --- */
+  setNum('cash_net', TN(cash.net)); setNum('cash_net2', TN(cash.net));
+  setNum('cash_lump', D(cash.lumpFV)); setNum('cash_series', D(cash.seriesFV));
+  setNum('cash_contrib', D(cash.contributed)); setNum('cash_growth', D(cash.growth));
+  setNum('cash_real', cash.real);
+  document.getElementById('cash_note').textContent =
+    `The safest path — but at ${(inp.cd*100).toFixed(1)}% vs ${(inp.infl*100).toFixed(1)}% inflation, real growth is thin. Great for an emergency fund, weak for a 25-year plan.`;
+
+  /* --- Card E: SE Asia --- */
+  const yrTxt = y => y === -1 ? 'Never runs out' : (y >= 60 ? '60+ years' : `${y} years`);
+  // Always-visible summary points (mode-independent).
+  setNum('sea_hi',  D(seasia.passive));
+  setNum('sea_hi2', seasia.seaAnnual);
+  if (seasia.mode === 'ret'){
+    // Move-at-retirement mode: show the drawdown contrast.
+    document.getElementById('sea_now').style.display = 'none';
+    document.getElementById('sea_ret').style.display = '';
+    document.getElementById('sea_scentag').textContent = 'Scenario E · move at retirement';
+    document.getElementById('sea_backtag').textContent = 'SE Asia at retirement — how long it lasts';
+    document.getElementById('sea_frontlabel').textContent = `Nest egg at retirement, then ${fmt(inp.seaCost)}/mo abroad`;
+    document.getElementById('sea_ret_yr').textContent = t;
+    setNum('sea_net', TN(seasia.nestEgg));
+    setNum('sea_nest', D(seasia.nestEgg));
+    setNum('sea_passive2', D(seasia.passive));
+    document.getElementById('sea_us_last').textContent  = yrTxt(seasia.yearsUS);
+    document.getElementById('sea_sea_last').textContent = yrTxt(seasia.yearsSEA);
+    // "Runway gained": extra years (or perpetual) from moving.
+    let extra;
+    if (seasia.yearsSEA === -1) extra = seasia.yearsUS === -1 ? 'Both perpetual' : 'Becomes perpetual';
+    else if (seasia.yearsUS === -1) extra = '—';
+    else extra = `+${Math.max(0, seasia.yearsSEA - seasia.yearsUS)} years`;
+    document.getElementById('sea_extra').textContent = extra;
+    // Withdrawal rate each lifestyle needs from the nest egg (lower = safer / earlier retirement possible).
+    const wrSEA = (seasia.seaAnnual / seasia.nestEgg * 100);
+    const wrUS  = (seasia.usAnnual  / seasia.nestEgg * 100);
+    let note;
+    if (seasia.yearsSEA === -1 && seasia.yearsUS === -1){
+      // Both sustainable — frame it as how little SE Asia demands.
+      note = `You invest normally for ${t} years, then relocate at retirement. Both lifestyles are sustainable from this ${fmt(D(seasia.nestEgg))} nest egg, but Southeast Asia only draws ${wrSEA.toFixed(1)}% a year versus ${wrUS.toFixed(1)}% for a U.S. lifestyle — so you'd need a far smaller nest egg, could retire years sooner, and leave a big cushion for travel, healthcare, or heirs.`;
+    } else {
+      const usTxt = seasia.yearsUS === -1 ? `never runs out at a ${fmt(seasia.usAnnual)}/yr U.S. lifestyle` : `lasts about ${seasia.yearsUS} years at a ${fmt(seasia.usAnnual)}/yr U.S. lifestyle`;
+      const seaTxt = seasia.yearsSEA === -1
+        ? `but at ${fmt(seasia.seaAnnual)}/yr in Southeast Asia it never runs out — perpetual passive income.`
+        : `but at ${fmt(seasia.seaAnnual)}/yr in Southeast Asia it stretches to about ${seasia.yearsSEA} years.`;
+      note = `You invest normally for ${t} years, then relocate at retirement. The same ${fmt(D(seasia.nestEgg))} nest egg ${usTxt}; ${seaTxt}`;
+    }
+    document.getElementById('sea_last').textContent = note;
+  } else {
+    // Move-now mode (original).
+    document.getElementById('sea_now').style.display = '';
+    document.getElementById('sea_ret').style.display = 'none';
+    document.getElementById('sea_scentag').textContent = 'Scenario E · move now';
+    document.getElementById('sea_backtag').textContent = 'SE Asia path — breakdown';
+    document.getElementById('sea_frontlabel').textContent = 'Net worth: paid-off home + invested remainder';
+    setNum('sea_net', TN(seasia.net)); setNum('sea_net2', TN(seasia.net));
+    setNum('sea_home', D(seasia.homeVal)); setNum('sea_carry', D(seasia.carry));
+    setNum('sea_port', D(seasia.portfolio)); setNum('sea_passive', D(seasia.passive));
+    setNum('sea_cost', seasia.seaAnnual);
+    document.getElementById('sea_last').textContent = seasia.yearsLast === -1
+      ? `At a 4% withdrawal your portfolio throws off ${fmt(seasia.passive)}/yr — more than the ${fmt(seasia.seaAnnual)}/yr cost of living abroad. The money effectively never runs out; it becomes perpetual passive income.`
+      : `Living at ${fmt(seasia.seaAnnual)}/yr (${(inp.infl*100).toFixed(1)}% inflation), the invested portfolio would last about ${seasia.yearsLast} years before depleting.`;
+  }
+
+  /* --- Live chips (values at horizon, in chart-dataset order; incl. standings) --- */
+  renderChips([ TN(home.netWorth), TN(invest.net), TN(retire.net), TN(cash.net), TN(seasia.net) ]);
+
+  /* --- Phantom + ranking + chart --- */
+  renderPhantom(inp, home);
+  renderRanking({home, invest, retire, cash, seasia}, inp);
+  buildChart(inp);
+}
+
+/* ---------- Wire up inputs ---------- */
+document.querySelectorAll('input[type=range]').forEach(el => el.addEventListener('input', recompute));
+document.querySelectorAll('input[type=checkbox]').forEach(el => el.addEventListener('change', recompute));
+
+/* ---------- Control tabs (desktop) ---------- */
+document.querySelectorAll('.ctab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.ctab').forEach(b=> b.classList.remove('active'));
+    btn.classList.add('active');
+    const g = btn.dataset.group;
+    document.querySelectorAll('.cgroup').forEach(p=> p.hidden = (p.dataset.group !== g));
+  });
+});
+
+/* ---------- Mobile: single "Adjust your numbers" collapsible (keeps the tabs inside) ---------- */
+const controlsToggle = document.querySelector('.controls-toggle');
+if (controlsToggle){
+  controlsToggle.addEventListener('click', ()=>{
+    controlsToggle.closest('.dash-controls').classList.toggle('controls-open');
+  });
+}
+
+/* ---------- Detail cards: tap "Show details" to expand the full breakdown ---------- */
+document.getElementById('detailCards').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.dtoggle');
+  if (!btn) return;
+  const card = btn.closest('.dcard');
+  const open = card.classList.toggle('open');
+  btn.firstChild.textContent = open ? 'Hide details ' : 'Show details ';
+});
+
+/* ---------- Chip click → spotlight one path on the chart ---------- */
+document.getElementById('scenarioChips').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.chip-pill');
+  if (!pill) return;
+  const idx = +pill.dataset.idx;
+  spotlight = (spotlight === idx) ? null : idx;
+  applySpotlight();
+});
+
+/* ---------- Ranking accordion → expand for why + how-to (persists across recompute) ---------- */
+document.getElementById('rankList').addEventListener('click', (e)=>{
+  const head = e.target.closest('.rank-head');
+  if (!head) return;
+  const item = head.closest('.rank-item');
+  const key = item.dataset.key;
+  if (openRanks.has(key)) openRanks.delete(key); else openRanks.add(key);
+  const isOpen = openRanks.has(key);
+  item.classList.toggle('open', isOpen);
+  head.setAttribute('aria-expanded', isOpen);
+});
+
+/* ---------- Scroll reveal ---------- */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+
+/* ---------- Initial paint ---------- */
+if (document.readyState !== 'loading') recompute();
+else document.addEventListener('DOMContentLoaded', recompute);
+// If Chart.js loads a beat late (slow CDN), rebuild once it's ready.
+window.addEventListener('load', ()=>{ if (typeof Chart !== 'undefined' && !chart) buildChart(readInputs()); });
+</script>
+</body>
+</html>
